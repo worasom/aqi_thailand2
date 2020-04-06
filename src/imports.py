@@ -15,7 +15,7 @@ import requests
 import wget
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.support.select import Select
+
 
 import time
 from datetime import datetime, date
