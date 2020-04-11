@@ -2,7 +2,9 @@
 from ..imports import *
 
 def read_b_data(filename):
-    """Read Berkeley earth .txt file data. Return a dataframe. Create a datetime column with local timezone.
+    """Read Berkeley earth .txt file data. Return a dataframe and city information. 
+    
+    Create a datetime column with local timezone.
     
     """
     #read data file
@@ -15,8 +17,20 @@ def read_b_data(filename):
     data_df['datetime'] = data_df['datetime'].dt.tz_localize(None)
     # drop Year, month, day, UTC hours, PM10_mask columns
     data_df=data_df.drop([0,1,2,3,5,6],axis=1)
-    data_df.columns = ['pm25', 'datetime']
-    return data_df 
+    data_df.columns = ['PM2.5', 'datetime']
+
+    # inspecting the top of the files 
+    with open(filename,'r') as f:
+        city_info = {}
+        for i in range(9):
+            line = f.readline()
+            # remove %
+            line = line.replace('% ','')
+            line = line.replace('\n','')
+            k, v = line.split(': ')
+            city_info[k] = v
+
+    return data_df, city_info
 
 
 def read_his_xl(filename):
@@ -32,7 +46,7 @@ def read_his_xl(filename):
             station_data = pd.concat([station_data,data],ignore_index=True)
             station_data = convert_pollution_2_number(station_data)
         
-    return station_data.dropna(axis=0, how='all')
+    return station_data.dropna(axis=0, how='all',inplace=True)
 
 def isnumber(x):
     # if the data is number

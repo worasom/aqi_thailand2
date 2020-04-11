@@ -61,7 +61,7 @@ def get_city_info(data_folder='../data/pm25/'):
             
         cities_info.append(city_info)
         
-    with open(data_folder +'cities_info.json', 'w') as f:
+    with open(data_folder +'cities_info.json', 'w', encoding='utf8') as f:
         json.dump(cities_info, f)
 
 def update_last_air4Thai(url:str='http://air4thai.pcd.go.th/webV2/history/',data_folder:str='../data/air4thai_hourly/'):
@@ -119,8 +119,6 @@ def get_station_data_save(url,browser,sta_id, sta_name,para_selector_list,data_f
     # keep only the data after the timestamp 
     data = data[data['datetime'] > last_time]
     
-    # check file shape before parsing
-    temp = pd.read_csv(filename)
     # save the data
     if os.path.exists(filename):
         # file already exists, append the data 
@@ -248,24 +246,31 @@ def download_cdc_data(station_url:str='https://www.cmuccdc.org/api/ccdc/stations
     """Download cdc data and stations info.
 
     """
-    # obtain station info from the API
-    station_info_list = requests.get(station_url).json()
-    print('number of stations', len(station_info_list))
-    # save station info json
-    with open(data_folder+'station_info.json','w') as f:
-        json.dump(station_info_list,f)
+    try:
+        # obtain station info from the API, if possible
+        station_info_list = requests.get(station_url).json()
+        print('number of stations', len(station_info_list))
+        # save station info json
+        with open(data_folder+'station_info.json','r') as f:
+            json.dump(station_info_list,f)
+    except:
+
+        with open(data_folder+'station_info.json','r') as f:
+            station_info_list = json.load(f)
+        
 
     # download data for all station
-    for station_dict in station_info_list:
+    for station_dict in tqdm(station_info_list):
     
         station_id = station_dict['dustboy_id']
         #download the data 
-        dl_url = dl_url + station_id
-        data_json = requests.get(dl_url)
+        download_url = dl_url + station_id
         try:
+            data_json = requests.get(download_url)
             # extract the json part
             data_dict = data_json.json()[0]
-        except: 
+            # print(station_id)
+        except:
             pass
         else:
             # parse to panda dataframe
