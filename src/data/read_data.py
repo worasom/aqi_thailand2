@@ -32,7 +32,7 @@ def read_his_xl(filename):
             station_data = pd.concat([station_data,data],ignore_index=True)
             station_data = convert_pollution_2_number(station_data)
         
-    return station_data
+    return station_data.dropna(axis=0, how='all')
 
 def isnumber(x):
     # if the data is number
@@ -85,7 +85,10 @@ def convert_year(data_point):
         data_point = '200'+ data_point
         
     elif len(data_point) == 6:
-        data_point = '20'+ data_point
+        if '9' == data_point[0]:
+            data_point = '19'+ data_point
+        else:
+            data_point = '20'+ data_point
     
     return data_point
 
