@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from glob import glob
+import math
 
 
 import requests
@@ -19,5 +20,18 @@ from selenium import webdriver
 
 import time
 from datetime import datetime, date
+
+
+from bokeh.io import output_file, output_notebook, show, reset_output,export_png
+from bokeh.models import (
+   GMapPlot, GMapOptions, ColumnDataSource, Circle, LogColorMapper, BasicTicker, ColorBar,
+    DataRange1d, PanTool, WheelZoomTool, BoxSelectTool, CategoricalColorMapper, Slider, DateRangeSlider,
+    DateSlider, SingleIntervalTicker, LinearAxis,Legend, LegendItem
+)
+from bokeh.models.mappers import ColorMapper, LinearColorMapper
+from bokeh.palettes import Viridis5
+from bokeh.plotting import figure, show, output_file
+from bokeh.tile_providers import STAMEN_TERRAIN,CARTODBPOSITRON_RETINA
+from bokeh.layouts import widgetbox,row, column, gridplot
 
 
