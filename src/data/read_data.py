@@ -46,7 +46,7 @@ def read_his_xl(filename):
             station_data = pd.concat([station_data,data],ignore_index=True)
             station_data = convert_pollution_2_number(station_data)
         
-    return station_data.dropna(axis=0, how='all',inplace=True)
+    return station_data.set_index('datetime').dropna(axis=0, how='all')
 
 def isnumber(x):
     # if the data is number
@@ -109,6 +109,8 @@ def convert_year(data_point):
 
 def convert_hour(data_point):
     # apply to the hour column in the data to prepare for making datetime column
+    # shift by 1 hour to get rid of 2400
+    data_point = int(data_point - 100)
     # convert datatype to string
     data_point = str(data_point)
     
@@ -117,8 +119,8 @@ def convert_hour(data_point):
         
     data_point = data_point[:2]
     
-    if data_point=='24':
-        data_point ='00'
+    #if data_point=='24':
+    #    data_point ='00'
     
     return data_point
 
