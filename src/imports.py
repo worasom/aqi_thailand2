@@ -19,7 +19,7 @@ from selenium import webdriver
 
 
 import time
-from datetime import datetime, date
+from datetime import datetime, date,  timedelta
 
 
 from bokeh.io import output_file, output_notebook, show, reset_output,export_png
