@@ -30,8 +30,8 @@ from bokeh.models import (
 )
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.palettes import Viridis5
-from bokeh.plotting import figure, show, output_file
-from bokeh.tile_providers import STAMEN_TERRAIN,CARTODBPOSITRON_RETINA
+from bokeh.plotting import figure, show, output_file 
 from bokeh.layouts import widgetbox,row, column, gridplot
-
+from mpl_toolkits.basemap import Basemap
+from bokeh.tile_providers import get_provider, Vendors
 

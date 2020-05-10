@@ -127,11 +127,11 @@ def scrape_weather( city_json, date_range):
     header_url = 'https://www.wunderground.com/history/daily/' + specific_url + 'date/'
      
     
-    for i, date in enumerate(date_range):
+    for i, date in tqdm(enumerate(date_range)):
     
         try:
             # obtain daily weather dataframe
-            daily_df, div_table = get_data_n_soup(browser,date,header_url=header_url,waittime=30)
+            daily_df, div_table = get_data_n_soup(browser,date,header_url=header_url,waittime=25)
         
         except:
             # fail query, 
@@ -151,8 +151,79 @@ def scrape_weather( city_json, date_range):
                 weather = pd.concat([weather,daily_df], axis=0, join='outer')
  
     browser.close()
+    # sort weather value 
+    weather = weather.sort_values('datetime')
 
     return weather, bad_date_df
 
+def fix_temperature(df, lowest_t:int=5, highest_t:int=65):
+    # remove abnormal tempearture reading from weather data 
+       
+    idx = df[df['Temperature(C)']< lowest_t].index
+    df.loc[idx,['Temperature(C)','Dew Point(C)','Humidity(%)']] = np.nan
+
+ 
+    idx = df[df['Temperature(C)']> highest_t].index
+    df.loc[idx,['Temperature(C)','Dew Point(C)','Humidity(%)']] = np.nan
+    
+    return df
+
+def fill_missing_weather(df,limit:int=12):
+    # make the timestamp to be 30 mins interval. Fill the missing value
+    # roud datetiem to whole 30 mins 
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['datetime'] = df['datetime'].dt.round('30T')
+    df = df.sort_values('datetime')
+    df = df.drop_duplicates('datetime')
+
+    dates = df['datetime'].dropna().dt.date.unique()
+
+    # fill in the missing value
+    new_datetime = pd.date_range(start=dates[0], end=dates[-1] +timedelta(days=1), freq='30T') 
+    new_weather = pd.DataFrame(new_datetime[:-1], columns=['datetime'])
+    new_weather = new_weather.merge(df, on='datetime',how='outer')
+    new_weather = new_weather.fillna(method='ffill',limit=12)
+    new_weather = new_weather.fillna(method='bfill',limit=12)
+    new_weather = new_weather.set_index('datetime')
+    new_weather = new_weather.dropna(how='all').reset_index()
+    
+    return new_weather
 
 
+
+def update_weather(city_json, data_folder, start_date=datetime(2000,10,1), end_date=datetime.now()):
+    """Update weather for the city specified by city_json and save.
+    
+    """
+
+    # read existing file 
+    city_name = ('_').join(city_json['city_name'].split(' '))
+    current_filename = data_folder + city_name + '.csv'
+    print('updateing file:', current_filename)
+    
+    # obtain a list of existed dates
+    df = pd.read_csv(current_filename)
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df = df.drop_duplicates('datetime')
+    # find exisiting date 
+    ex_date = df['datetime'].dt.strftime('%Y-%m-%d').unique()
+    ex_date = set(ex_date)
+    
+    # calculate the missing dates 
+    date_range = pd.date_range(start_date, end_date).strftime('%Y-%m-%d')
+    missing_date = list(set(date_range).difference(ex_date))
+    missing_date.sort()
+    print('missing date', len(missing_date))
+    
+    # obtain new  data 
+    new_weather, _ = scrape_weather(city_json, date_range=missing_date)
+    
+    # fix bad temperature data and missing timestamp
+    new_weather = fix_temperature(new_weather)
+    new_weather = fill_missing_weather(new_weather)
+    
+    # merge to existing value
+    df = pd.concat([df,new_weather],ignore_index=True)
+    df = df.sort_values('datetime')
+    df = df.drop_duplicates('datetime')
+    df.to_csv(current_filename,index=False)
