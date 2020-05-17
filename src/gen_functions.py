@@ -20,13 +20,14 @@ def merc_y(lat, shift=False):
         lat = float(lat)
     except:
         pass
-        
+
     if shift:
         # Add correction to latitude
         lat += 0.08
     
     if lat>89.5:lat=89.5
     if lat<-89.5:lat=-89.5
+        
     r_major=6378137.000
     r_minor=6356752.3142
     temp=r_minor/r_major
