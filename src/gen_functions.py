@@ -44,3 +44,22 @@ def merc_y(lat, shift=False):
     ts = math.tan((math.pi / 2 - phi) / 2) / con
     y = 0 - r_major * np.log(ts)
     return y
+
+
+def get_color(series:(np.array, pd.core.series.Series)=None,color_length:int=None,cmap=cm.Blues):
+    """Create a list of hex colormap for a series or for a specified length """
+    if series:
+        #colormap from a series
+        vmin = np.min(series)
+        vmax = np.max(series)
+    else:
+        # colormap for specified lenght
+        series = np.arange(color_length)
+        vmin=0
+        vmax = np.max(series)
+    #normalize item number values to colormap
+    norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+    #colormap values = viridis, jet, spectral
+    color_list = [cmap(norm(value)) for value in series]
+    color_list = [str(cm.colors.to_hex(color)) for color in color_list]
+    return color_list
