@@ -37,3 +37,7 @@ from bokeh.layouts import widgetbox,row, column, gridplot
 from mpl_toolkits.basemap import Basemap
 from bokeh.tile_providers import get_provider, Vendors
 
+
+# machine learning
+
+from sklearn.preprocessing import OneHotEncoder
