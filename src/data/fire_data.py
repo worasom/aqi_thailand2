@@ -31,8 +31,13 @@ def process_fire_data(filename):
     # drop duplicate data
     print('before drop', fire.shape)
     # sort values by brightness
-    fire = fire.sort_values(
-        ['datetime', 'lat_km', 'long_km', 'brightness'], ascending=False)
+    try:
+        # for MODIS file
+        fire = fire.sort_values(['datetime', 'lat_km', 'long_km', 'brightness'], ascending=False)
+    except:
+        # for VIIRS
+        fire = fire.sort_values(['datetime','lat_km','long_km','bright_ti4'], ascending=False)
+
     fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
     print('after drop', fire.shape)
 
