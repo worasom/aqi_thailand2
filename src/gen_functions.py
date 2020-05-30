@@ -100,3 +100,18 @@ def cal_scores(
         print(result_dict)
     else:
         return result_dict
+
+def add_season(df,start_month='-12-01', end_month='-04-30'):
+    # add winter season column 
+    # df.index must be datetime format sorted in ascending order
+    df = df.sort_index()
+    df['year'] = df.index.year 
+    df['season'] = 'other'
+    for year in df.year.unique():
+        start_date = str(year)+ start_month
+        end_date = str(year+1)+ end_month
+        label = 'winter_'+str(year)
+    
+        df.loc[start_date:end_date,'season'] = label 
+        
+    return df
