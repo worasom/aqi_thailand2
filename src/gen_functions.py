@@ -63,3 +63,40 @@ def get_color(series:(np.array, pd.core.series.Series)=None,color_length:int=Non
     color_list = [cmap(norm(value)) for value in series]
     color_list = [str(cm.colors.to_hex(color)) for color in color_list]
     return color_list
+
+
+def cal_scores(
+        ytrue: np.array,
+        ypred: np.array,
+        score_list: list = [
+            r2_score,
+            mean_squared_error],
+    header_str: str = 'test_',
+        to_print=False):
+    """Calculate the prediction score
+
+    Inputs:
+        ytrue: 2D numpy array of true sensors data
+        ypred: 2D numpy array of predicted data
+        score_list(optional): a list of function to calculate score [default: [r2_score,mean_squared_error]]
+        header_str(optional): string to add to the result_dict key. Useful for separating test_ and training data [default='test_']
+        to_print: print the result to the console or result the dictionary
+
+    Returns: dict
+        result_dict: dictionary of the scores
+
+    """
+
+    result_dict = {}
+
+    for score_fun in score_list:
+        try:
+            result_dict.update(
+                {header_str + score_fun.__name__: score_fun(ytrue, ypred)})
+        except BaseException:
+            result_dict.update(
+                {header_str + score_fun.__name__: np.nan})
+    if to_print:
+        print(result_dict)
+    else:
+        return result_dict
