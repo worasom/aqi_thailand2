@@ -11,9 +11,6 @@ aqi_thailand2
 │   └── 2_analyze_pollution_data.ipynb
 ├── README.md
 ├── references
-│   ├── Air Pollution EGM Draft Programme 15 April 2020.docx
-│   ├── KECF Air Pollution Project.docx
-│   └── US_AQI
 ├── reports
 │   ├── chiang_mai_report.docx
 │   └── figures
