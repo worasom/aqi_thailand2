@@ -12,6 +12,7 @@ def add_is_holiday(df,holiday_file='C:/Users/Benny/Documents/Fern/aqi_thailand2/
         df['datetime'] = pd.to_datetime(df['datetime'])
     
     except: 
+        df.index.name = 'datetime'
         df = df.reset_index() 
         df['datetime'] = pd.to_datetime(df['datetime'])
         
@@ -28,5 +29,6 @@ def add_is_holiday(df,holiday_file='C:/Users/Benny/Documents/Fern/aqi_thailand2/
     df['date'] = pd.to_datetime(df['datetime'].dt.date)
     holiday['date'] = pd.to_datetime(holiday['date'])
     df = df.merge(holiday[['date','name']], on='date',how='left')
+    df = df.drop('date',axis=1)
     df['is_holiday'] = ~df['name'].isna()*1
     return df.drop('name',axis=1).set_index('datetime')
