@@ -12,8 +12,9 @@ from matplotlib import cm
 import matplotlib
 from glob import glob
 import math
+from itertools import combinations, product
 
-
+# webscraping
 import requests
 import wget
 from bs4 import BeautifulSoup
