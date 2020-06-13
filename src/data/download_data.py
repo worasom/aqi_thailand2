@@ -10,10 +10,11 @@ from selenium.webdriver.support.select import Select
 def download_b_data(
         data_folder: str = '../data/pm25/',
         url: str = 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/'):
-    """Download all files from the directory in url to data_folder.
+    
+    """Download all files from the Berkeley Earth directory in url to data_folder.
 
     """
-    #url = 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/'
+    print('download Berkeley PM2.5 data for all files in', url)
     res = requests.get(url)
     # create a soup object of Berkeley earth website
     soup = BeautifulSoup(res.text, features="lxml")
@@ -25,7 +26,7 @@ def download_b_data(
         download_province_data(grab_url, data_folder=data_folder)
 
 
-def download_province_data(grab_url: str, data_folder: str,):
+def download_province_data(grab_url: str, data_folder: str):
     """Download a province data.
 
     Remove existing file before download.
@@ -37,14 +38,17 @@ def download_province_data(grab_url: str, data_folder: str,):
         # build province url
         data_url = grab_url + tag['href']
         name = data_folder + tag['href']
-        # remove existing file
-        os.remove(name)
+        # remove existing file if exist
+        try:
+            os.remove(name)
+        except:
+            pass
         # download the data
         wget.download(data_url, name)
 
 
 def get_city_info(data_folder='../data/pm25/'):
-    """Obtain city information from .txt file in Berkeley data, and save as json.
+    """Obtain city information from .txt files in Berkeley data, and save as json.
 
     """
     # find all .txt file
@@ -274,6 +278,8 @@ def download_cdc_data(
     """Download cdc data and stations info.
 
     """
+    print('download data from Chiang Mai University Project (CDC)')
+    
     try:
         # obtain station info from the API, if possible
         station_info_list = requests.get(station_url).json()
@@ -304,6 +310,28 @@ def download_cdc_data(
             data_df = pd.DataFrame.from_dict(data_dict['value'])
             filename = data_folder + station_id + '.csv'
             data_df.to_csv(filename, index=False)
+
+def main(main_folder:str='../data/', build_json:bool=False):
+    """
+    Args:
+        main_folder: main data_folder
+        build_json: if True also build city information 
+
+    """
+
+    # gather all data for Thailand
+    download_b_data(data_folder= f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
+    
+    print('\nDownload Data for Hanoi and Ha dong')
+    download_province_data(grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/', data_folder=f'{main_folder}pm25/')
+    
+    if build_json:
+        # Build City info json for Berkeley Data
+        get_city_info(data_folder=f'{main_folder}pm25/')
+
+    download_cdc_data(station_url='https://www.cmuccdc.org/api/ccdc/stations', 
+                  dl_url= 'https://www.cmuccdc.org/download_json/', 
+                  data_folder=f'{main_folder}cdc_data/')
 
 
 if __name__ == '__main__':

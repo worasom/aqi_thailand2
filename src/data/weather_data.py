@@ -175,8 +175,11 @@ def scrape_weather(city_json, date_range):
                 weather = pd.concat([weather, daily_df], axis=0, join='outer')
 
     browser.close()
-    # sort weather value
-    weather = weather.sort_values('datetime')
+    try: 
+        # sort weather value
+        weather = weather.sort_values('datetime')
+    except:
+        print(date_range, weather.columns)
 
     return weather, bad_date_df
 
@@ -233,13 +236,17 @@ def update_weather(
     current_filename = data_folder + city_name + '.csv'
     print('updateing file:', current_filename)
 
-    # obtain a list of existed dates
-    df = pd.read_csv(current_filename)
-    df['datetime'] = pd.to_datetime(df['datetime'])
-    df = df.drop_duplicates('datetime')
-    # find exisiting date
-    ex_date = df['datetime'].dt.strftime('%Y-%m-%d').unique()
-    ex_date = set(ex_date)
+    # obtain a list of existed dates if exists
+    if os.path.exists(current_filename):
+        df = pd.read_csv(current_filename)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df = df.drop_duplicates('datetime')
+        # find exisiting date
+        ex_date = df['datetime'].dt.strftime('%Y-%m-%d').unique()
+        ex_date = set(ex_date)
+    else:
+        df = pd.DataFrame()
+        ex_date = {}
 
     # calculate the missing dates
     date_range = pd.date_range(start_date, end_date).strftime('%Y-%m-%d')
