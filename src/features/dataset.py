@@ -3,6 +3,8 @@ from ..imports import *
 from ..data.read_data import *
 from ..gen_functions import *
 from ..data.fire_data import *
+from ..data.weather_data import *
+from .build_features import *
 
 """Pollution Dataset Object of a particular city 
 
@@ -22,7 +24,9 @@ class Dataset():
         data_folder:
         model_folder: 
         city_info:
-        poll_df
+        poll_df:
+        fire:
+        wea:
 
     Raises:
         AssertionError: if the city_name is not in city_names list 
@@ -72,7 +76,7 @@ class Dataset():
 
         # add lattitude and longtitude in km
         self.city_info['lat_km'] = (merc_y(self.city_info['Latitude'])/1000).round()
-        self.city_info['long_km'] = (merc_y(self.city_info['Longitude'])/1000).round()
+        self.city_info['long_km'] = (merc_x(self.city_info['Longitude'])/1000).round()
 
     def get_th_stations(self):
         """Look for all polltuions station by Thailand PCD.
@@ -211,7 +215,7 @@ class Dataset():
             AssertionError: if the instrument name does not exist
         
         """
-        print('Building fire data. This might take sometimes')
+        print('Loading all hotspots data. This might take sometimes')
         
         # the instrument is either MODIS or VIIRS 
         if instr =='MODIS':
@@ -224,25 +228,28 @@ class Dataset():
             raise AssertionError('instrument name can be either MODIS or VIIRS')
 
         # keeping radius
-        r_lat = self.city_info['lat_km'] + distance
-        r_long = self.city_info['long_km'] + distance
+        upper_lat = self.city_info['lat_km'] + distance
+        lower_lat = self.city_info['lat_km'] - distance
+        upper_long = self.city_info['long_km'] + distance
+        lower_long = self.city_info['long_km'] - distance
 
         files = glob(folder)
 
         fire  = pd.DataFrame()
         for file in tqdm(files):
+             
             df = pd.read_csv(file)
             # convert lat and long to km
             df['lat_km'] = (df['latitude'].apply(merc_y)/1E3).round().astype(int)
             df['long_km'] = (merc_x(df['longitude'])/1E3).round().astype(int)
 
             # remove by lat 
-            df = df[df['lat_km'] <= (r_lat)]
-            df = df[df['lat_km'] >= (r_lat)]
+            df = df[df['lat_km'] <= (upper_lat)]
+            df = df[df['lat_km'] >= (lower_lat)]
 
             # remove by long 
-            df = df[df['long_km'] <= (r_long)]
-            df = df[df['long_km'] >= (r_long)]
+            df = df[df['long_km'] <= (upper_long)]
+            df = df[df['long_km'] >= (lower_long)]
 
             fire = pd.concat([fire, df], ignore_index=True)
 
@@ -253,9 +260,116 @@ class Dataset():
         
         elif instr =='VIIRS':
             filename = self.data_folder + 'fire_v.csv'
-        
+
+        # add distance columns 
+        fire['distance'] = np.sqrt((fire['lat_km'] - self.city_info['lat_km']/1000) **2 + ((fire['long_km'] - self.city_info['long_km']/1000)**2))
+        # create power column and drop unncessary columns
+        fire['power'] = fire['scan']*fire['track']*fire['frp']
+        fire['count'] = 1
+        fire = fire.drop(['latitude', 'longitude', 'brightness','year','acq_time','track','scan','frp'], axis=1)
         # save fire data
         fire.to_csv(filename, index=False)
+
+    
+    def build_weather(self,wea_data_folder:str='weather_cities/'):
+        """Load weather data and feature engineer the weather data.
+
+        """
+
+        filename = self.city_wea_dict[self.city_name]
+        filename = self.main_folder + wea_data_folder + filename.replace(' ','_') + '.csv'
+        wea = pd.read_csv(filename)
+        wea = fill_missing_weather(wea,limit=12)
+        # round the weather data 
+        wea[['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']] = wea[['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']].round()
+
+        self.wea = wea
+
+    def build_holiday(self):
+        """Scrape holiday data from https://www.timeanddate.com/holidays/
+
+        """
+        if self.city_name=='Chiang Mai' or self.city_name=='Bangkok':
+            head_url = 'https://www.timeanddate.com/holidays/thailand/'
+
+        elif self.city_name=='Jakarta':
+            head_url = 'https://www.timeanddate.com/holidays/indonesia/'
+        
+        elif self.city_name=='Hanoi':
+            head_url = 'https://www.timeanddate.com/holidays/vietnam/'
+
+
+        years = np.arange(2000,datetime.now().year+1) 
+        
+        holiday = pd.DataFrame()
+        
+        for year in years:
+            url = head_url+str(year)
+            df = pd.read_html(url)[0]
+            df['year'] = year
+            holiday = pd.concat([holiday,df],ignore_index=True)
+
+        holiday.columns = ['Date', 'day_of_week','name','type','year']
+        holiday = holiday[~holiday['Date'].isna()]
+
+        holiday['date'] = holiday['Date'] + ', ' + holiday['year'].astype(str)
+        holiday['date'] = pd.to_datetime(holiday['date'])
+        holiday.to_csv(self.data_folder + 'holiday.csv', index=False)
+
+
+    def build_all_data(self,build_fire:bool=False,build_holiday:bool=False):
+        """Build all data from raw files. Use after just download more raw data.
+
+        """
+        self.build_pollution()
+        self.build_weather()
+        self.save_()
+
+        if build_fire:
+            self.build_fire()
+        
+        if build_holiday:
+            self.build_holiday()
+
+    def feature_no_fire(self,pollutant:str='PM2.5'):
+        """Assemble pollution data, datetime and weather data. Omit the fire data for later step. 
+
+        """
+        if not hasattr(self, 'poll_df') or not hasattr(self, 'wea'):
+            self.load_()
+
+        if not os.path.exists(self.data_folder +'holiday.csv'):
+            self.build_holiday()
+
+        self.pollutant = pollutant
+        cols = [pollutant, 'Temperature(C)', 'Humidity(%)', 'Wind', 'Wind Speed(kmph)', 'Condition']
+        # merge pollution and wind data 
+
+        data = self.poll_df.merge(self.wea, left_index=True, right_index =True,how='inner')
+    
+        if (pollutant == 'PM2.5') and self.city_name=='Chiang Mai':
+            data = data.loc['2010':]
+        # add lag information
+        data = add_lags(data, pollutant)
+        # one hot encode wind data 
+        dummies = wind_to_dummies(data['Wind'])
+        data.drop('Wind',axis=1, inplace=True)
+        data = pd.concat([data, dummies], axis=1)
+        data = add_is_rain(data)
+        data = add_calendar_info(data,holiday_file=self.data_folder +'holiday.csv')
+        try:
+            data = data.astype(float)
+        except:
+            raise AssertionError('some data cannot be convert to float')
+        
+        # find duplicate index and drop them
+        data.sort_index(inplace=True)
+        data = data.loc[~data.index.duplicated(keep='first')]
+ 
+        print('data no fire has shape', data.shape)
+        self.data = data
+
+
 
     
     def save_(self):
@@ -276,31 +390,71 @@ class Dataset():
             # save fire data 
             if 'datetime' in self.fire.columns:
                 # save without index 
-                self.poll_df.to_csv(self.data_folder +'fire.csv',index=False)
+                self.fire.to_csv(self.data_folder +'fire.csv',index=False)
         
             else:
                 # save with index
-                self.poll_df.to_csv(self.data_folder +'fire.csv')
+                self.fire.to_csv(self.data_folder +'fire.csv')
+
+        if hasattr(self, 'wea'):
+            # save fire data 
+            if 'datetime' in self.wea.columns:
+                # save without index 
+                self.wea.to_csv(self.data_folder +'weather.csv',index=False)
+        
+            else:
+                # save with index
+                self.wea.to_csv(self.data_folder +'weather.csv')
+
+        if hasattr(self, 'data_no_fire'):
+            # save fire data 
+            if 'datetime' in self.data_no_fire.columns:
+                # save without index 
+                self.data_no_fire.to_csv(self.data_folder +'data_no_fire.csv',index=False)
+        
+            else:
+                # save with index
+                self.data_no_fire.to_csv(self.data_folder +'data_no_fire.csv')
 
 
-    def load_(self):
+    def load_(self,fire='MODIS'):
         """Load the process pollution data from the disk without the build
 
         """
         
         if os.path.exists(self.data_folder +'poll.csv'):
             self.poll_df = pd.read_csv(self.data_folder +'poll.csv')
-            self.poll_df['datetime'] = self.poll_df['datetime']
+            self.poll_df['datetime'] = pd.to_datetime(self.poll_df['datetime'])
             self.poll_df.set_index('datetime',inplace=True)
+            # add pollution list 
+            self.gas_list = self.poll_df.columns.to_list()
         else:
             print('no pollution data. Call self.build_pollution first')
 
-        if os.path.exists(self.data_folder +'fire.csv'):
-            self.fire = pd.read_csv(self.data_folder +'fire.csv')
-            self.fire['datetime'] = self.fire['datetime']
+        if fire=='MODIS':
+            filename = self.data_folder +'fire_m.csv'
+        else:
+            filename = self.data_folder +'fire_v.csv'
+        
+        if os.path.exists(filename):
+            self.fire = pd.read_csv(filename)
+            self.fire['datetime'] = pd.to_datetime(self.fire['datetime'])
             self.fire.set_index('datetime',inplace=True)
         else:
-            print('no pollution data. Call self.build_fire first')
+            print('no fire data. Call self.build_fire first')
+
+        if os.path.exists(self.data_folder +'weather.csv'):
+            self.wea = pd.read_csv(self.data_folder +'weather.csv')
+            self.wea.drop(['Time','Dew Point(C)','Wind Gust(kmph)','Pressure(in)','Precip.(in)'], axis=1, inplace=True)
+            self.wea['datetime'] = pd.to_datetime(self.wea['datetime'])
+            self.wea.set_index('datetime',inplace=True)
+        else:
+            print('no weather data. Call self.build_weather first')
+
+        if os.path.exists(self.data_folder +'data_no_fire.csv'):
+            self.data_no_fire = pd.read_csv(self.data_folder +'data_no_fire.csv')
+            self.data_no_fire['datetime'] = pd.to_datetime(self.data_no_fire['datetime'])
+            self.data_no_fire.set_index('datetime',inplace=True)
 
 
 

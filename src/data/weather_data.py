@@ -211,8 +211,8 @@ def fill_missing_weather(df, limit: int = 12):
         start=dates[0], end=dates[-1] + timedelta(days=1), freq='30T')
     new_weather = pd.DataFrame(new_datetime[:-1], columns=['datetime'])
     new_weather = new_weather.merge(df, on='datetime', how='outer')
-    new_weather = new_weather.fillna(method='ffill', limit=12)
-    new_weather = new_weather.fillna(method='bfill', limit=12)
+    new_weather = new_weather.fillna(method='ffill', limit=limit)
+    new_weather = new_weather.fillna(method='bfill', limit=limit)
     new_weather = new_weather.set_index('datetime')
     new_weather = new_weather.dropna(how='all').reset_index()
 

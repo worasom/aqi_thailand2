@@ -21,7 +21,7 @@ def add_datetime_fire(fire):
 
 
 def process_fire_data(filename=None,fire=None,and_save=False):
-    """ Add datetime and drop duplicate data
+    """ Add datetime,  drop duplicate data and remove uncessary columns.
 
     """
     if filename:
@@ -41,6 +41,20 @@ def process_fire_data(filename=None,fire=None,and_save=False):
         fire = fire.sort_values(['datetime','lat_km','long_km','bright_ti4'], ascending=False)
 
     fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
+
+    # drop unncessary columns 
+    try: 
+        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_t31','type']
+        fire = fire.drop(columns_to_drop,axis=1)
+    except:
+        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_t31','type']
+        fire = fire.drop(columns_to_drop,axis=1)
+
+    fire = fire.sort_values('datetime')
+    fire = fire.set_index('datetime')
+    # remove the data before '2002-07-04' because there is only one satellite
+    fire = fire.loc['2002-07-04':]
+
     print('after drop', fire.shape)
 
     if and_save:

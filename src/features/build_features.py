@@ -21,7 +21,7 @@ def add_is_holiday(df,holiday_file='C:/Users/Benny/Documents/Fern/aqi_thailand2/
         holiday = pd.read_csv(holiday_file)
         holiday['date'] = pd.to_datetime(holiday['date'])
         # keep only national holiday
-        holiday = holiday[holiday['type']=='National holiday']
+        holiday = holiday[holiday['type'].isin(['National holiday','Joint Holiday','Public Holiday'])]
     
     else:
         raise AssertionError('the holiday file does not exist')
@@ -57,7 +57,13 @@ def wind_to_dummies(series):
     dummies = pd.get_dummies(series)
 
     # group the wind direction into major wind direction 
-    direction_to_collpse = ['ENE', 'ESE', 'NE', 'NNE', 'NNW', 'NW', 'SE', 'SSE', 'SSW', 'SW',  'WNW', 'WSW']
+    direction_to_collpse = dummies.columns.to_list()
+    # remove 'CALM'
+    if 'CALM' in direction_to_collpse:
+        direction_to_collpse.remove('CALM')
+
+    if 'VAR' in direction_to_collpse:
+        direction_to_collpse.remove('VAR')
 
     for direction in direction_to_collpse:
         if len(direction)>1:
@@ -77,5 +83,31 @@ def add_is_rain(df,rain_list=['Rain','Shower','Thunder','Strom','Drizzle']):
     df['is_rain'] = df['Condition'].str.contains('|'.join(rain_list))*1
     df = df.drop('Condition', axis=1)
     return df
+
+
+def find_num_lag(poll_series, thres=0.5):
+    """ Calculate the numbers of partial autocorrelation lag to add as feature to a time series. 
+    
+    """
+
+    pac = pacf(poll_series)
+    # find the number of lag 
+    idxs = np.where(pac >= 0.5)[0]
+    return idxs[1:]
+
+def add_lags(data, pollutant):
+    """Add lags columns to x_data.
+
+    """
+    # calculate num lags
+    num_lags = find_num_lag(data[pollutant])
+    for idx in num_lags:
+        lag_name = f'{pollutant}_lag_{idx}'
+        lag_series = data[pollutant].shift(idx) 
+        lag_series.name = lag_name
+        # add to data 
+        data = pd.concat([data, lag_series], axis=1) 
+    data = data.dropna()
+    return data
 
 
