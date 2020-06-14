@@ -20,11 +20,13 @@ def add_datetime_fire(fire):
     return fire
 
 
-def process_fire_data(filename):
+def process_fire_data(filename=None,fire=None,and_save=False):
     """ Add datetime and drop duplicate data
 
     """
-    fire = pd.read_csv(filename)
+    if filename:
+        fire = pd.read_csv(filename)
+
     # add datetime
     fire = add_datetime_fire(fire)
 
@@ -41,4 +43,7 @@ def process_fire_data(filename):
     fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
     print('after drop', fire.shape)
 
-    fire.to_csv(filename, index=False)
+    if and_save:
+        fire.to_csv(filename, index=False)
+    else:
+        return fire

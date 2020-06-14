@@ -47,6 +47,38 @@ def read_b_data(filename):
 
     return data_df, city_info
 
+def build_us_em_data(city_name:str, data_folder:str='../data/us_emb/'):
+    """Combine the pollution data from US Embassy monitoring station for the city. Return a list of pollution dataframe.
+    
+    """
+    if city_name not in ['Hanoi','Jakarta']:
+        raise AssertionError(f'no data for {city_name}')
+        
+    if city_name=='Jakarta':
+        name_list = ['JakartaCentral','JakartaSouth']
+    else:
+        name_list = ['Hanoi']
+        
+    data_list = []
+     
+    for name in name_list: 
+        files = glob(f'{data_folder}{name}*.csv')
+        
+        data = pd.DataFrame()
+        # concatenate all data 
+        for file in files:
+            df = pd.read_csv(file)
+            data = pd.concat([data, df])
+        # format the data 
+        data['Parameter'] = data['Parameter'].str.split(' - ', expand=True)[0]
+        data['datetime'] = pd.to_datetime(data['Date (LT)'])
+        data = data.sort_values('datetime')
+        data = data.drop_duplicates('datetime')
+        data = data.pivot(columns='Parameter',values='Value',index='datetime').reset_index()
+        data = data.dropna()
+        data_list.append(data)
+        
+    return data_list
 
 def read_his_xl(filename):
     # read air4thai historical data
@@ -148,16 +180,18 @@ def convert_hour(data_point):
 def make_datetime_from_xl(data_df):
     # drop nan value
     data_df = data_df[~data_df[['date','hour']].isna().any(axis=1)].copy()
+    data_df['date'] = data_df['date'].astype(int)
+    data_df['hour'] = data_df['hour'].astype(int)
     # preprocess date and hour columns
     data_df['date'] = data_df['date'].apply(convert_year)
     data_df['hour'] = data_df['hour'].apply(convert_hour)
     data_df['datetime'] = data_df['date'] + '-' + data_df['hour']
-    data_df['datetime'] = pd.to_datetime(
-        data_df['datetime'], format='%Y%m%d-%H')
+    data_df['datetime'] = pd.to_datetime(data_df['datetime'], format='%Y%m%d-%H')
 
     # drop old columns
     data_df.drop('date', axis=1, inplace=True)
     data_df.drop('hour', axis=1, inplace=True)
+    
     return data_df
 
 
@@ -169,9 +203,15 @@ def parse_1xl_sheet(data_df):
     data_df.columns = data_df.columns.str.replace('ปี/เดือน/วัน', 'date')
     data_df.columns = data_df.columns.str.replace('ชั่วโมง', 'hour')
     to_drops = data_df.columns[data_df.columns.str.contains('Unnamed')]
-    # preprocess date and hour columns to create datetime columns
-    data_df = make_datetime_from_xl(data_df)
-    for col in to_drops:
-        data_df.drop(col, axis=1, inplace=True)
+
+    # drop nan value
+    data_df = data_df[~data_df[['date','hour']].isna().any(axis=1)].copy()
+    data_df[['date','hour']] = data_df[['date','hour']].astype(int)
+    if len(data_df)>0:
+        # preprocess date and hour columns to create datetime columns
+        data_df = make_datetime_from_xl(data_df)
+        data_df.drop(to_drops, axis=1, inplace=True)
+    else:
+        data_df = pd.DataFrame()
 
     return data_df

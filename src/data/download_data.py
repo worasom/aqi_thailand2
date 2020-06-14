@@ -314,6 +314,25 @@ def download_cdc_data(
             filename = data_folder + station_id + '.csv'
             data_df.to_csv(filename, index=False)
 
+
+def download_us_emb_data(data_folder:str='../data/us_emb/',year:int=None):
+    """Download pollution data taken at the US Embabby in Hanoi and Jakata
+
+    """
+    if year==None:
+        year = datetime.now().year
+    
+    city_list = ['Hanoi','JakartaSouth', 'JakartaCentral']
+    print(f'\n Download us embassy data for Hanoi and Jakata for {year}')
+
+    for city in city_list: 
+        filename = f'{data_folder}{city}_PM2.5_{year}_YTD.csv'
+        if os.path.exists(filename):
+            os.remove(filename)
+        url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_YTD.csv'
+        wget.download(url,filename)
+
+
 def main(main_folder:str='../data/', cdc_data=True, build_json:bool=False):
     """
     Args:
@@ -338,11 +357,8 @@ def main(main_folder:str='../data/', cdc_data=True, build_json:bool=False):
         with open(f'{main_folder}/aqm_hourly2/stations_locations.json', 'w') as f:
             json.dump(station_info,f)
 
-
-    print('\n Download us embassy data for hanoi')
-    wget.download('http://dosairnowdata.org/dos/historical/Hanoi/2020/Hanoi_PM2.5_2020_YTD.csv','../data/us_emb/Hanoi_PM2.5_2020_YTD.csv')
+    download_us_emb_data(data_folder=f'{main_folder}us_emb/')
     
-
     update_last_air4Thai(url='http://air4thai.pcd.go.th/webV2/history/', data_folder=f'{main_folder}air4thai_hourly/')
 
     if cdc_data:
