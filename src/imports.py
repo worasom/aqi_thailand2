@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from matplotlib.ticker import MaxNLocator
 import matplotlib
 from glob import glob
 import math
@@ -51,3 +52,4 @@ from tpot import TPOTRegressor
 
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import pacf
+from scipy.stats import spearmanr

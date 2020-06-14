@@ -253,15 +253,80 @@ def update_weather(
     missing_date = sorted(set(date_range).difference(ex_date))
     print('missing date', len(missing_date))
 
-    # obtain new  data
-    new_weather, _ = scrape_weather(city_json, date_range=missing_date)
+    if len(missing_date)>0:
 
-    # fix bad temperature data and missing timestamp
-    new_weather = fix_temperature(new_weather)
-    new_weather = fill_missing_weather(new_weather)
+        # obtain new  data
+        new_weather, _ = scrape_weather(city_json, date_range=missing_date)
 
-    # merge to existing value
-    df = pd.concat([df, new_weather], ignore_index=True)
-    df = df.sort_values('datetime')
-    df = df.drop_duplicates('datetime')
-    df.to_csv(current_filename, index=False)
+        # fix bad temperature data and missing timestamp
+        new_weather = fix_temperature(new_weather)
+        new_weather = fill_missing_weather(new_weather)
+
+        # merge to existing value
+        df = pd.concat([df, new_weather], ignore_index=True)
+        df = df.sort_values('datetime')
+        df = df.drop_duplicates('datetime')
+        df.to_csv(current_filename, index=False)
+
+def proc_open_weather(wea_df):
+    """Process weather file from OpenWeahterMap.org 
+    
+    """
+    if 'dt_iso' in wea_df.columns:
+        wea_df['datetime'] = pd.to_datetime(wea_df['dt_iso'], format='%Y-%m-%d %H:%M:%S +0000 UTC',errors='coerce')
+    else:
+        raise AssertionError('Not the data from OpenWeatherMap.org')
+
+    #make datetime and Time columns
+    wea_df['datetime'] = wea_df['datetime'] + pd.to_timedelta(wea_df['timezone'],unit='s')
+    wea_df['Time'] =  wea_df['datetime'].dt.strftime('%I:%M %p')
+
+
+    replace_dict ={'humidity':'Humidity(%)',
+              'temp':'Temperature(C)',
+              'wind_deg':'Wind',
+               'wind_speed':'Wind Speed(kmph)',
+               'pressure': 'Pressure(in)',
+               'rain_3h': 'Precip.(in)',
+              'weather_main':'Condition'}
+    degree_to_direction = {1: 'N',
+    2: 'NNE',
+    3: 'NE',
+    4: 'ENE',
+    5: 'E',
+    6: 'ESE',
+    7: 'SE',
+    8: 'SSE',
+    9: 'S',
+    10: 'SSW',
+    11: 'SW',
+    12: 'WSW',
+    13: 'W',
+    14: 'WNW',
+    15: 'NW',
+    16: 'NNW',
+    17: 'N'}
+
+
+    # rename columns
+    wea_df = wea_df.rename(columns=replace_dict)
+    # keep only the column exist in underground weather website
+    keep_cols = ['datetime', 'Time', 'Temperature(C)', 'Humidity(%)',
+       'Wind', 'Wind Speed(kmph)', 'Pressure(in)',
+       'Precip.(in)', 'Condition']
+    wea_df = wea_df[keep_cols]
+     
+
+    # convert Wind speed from meter/sec to kmph 
+    wea_df['Wind Speed(kmph)'] *= 3.6
+    # convert Pressure from hpa to in
+    wea_df['Pressure(in)'] *= 0.02953
+
+    # convert Precip from mm to inch and fill zero 
+    wea_df['Precip.(in)'] *= 0.0393701
+    wea_df['Precip.(in)'] = wea_df['Precip.(in)'].fillna(0)
+
+    wea_df['Wind'] = (wea_df['Wind']/22.5 + 1).astype(int).replace(degree_to_direction)
+
+    return wea_df
+     
