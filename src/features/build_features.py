@@ -89,8 +89,7 @@ def find_num_lag(poll_series, thres=0.5):
     """ Calculate the numbers of partial autocorrelation lag to add as feature to a time series. 
     
     """
-
-    pac = pacf(poll_series)
+    pac = pacf(poll_series) 
     # find the number of lag 
     idxs = np.where(pac >= 0.5)[0]
     return idxs[1:]
@@ -110,4 +109,124 @@ def add_lags(data, pollutant):
     data = data.dropna()
     return data
 
+# function for feature eng fire
+def cal_power_damp(series: pd.core.series.Series, distance: pd.core.series.Series, surface='sphere'):
+    """ Calculate the damped power based on the distance series. 
+
+    The damping factor maybe 1/distance or 1/distance**2.
+    Args: 
+        series: series to recalculate
+        distance: distance array. Must have the same lenght as the series
+        surface(optional): either 'circle' or 'sphere'
+
+    Returns:
+        new_series
+
+    Examples:
+        cal_power_damp(fire['power'], fire['distance'],surface='sphere')
+
+    """
+    if surface == 'sphere':
+        new_series = series/distance**2
+
+    elif surface == 'circle':
+        new_series = series/distance
+
+    return new_series
+
+
+def cal_arrival_time(detection_time: pd.core.series.Series, distance: pd.core.series.Series, wind_speed: (float, np.array) = 2):
+    """ Calculate the approximate time that the pollution arrived at the city using the wind speed and distance from the hotspot.
+
+    Round arrival time to hour 
+
+    Args:
+        detection_time: datetime series
+        distance: distance series in km
+        wind_speed(optional): approximate wind speed, can be floar or array in km/hour
+
+    Returns: 
+        arrival_time: datetime series of arrival time
+
+    """
+    arrival_time = detection_time + pd.to_timedelta(distance/wind_speed, 'h')
+    return arrival_time.dt.round('H')
+
+
+def shift_fire(fire_df: pd.core.frame.DataFrame, fire_col: str = 'power', damp_surface: str = 'sphere', shift: int = 0, roll: int = 48, w_speed: (float, int) = 8):
+    """ Feature engineer fire data. Account of the distance from the source and time lag using wind speed.
+
+    Args:
+        fire_df:
+        fire_col
+        damp_surface
+        shift
+        roll
+
+    """
+    require_cols = ['distance', fire_col]
+    if fire_df.columns.isin(require_cols).sum() > len(require_cols):
+        raise AssertionError(
+            'missing required columns for feature engineering fire data')
+
+    # calculate the damping factors
+    fire_df['damp_'+fire_col] = cal_power_damp(
+        fire_df[fire_col], fire_df['distance'], surface=damp_surface)
+    # calculate particle arrival time
+    fire_df['arrival_time'] = cal_arrival_time(
+        detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=w_speed)
+    fire_df = fire_df.set_index('arrival_time')
+    fire_df = fire_df.resample('h').sum()['damp_'+fire_col]
+    fire_df = fire_df.rolling(roll).sum()
+    fire_df = fire_df.shift(shift)
+    fire_df.index.name = 'datetime'
+    return fire_df
+
+
+def get_fire_feature(fire, zone_list=[0, 100, 200, 400, 800, 1000], fire_col: str = 'power', damp_surface: str = 'sphere', shift: int = 0, roll: int = 48, w_speed: (float, int) = 8):
+    """ Separate fire from different distance
+
+    """
+    fire_col_list = []
+    new_fire = pd.DataFrame()
+    for start, stop in zip(zone_list, zone_list[1:]):
+        col_name = f'fire_{start}_{stop}'
+
+        fire_col_list.append(col_name)
+        # select sub-data baseline the distance
+        fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col, 'distance']].copy()
+        fire_s = shift_fire(fire_s, fire_col=fire_col, damp_surface=damp_surface,
+                            shift=shift, roll=roll, w_speed=w_speed)
+        fire_s.name = col_name
+        new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)
+
+    new_fire = new_fire.fillna(0)
+    return new_fire, fire_col_list
+
+def sep_fire_zone(fire, fire_col, zone_list=[0, 100, 200, 400, 800, 1000]):
+    """ Separate fire data into zone mark by a distance in the zone_list without perform feature enginering.
+    Use for data visualization
+    
+    Args: 
+        fire: fire dataframe
+        fire_col: 'power' or 'count'
+        zone_list:
+        
+    Return: 
+        new_fire: a dataframe with each column, a fire data in that zone
+        fire_col_list: a list of column name
+    
+    """
+    fire_col_list = []
+    new_fire = pd.DataFrame()
+    for start, stop in zip(zone_list, zone_list[1:]):
+        col_name = f'fire_{start}_{stop}'
+        fire_col_list.append(col_name)
+        # select sub-data baseline the distance
+        fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col]].copy()
+        fire_s.columns = [col_name]
+        fire_s = fire_s.resample('h').sum()
+        new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)
+
+    return new_fire, fire_col_list
 

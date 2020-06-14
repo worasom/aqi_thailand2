@@ -266,7 +266,8 @@ class Dataset():
         # create power column and drop unncessary columns
         fire['power'] = fire['scan']*fire['track']*fire['frp']
         fire['count'] = 1
-        fire = fire.drop(['latitude', 'longitude', 'brightness','year','acq_time','track','scan','frp'], axis=1)
+        print(fire.columns)
+        fire = fire.drop(['latitude', 'longitude', 'brightness','acq_time','track','scan','frp'], axis=1)
         # save fire data
         fire.to_csv(filename, index=False)
 
@@ -346,7 +347,11 @@ class Dataset():
         # merge pollution and wind data 
 
         data = self.poll_df.merge(self.wea, left_index=True, right_index =True,how='inner')
-    
+
+        # select data and drop null value
+        data = data[cols]
+        data = data.dropna()
+
         if (pollutant == 'PM2.5') and self.city_name=='Chiang Mai':
             data = data.loc['2010':]
         # add lag information
@@ -367,11 +372,42 @@ class Dataset():
         data = data.loc[~data.index.duplicated(keep='first')]
  
         print('data no fire has shape', data.shape)
-        self.data = data
+        self.data_no_fire = data
 
+    def merge_fire(self,fire_dict=None):
+        """Process raw hotspot data into fire feature and merge with the rest of the data 
 
+        """
+        if not fire_dict:
+            # did not pass fire_dict
+            # use self.fire_dict attribute
+            if not hasattr(self,'fire_dict'):
+                # fire dict attribute does not exist. Load from model meta 
+                with open(self.data_folder + model_meta.json) as f:
+                    model_meta = json.load(f)
+                try: 
+                    self.fire_dict = model_meta['fire_dict']
+                except: 
+                    # use default value
+                    self.fire_dict = {'fire_col': 'power', 'surface': 'sphere', 'w_speed': 4,'shift': -24, 'roll': 108}
+            else:
+                fire_dict = self.fire_dict
+            
+        if self.city_name=='Chiang Mai':
+            zone_list = [0, 100, 400, 700, 1000]
+        else:
+            zone_list = [0,100,200,400,800,1000]
 
-    
+        fire_proc, _ = get_fire_feature(self.fire,zone_list=zone_list, 
+                        fire_col=fire_dict['fire_col'],damp_surface=fire_dict['damp_surface'], 
+                        shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
+
+        # merge with fire data 
+        data = self.data_no_fire.merge(fire_proc, left_index=True, right_index=True, how='inner')
+        data = data.dropna()
+        data  = data.loc[~data.index.duplicated(keep='first')]
+        self.data = data 
+
     def save_(self):
         """Save the process data for fast loading without the build
 
