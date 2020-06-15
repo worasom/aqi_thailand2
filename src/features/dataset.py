@@ -38,7 +38,7 @@ class Dataset():
     # mapping city name to weather city name 
     city_wea_dict = {'Chiang Mai': 'Mueang Chiang Mai',
                  'Bangkok':'Bangkok',
-                'Hanoi':'Soc Soc'}
+                'Hanoi':'Soc Son'}
 
     def __init__(self, city_name:str,main_data_folder:str='../data/', model_folder='../models/'):
 
@@ -332,6 +332,8 @@ class Dataset():
         if build_holiday:
             self.build_holiday()
 
+        self.save_()
+
     def feature_no_fire(self,pollutant:str='PM2.5'):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step. 
 
@@ -420,7 +422,22 @@ class Dataset():
         split_ratio = split_ratio.cumsum()
         self.split_list = np.split(idxs,split_ratio[:-1])
 
-
+    def get_data_matrix(self,use_index, x_cols=[]):
+        """Extract data in data dataframe into x,y matricies using use_index.
+    
+        """
+    
+        temp = self.data.loc[use_index]
+    
+        y = temp[self.pollutant].values
+    
+        if len(x_cols)==0:
+            x = temp.drop(self.pollutant,axis=1)
+        else:
+            x = temp[x_cols]
+        
+        x_cols = x.columns
+        return x.values, y, x_cols
 
     def save_(self):
         """Save the process data for fast loading without the build
