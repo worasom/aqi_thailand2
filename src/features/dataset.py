@@ -269,7 +269,7 @@ class Dataset():
         print(fire.columns)
         fire = fire.drop(['latitude', 'longitude', 'brightness','acq_time','track','scan','frp'], axis=1)
         # save fire data
-        fire.to_csv(filename, index=False)
+        fire.to_csv(filename)
 
     
     def build_weather(self,wea_data_folder:str='weather_cities/'):
@@ -374,32 +374,25 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self,fire_dict=None):
+    def merge_fire(self):
         """Process raw hotspot data into fire feature and merge with the rest of the data 
 
         """
-        if not fire_dict:
-            # did not pass fire_dict
-            # use self.fire_dict attribute
-            if not hasattr(self,'fire_dict'):
-                # fire dict attribute does not exist. Load from model meta 
-                with open(self.data_folder + model_meta.json) as f:
-                    model_meta = json.load(f)
-                try: 
-                    self.fire_dict = model_meta['fire_dict']
-                except: 
-                    # use default value
-                    self.fire_dict = {'fire_col': 'power', 'surface': 'sphere', 'w_speed': 4,'shift': -24, 'roll': 108}
-            else:
-                fire_dict = self.fire_dict
-            
+        
+        # use self.fire_dict attribute
+        if  hasattr(self,'fire_dict'):
+            # fire dict attribute does not exist. Load from model meta 
+            fire_dict = self.fire_dict
+        else:
+            fire_dict = {'fire_col': 'power', 'surface': 'sphere', 'w_speed': 4,'shift': -24, 'roll': 108}
+        
         if self.city_name=='Chiang Mai':
             zone_list = [0, 100, 400, 700, 1000]
         else:
             zone_list = [0,100,200,400,800,1000]
 
         fire_proc, _ = get_fire_feature(self.fire,zone_list=zone_list, 
-                        fire_col=fire_dict['fire_col'],damp_surface=fire_dict['damp_surface'], 
+                        fire_col=fire_dict['fire_col'],damp_surface=fire_dict['surface'], 
                         shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
         # merge with fire data 
@@ -407,6 +400,27 @@ class Dataset():
         data = data.dropna()
         data  = data.loc[~data.index.duplicated(keep='first')]
         self.data = data 
+
+    def split_data(self, split_ratio=[0.4,0.2,0.2,0.2], shuffle=False):
+        """Split the data index into train, valiadation and test sets
+
+        Add a list of the index in each set as atttibutes 
+
+        """
+        # use the data after merge 
+        
+        if np.sum(split_ratio) > 1:
+            raise AssertionError('The total of splitting ratios should not exceed 1')
+        
+        idxs = self.data.index
+        if shuffle:
+            numpy.random.shuffle(idxs)
+        # find splitting indicies
+        split_ratio = (np.array(split_ratio)*len(idxs)).astype(int)
+        split_ratio = split_ratio.cumsum()
+        self.split_list = np.split(idxs,split_ratio[:-1])
+
+
 
     def save_(self):
         """Save the process data for fast loading without the build
@@ -421,16 +435,6 @@ class Dataset():
             else:
                 # save with index
                 self.poll_df.to_csv(self.data_folder +'poll.csv')
-        
-        if hasattr(self, 'fire'):
-            # save fire data 
-            if 'datetime' in self.fire.columns:
-                # save without index 
-                self.fire.to_csv(self.data_folder +'fire.csv',index=False)
-        
-            else:
-                # save with index
-                self.fire.to_csv(self.data_folder +'fire.csv')
 
         if hasattr(self, 'wea'):
             # save fire data 

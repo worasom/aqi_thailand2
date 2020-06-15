@@ -47,7 +47,7 @@ def process_fire_data(filename=None,fire=None,and_save=False):
         columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_t31','type']
         fire = fire.drop(columns_to_drop,axis=1)
     except:
-        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_t31','type']
+        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_ti5','type']
         fire = fire.drop(columns_to_drop,axis=1)
 
     fire = fire.sort_values('datetime')
