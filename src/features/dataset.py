@@ -266,8 +266,12 @@ class Dataset():
         # create power column and drop unncessary columns
         fire['power'] = fire['scan']*fire['track']*fire['frp']
         fire['count'] = 1
-        print(fire.columns)
-        fire = fire.drop(['latitude', 'longitude', 'brightness','acq_time','track','scan','frp'], axis=1)
+    
+        try:
+            fire = fire.drop(['latitude', 'longitude', 'brightness','acq_time','track','scan','frp'], axis=1)
+        except:
+            fire = fire.drop(['latitude', 'longitude', 'bright_ti4','acq_time','track','scan','frp'], axis=1)
+
         # save fire data
         fire.to_csv(filename)
 
