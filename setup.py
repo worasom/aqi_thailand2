@@ -4,7 +4,7 @@ setup(
     name='src',
     packages=find_packages(),
     version='0.1.0',
-    description='A short description of the project.',
+    description='Analysis of Air Pollution in Thailand.',
     author='Worasom Kundhikanjana',
     license='MIT',
 )

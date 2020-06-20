@@ -20,7 +20,7 @@ def add_datetime_fire(fire):
     return fire
 
 
-def process_fire_data(filename=None,fire=None,and_save=False):
+def process_fire_data(filename=None, fire=None, and_save=False):
     """ Add datetime,  drop duplicate data and remove uncessary columns.
 
     """
@@ -35,20 +35,36 @@ def process_fire_data(filename=None,fire=None,and_save=False):
     # sort values by brightness
     try:
         # for MODIS file
-        fire = fire.sort_values(['datetime', 'lat_km', 'long_km', 'brightness'], ascending=False)
-    except:
+        fire = fire.sort_values(
+            ['datetime', 'lat_km', 'long_km', 'brightness'], ascending=False)
+    except BaseException:
         # for VIIRS
-        fire = fire.sort_values(['datetime','lat_km','long_km','bright_ti4'], ascending=False)
+        fire = fire.sort_values(
+            ['datetime', 'lat_km', 'long_km', 'bright_ti4'], ascending=False)
 
     fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
 
-    # drop unncessary columns 
-    try: 
-        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_t31','type']
-        fire = fire.drop(columns_to_drop,axis=1)
-    except:
-        columns_to_drop = ['acq_date','satellite','instrument','version','daynight','bright_ti5','type']
-        fire = fire.drop(columns_to_drop,axis=1)
+    # drop unncessary columns
+    try:
+        columns_to_drop = [
+            'acq_date',
+            'satellite',
+            'instrument',
+            'version',
+            'daynight',
+            'bright_t31',
+            'type']
+        fire = fire.drop(columns_to_drop, axis=1)
+    except BaseException:
+        columns_to_drop = [
+            'acq_date',
+            'satellite',
+            'instrument',
+            'version',
+            'daynight',
+            'bright_ti5',
+            'type']
+        fire = fire.drop(columns_to_drop, axis=1)
 
     fire = fire.sort_values('datetime')
     fire = fire.set_index('datetime')

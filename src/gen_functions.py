@@ -46,20 +46,25 @@ def merc_y(lat, shift=False):
     return y
 
 
-def get_color(series:(np.array, pd.core.series.Series)=None,color_length:int=None,cmap=cm.Blues):
+def get_color(
+        series: (
+            np.array,
+            pd.core.series.Series) = None,
+    color_length: int = None,
+        cmap=cm.Blues):
     """Create a list of hex colormap for a series or for a specified length """
     if series:
-        #colormap from a series
+        # colormap from a series
         vmin = np.min(series)
         vmax = np.max(series)
     else:
         # colormap for specified lenght
         series = np.arange(color_length)
-        vmin=0
+        vmin = 0
         vmax = np.max(series)
-    #normalize item number values to colormap
+    # normalize item number values to colormap
     norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
-    #colormap values = viridis, jet, spectral
+    # colormap values = viridis, jet, spectral
     color_list = [cmap(norm(value)) for value in series]
     color_list = [str(cm.colors.to_hex(color)) for color in color_list]
     return color_list
@@ -101,17 +106,18 @@ def cal_scores(
     else:
         return result_dict
 
-def add_season(df,start_month='-12-01', end_month='-04-30'):
-    # add winter season column 
+
+def add_season(df, start_month='-12-01', end_month='-04-30'):
+    # add winter season column
     # df.index must be datetime format sorted in ascending order
     df = df.sort_index()
-    df['year'] = df.index.year 
+    df['year'] = df.index.year
     df['season'] = 'other'
     for year in df.year.unique():
-        start_date = str(year)+ start_month
-        end_date = str(year+1)+ end_month
-        label = 'winter_'+str(year)
-    
-        df.loc[start_date:end_date,'season'] = label 
-        
+        start_date = str(year) + start_month
+        end_date = str(year + 1) + end_month
+        label = 'winter_' + str(year)
+
+        df.loc[start_date:end_date, 'season'] = label
+
     return df

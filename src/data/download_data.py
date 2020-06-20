@@ -12,7 +12,6 @@ from selenium.webdriver.support.select import Select
 def download_b_data(
         data_folder: str = '../data/pm25/',
         url: str = 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/'):
-    
     """Download all files from the Berkeley Earth directory in url to data_folder.
 
     """
@@ -43,7 +42,7 @@ def download_province_data(grab_url: str, data_folder: str):
         # remove existing file if exist
         try:
             os.remove(name)
-        except:
+        except BaseException:
             pass
         # download the data
         wget.download(data_url, name)
@@ -282,7 +281,7 @@ def download_cdc_data(
 
     """
     print('download data from Chiang Mai University Project (CDC)')
-    
+
     try:
         # obtain station info from the API, if possible
         station_info_list = requests.get(station_url).json()
@@ -315,70 +314,100 @@ def download_cdc_data(
             data_df.to_csv(filename, index=False)
 
 
-def download_us_emb_data(data_folder:str='../data/us_emb/',year:int=None):
+def download_us_emb_data(
+        data_folder: str = '../data/us_emb/',
+        year: int = None):
     """Download pollution data taken at the US Embabby in Hanoi and Jakata
 
     """
-    if year==None:
+    if year is None:
         year = datetime.now().year
-    
-    city_list = ['Hanoi','JakartaSouth', 'JakartaCentral']
+
+    city_list = ['Hanoi', 'JakartaSouth', 'JakartaCentral']
     print(f'\n Download us embassy data for Hanoi and Jakata for {year}')
 
-    for city in city_list: 
+    for city in city_list:
         filename = f'{data_folder}{city}_PM2.5_{year}_YTD.csv'
         if os.path.exists(filename):
             os.remove(filename)
         url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_YTD.csv'
-        wget.download(url,filename)
+        wget.download(url, filename)
 
 
-def main(main_folder:str='../data/', cdc_data=True, build_json:bool=False):
+def main(
+        main_folder: str = '../data/',
+        cdc_data=True,
+        build_json: bool = False):
     """
     Args:
         main_folder: main data_folder
-        build_json: if True also build city information 
+        build_json: if True also build city information
 
     """
 
     # gather all data for Thailand
-    download_b_data(data_folder= f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
-    
+    download_b_data(
+        data_folder=f'{main_folder}pm25/',
+        url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
+
     print('\n Download Data for Hanoi, Ha dong and Jarkata')
-    download_province_data(grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/', data_folder=f'{main_folder}pm25/')
-    download_province_data(grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/', data_folder=f'{main_folder}pm25/')
+    download_province_data(
+        grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/',
+        data_folder=f'{main_folder}pm25/')
+    download_province_data(
+        grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/',
+        data_folder=f'{main_folder}pm25/')
 
     if build_json:
         # Build City info json for Berkeley Data
         get_city_info(data_folder=f'{main_folder}pm25/')
-        # Load Air4 Thai station info 
-        station_info = requests.get('http://air4thai.pcd.go.th/services/getNewAQI_JSON.php').text
+        # Load Air4 Thai station info
+        station_info = requests.get(
+            'http://air4thai.pcd.go.th/services/getNewAQI_JSON.php').text
         station_info = json.loads(station_info)
         with open(f'{main_folder}/aqm_hourly2/stations_locations.json', 'w') as f:
-            json.dump(station_info,f)
+            json.dump(station_info, f)
 
     download_us_emb_data(data_folder=f'{main_folder}us_emb/')
-    
-    update_last_air4Thai(url='http://air4thai.pcd.go.th/webV2/history/', data_folder=f'{main_folder}air4thai_hourly/')
+
+    update_last_air4Thai(
+        url='http://air4thai.pcd.go.th/webV2/history/',
+        data_folder=f'{main_folder}air4thai_hourly/')
 
     if cdc_data:
-        download_cdc_data(station_url='https://www.cmuccdc.org/api/ccdc/stations', 
-                  dl_url= 'https://www.cmuccdc.org/download_json/', 
-                  data_folder=f'{main_folder}cdc_data/')
-
+        download_cdc_data(
+            station_url='https://www.cmuccdc.org/api/ccdc/stations',
+            dl_url='https://www.cmuccdc.org/download_json/',
+            data_folder=f'{main_folder}cdc_data/')
 
     # extract station information
     print('Update weather data for all cities')
-    city_names = ['Mueang Chiang Mai', 'Soc Son', 'Bangkok', 'Mueang Chiang Rai', 'Mueang Tak','Yangon', 'Tada-U', 'Sikhottabong', 'Luang Prabang District','Kunming']
+    city_names = [
+        'Mueang Chiang Mai',
+        'Soc Son',
+        'Bangkok',
+        'Mueang Chiang Rai',
+        'Mueang Tak',
+        'Yangon',
+        'Tada-U',
+        'Sikhottabong',
+        'Luang Prabang District',
+        'Kunming']
     w_folder = f'{main_folder}weather_cities/'
-    weather_station_info = find_weather_stations(city_names, weather_json_file=w_folder+'weather_station_info.json')
+    weather_station_info = find_weather_stations(
+        city_names, weather_json_file=w_folder + 'weather_station_info.json')
     len(weather_station_info)
 
     for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020,1,1)
+        start_date = datetime(2020, 1, 1)
         end_date = datetime.now()
-        update_weather(city_json, data_folder=w_folder, start_date=start_date, end_date=end_date)
+        update_weather(
+            city_json,
+            data_folder=w_folder,
+            start_date=start_date,
+            end_date=end_date)
+
 
 if __name__ == '__main__':
 
