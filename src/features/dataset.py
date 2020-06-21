@@ -34,6 +34,8 @@ class Dataset():
         wea: raw weather data 
         data_no_fire: processed pollution data, and weather data 
         data: processed pollution, weather and fire data 
+        x_cols:
+        fire_dict: 
 
     Raises:
         AssertionError: if the city_name is not in city_names list
@@ -322,11 +324,9 @@ class Dataset():
 
         # add distance columns
         fire['distance'] = np.sqrt((fire['lat_km'] -
-                                    self.city_info['lat_km'] /
-                                    1000) ** 2 +
+                                    self.city_info['lat_km'] ) ** 2 +
                                    ((fire['long_km'] -
-                                     self.city_info['long_km'] /
-                                       1000)**2))
+                                     self.city_info['long_km'] )**2))
         # create power column and drop unncessary columns
         fire['power'] = fire['scan'] * fire['track'] * fire['frp']
         fire['count'] = 1
@@ -461,6 +461,9 @@ class Dataset():
             'Condition']
         # merge pollution and wind data
 
+        if 'datetime' in self.wea.columns:
+            self.wea.set_index('datetime',inplace=True)
+
         data = self.poll_df.merge(
             self.wea,
             left_index=True,
@@ -494,22 +497,21 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self):
+    def merge_fire(self, fire_dict=None):
         """Process raw hotspot data into fire feature and merge with the rest of the data
+        Args:
+            fire_dict(optional): fire dictionary [default:None]
 
         """
 
         # use self.fire_dict attribute
-        if hasattr(self, 'fire_dict'):
-            # fire dict attribute does not exist. Load from model meta
-            fire_dict = self.fire_dict
-        else:
-            fire_dict = {
-                'fire_col': 'power',
-                'surface': 'sphere',
+        if fire_dict==None:
+            print('use default fire feature')
+            fire_dict = { 
                 'w_speed': 4,
                 'shift': -24,
                 'roll': 108}
+            self.fire_dict = fire_dict
 
         if self.city_name == 'Chiang Mai':
             zone_list = [0, 100, 400, 700, 1000]
@@ -517,7 +519,7 @@ class Dataset():
             zone_list = [0, 100, 200, 400, 800, 1000]
 
         fire_proc, _ = get_fire_feature(self.fire, zone_list=zone_list,
-                                        fire_col=fire_dict['fire_col'], damp_surface=fire_dict['surface'],
+                                        fire_col='power', damp_surface='sphere',
                                         shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
         # merge with fire data
@@ -670,13 +672,16 @@ class Dataset():
 
         if os.path.exists(self.data_folder + 'weather.csv'):
             self.wea = pd.read_csv(self.data_folder + 'weather.csv')
-            self.wea.drop(['Time',
+            try:
+                self.wea.drop(['Time',
                            'Dew Point(C)',
                            'Wind Gust(kmph)',
                            'Pressure(in)',
                            'Precip.(in)'],
                           axis=1,
                           inplace=True)
+            except:
+                pass
             self.wea['datetime'] = pd.to_datetime(self.wea['datetime'])
             self.wea.set_index('datetime', inplace=True)
         else:

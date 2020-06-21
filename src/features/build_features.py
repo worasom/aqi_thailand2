@@ -59,11 +59,18 @@ def add_calendar_info(
 
 def wind_to_dummies(series):
     """One hot encode wind direction columns and group major wind direction
-
+    Args:
+        series: wind data series from weather['Wind']
+    
+    Raises:
+        AssertionError: if passed an empty series
     """
+    if len(series)==0:
+        raise AssertionError('empty series')
+
     series = series.astype('category')
     dummies = pd.get_dummies(series)
-
+    
     # group the wind direction into major wind direction
     direction_to_collpse = dummies.columns.to_list()
     # remove 'CALM'
@@ -82,7 +89,10 @@ def wind_to_dummies(series):
     # group the 'var' direction
     major_direction = ['E', 'N', 'S', 'W']
     for direction in major_direction:
-        dummies[direction] = dummies[direction] + dummies['VAR']
+        try:
+            dummies[direction] = dummies[direction] + dummies['VAR']
+        except:
+            pass
     dummies.drop('VAR', axis=1, inplace=True)
     dummies.columns = ['wind_' + s for s in dummies.columns]
     return dummies
@@ -259,6 +269,7 @@ def get_fire_feature(
         new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)
 
     new_fire = new_fire.fillna(0)
+    new_fire.index.name = 'datetime'
     return new_fire, fire_col_list
 
 

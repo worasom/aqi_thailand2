@@ -66,6 +66,15 @@ from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor
 
+# optimization 
+from skopt.plots import plot_objective
+from skopt import gp_minimize
+from skopt.utils import use_named_args
+from skopt.space import Real, Categorical, Integer
+
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import pacf
 from scipy.stats import spearmanr
+
+import warnings
+warnings.filterwarnings("ignore")
