@@ -2,6 +2,7 @@
 from ..imports import *
 from ..gen_functions import *
 from ..features.dataset import Dataset
+from ..visualization.visualize import *
 
 def load_meta(meta_filename:str):
     """Read model_meta dictionary and return model_meta dicitonary

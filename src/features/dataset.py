@@ -86,6 +86,9 @@ class Dataset():
         if not os.path.exists(self.model_folder):
             os.mkdir(self.model_folder)
 
+        if not os.path.exists(self.report_folder):
+            os.mkdir(self.report_folder)
+
         self.load_city_info()
 
     def load_city_info(self):
