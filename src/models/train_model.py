@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..imports import *
 from ..gen_functions import *
+from ..features.dataset import Dataset
 
 def load_meta(meta_filename:str):
     """Read model_meta dictionary and return model_meta dicitonary
@@ -63,8 +64,9 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
     #hyper parameter tuning
     search = RandomizedSearchCV(m, param_distributions=param_dict,
                             n_iter=100,n_jobs=-1, cv=cv, random_state=40)
-    
+
     search.fit(x_trn,y_trn)
+    
     print(search.best_params_, search.best_score_)
     
     return search.best_estimator_
@@ -85,6 +87,7 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
         x_cols: a list of new x_cols data 
         
     """
+    print('old cols', x_cols)
     trn_index = dataset.split_list[trn_i]
     val_index = dataset.split_list[val_i]
     
@@ -156,7 +159,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     best_fire_dict = dataset.fire_dict
     print('old score', best_score, 'fire dict', fire_dict)
     
-    print('optimizing fire parameter using skopt optimizer. This will take about 15 mins')
+    print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
     # build search space 
     wind_speed = Real(low=wind_range[0], high=wind_range[1], name='wind_speed')
     shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
@@ -190,3 +193,168 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         print(f'old fire parameter {best_score} is still better than optimized score ={score}' )
         
     return best_fire_dict
+
+
+def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
+    """Computes the feature importance by shuffle the data
+    Args:
+        model : the model
+        x: the training data
+        y: target variable
+        x_cols: name of the x columns
+        metric: either r2_score of mean_squared_error
+    
+    Returns: feature of importance pd.DataFrame 
+    
+    """
+ 
+    baseline = score(y, model.predict(x))
+     
+    imp = []
+    imp_std = []
+    for i, col in tqdm(enumerate(x_cols)):
+        shuffle = []
+        for _ in range(n_iter):
+            shuffle_x = x.copy()
+            shuffle_x[:,i] = np.random.permutation(shuffle_x[:,i])
+            shuffle_score = score(y, model.predict(shuffle_x))
+            shuffle.append(shuffle_score)
+        imp.append(np.mean(shuffle))
+        imp_std.append(np.std(shuffle))
+    
+    # crate a feature of importance DataFrame
+    fea_imp = pd.DataFrame({'index': x_cols, 'importance':imp,'imp_std':imp_std})
+    # normalized 
+    if score.__name__ == 'r2_score':
+        fea_imp['importance'] = (baseline - fea_imp['importance'])/baseline
+    elif score.__name__ == 'mean_squared_error':
+        fea_imp['importance'] = (-baseline + fea_imp['importance'])/baseline
+    
+    return fea_imp.sort_values('importance', ascending=False).reset_index(drop=True)
+
+
+def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
+    """Training pipeline from process raw data, hyperparameter tune, and save model.
+
+        #. If build True, build the raw data from files 
+        #. Process draw data into data using default values
+        #. Optimization 1: optimize for the best randomforest model 
+        #. Optimization 2: remove unncessary columns 
+        #. Optimization 3: find the best fire feature 
+        #. Optimization 4: optimize for the best RF again and search for other model in TPOT
+        #. Build pollution meta and save
+
+    Args:
+        city: city name
+        pollutant(optional): pollutant name
+        build(optional): if True, also build the data
+
+    Returns: 
+        dataset
+        rf_model
+        tpot_model 
+
+    """
+
+    data = Dataset(city)
+    if build:
+        # build data from scratch 
+        data.build_all_data(build_fire=True,build_holiday=False)
+    
+    # load raw data 
+    data.load_()
+    # build the first dataset 
+    data.feature_no_fire()
+    # use default fire feature
+    data.merge_fire()
+    data.pollutant = pollutant
+    data.save_()
+
+    #. Optimization 1: optimize for the best randomforest model 
+    # split the data into 4 set
+    print('optimize 1: find the best RF model')
+    data.split_data(split_ratio=[0.4, 0.2, 0.2, 0.2])
+    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0])
+    xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
+    data.x_cols = x_cols
+
+    model = do_rf_search(xtrn,ytrn)
+    score_dict = cal_scores(yval, model.predict(xval), header_str ='val_')
+    print('optimize 1 score', score_dict)    
+
+    importances = model.feature_importances_
+    feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
+    feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+    show_fea_imp(feat_imp,filename=data.report_folder + 'fea_imp1.png')
+
+    print('optimize 2: remove unncessary columns ')
+    # columns to consider droping are columns with low importance
+    to_drop = feat_imp['index']
+    to_drop = [a for a in to_drop if 'fire' not in a]
+    for s in ['Humidity(%)','Temperature(C)','Wind Speed(kmph)']:
+        to_drop.remove(s)
+    to_drop.reverse()
+    model, new_x_cols = reduce_cols(dataset=data,x_cols=x_cols,to_drop=to_drop,model=model,trn_i=0, val_i=1)
+    data.x_cols = new_x_cols
+
+    print('optimization 3: find the best fire feature')
+    # reduce the number of split
+    data.split_data(split_ratio=[0.6, 0.2, 0.2])
+    data.fire_dict = sk_op_fire(data, model, trn_index=data.split_list[0], val_index=data.split_list[1])
+
+    print('optimization 4: optimize for the best RF again and search for other model in TPOT')
+
+    data.split_data(split_ratio=[0.7, 0.3])
+    trn_index = data.split_list[0]
+    test_index = data.split_list[1]
+    data.merge_fire(data.fire_dict)
+    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.trn_index)
+    xtest, ytest, _ = data.get_data_matrix(use_index=data.test_index)
+
+    print('optimize RF')
+    rf_model = do_rf_search(xtrn,ytrn)
+    rf_score_dict = cal_scores(ytest, rf_model.predict(xtest), header_str ='test_',title='rf feature of importance(raw)')
+    print(rf_score_dict)
+    rf_dict = rf_model.get_params()
+    # save rf model 
+    with open(data.model_folder +'rf_model.pkl','wb') as f:
+        pickle.dump(rf_model, f)
+
+    # build feature of importance using build in rf
+    importances = rf_model.feature_importances_
+    feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
+    feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+    show_fea_imp(feat_imp,filename=data.report_folder + 'rf_fea1.png', title='rf feature of importance(default)')
+    # custom feature of importance
+    fea_imp = feat_importance(rf_model,xtrn,ytrn,x_cols,n_iter=50)
+    show_fea_imp(fea_imp,filename=data.report_folder + 'rf_fea2.png',title='rf feature of importance(shuffle)')
+
+    print('optimize tpot')
+    tpot = TPOTRegressor( generations=5, population_size=50, verbosity=2,n_jobs=-1)
+    tpot.fit(xtrn, ytrn)
+    tpot.export(data.model_folder + 'tpot.py')
+    tpot_model = tpot.fitted_pipeline_
+    tpot_score_dict = cal_scores(ytest, tpot_model.predict(xtest), header_str ='test_')
+    print(tpot_score_dict)
+    tpot_dict = tpot_model.get_params()
+    # save tpot model 
+    with open(data.model_folder +'tpot_model.pkl','wb') as f:
+        pickle.dump(tpot_model, f)
+
+    # custom feature of importance
+    fea_imp = feat_importance(tpot_model,xtrn,ytrn,x_cols,n_iter=50)
+    show_fea_imp(fea_imp,filename=data.report_folder + 'tpot_fea.png',title='tpot feature of importance')
+
+    # build model meta and save 
+    # create a pollution meta 
+    poll_meta =  { 'x_cols': x_cols,
+                    'fire_dict': data.fire_dict,
+                    'rf_score': rf_score_dict,
+                    'rf_params': rf_dict,
+                    'tpot_score': tpot_score_dict,
+                    'tpot_dict': tpot_dict
+    }
+
+    return data, rf_model, tpot_model 
+
+    

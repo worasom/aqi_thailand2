@@ -20,6 +20,7 @@ class Dataset():
         city_name: lower case of city name
         main_folder(optional): main data folder [default:'../data/]
         model_folder(optional): model folder[default:'../models/']
+        report_folder(optional): folder to save fiture[default:'../reports/']
 
     Attributes:
         city_name: name of the city
@@ -28,6 +29,7 @@ class Dataset():
         main_folder: main data folder [default:'../data/']. This folder contains raw data.
         data_folder: data folder spcified for this city for keeping processed data
         model_folder: model folder for this city for model meta and model files 
+        report_folder: report folder for saving figures
         city_info: dictionary contain city latitude and longtitude
         poll_df: raw pollution data 
         fire: raw fire data 
@@ -53,7 +55,7 @@ class Dataset():
             self,
             city_name: str,
             main_data_folder: str = '../data/',
-            model_folder='../models/'):
+            model_folder='../models/',report_folder='../reports/'):
         """Initialize 
         
         #. Check if the city name exist in the database
@@ -75,6 +77,7 @@ class Dataset():
             self.main_folder = main_data_folder
             self.data_folder = main_data_folder + city_name + '/'
             self.model_folder = model_folder + city_name + '/'
+            self.report_folder = report_folder + city_name + '/'
             self.wea_name = self.city_wea_dict[self.city_name]
 
         if not os.path.exists(self.data_folder):
