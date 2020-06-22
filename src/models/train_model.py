@@ -15,9 +15,11 @@ def load_meta(meta_filename:str):
         pollutant_meta dictionary for that pollutant 
 
     """
-
-    with open(meta_filename) as f:
-        model_meta = json.load(f)
+    if os.path.exists(meta_filename):
+        with open(meta_filename) as f:
+            model_meta = json.load(f)
+    else:
+        model_meta = {}
 
     return model_meta
 
@@ -118,7 +120,6 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
         
         if score> base_score:
             x_cols = x_cols.drop(col)
-            print('old score', base_score, 'new score', score)
             print('drop', col)
         
     # obtain the final model 
@@ -129,10 +130,10 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
     score = cal_scores(yval, model.predict(xval), header_str ='')['r2_score']   
     
     print('use columns', x_cols)
-    print('r2 score', score)
+    print('r2_score after dropping columns', score)
     return model, x_cols
 
-def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-48,48],roll_range:list=[24, 120])-> dict:
+def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-48,48],roll_range:list=[24, 120],vis:bool=False)-> dict:
     """Search for the best fire parameter using skopt optimization 
     
     Args: 
@@ -143,6 +144,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         wind_range(optional): min and max value of wind speed 
         shift_range(optional): min and max value of shift parameter
         roll_range(optional): min and max value of roll parameter
+        vis(optional): if True, also plot the search space
         
     Return: fire_dict fire dictionary 
     
@@ -151,6 +153,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     # check the baseline 
     dataset.merge_fire(dataset.fire_dict)
     x_cols = dataset.x_cols
+    print('skop_ fire use x_cols', x_cols)
     # establish the baseline 
     xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index= trn_index,x_cols=x_cols)
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
@@ -158,14 +161,15 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     model.fit(xtrn,ytrn)
     best_score = r2_score(yval,model.predict(xval))
     best_fire_dict = dataset.fire_dict
-    print('old score', best_score, 'fire dict', fire_dict)
+    print('old score', best_score, 'fire dict', best_fire_dict)
     
     print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
     # build search space 
     wind_speed = Real(low=wind_range[0], high=wind_range[1], name='wind_speed')
     shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
     roll = Integer(low=roll_range[0],high=roll_range[1], name='roll')
-   
+    
+    dimensions = [wind_speed, shift, roll]
     # setup the function for skopt
     @use_named_args(dimensions)
     def fit_with( wind_speed, shift, roll):
@@ -173,7 +177,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         fire_dict = { 'w_speed': wind_speed, 
                       'shift': shift,
                       'roll': roll}
-        data.merge_fire(fire_dict)
+        dataset.merge_fire(fire_dict)
     
         xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index= trn_index, x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=dataset.x_cols)
@@ -189,7 +193,8 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     if score> best_score:
         print('r2 score for the best fire parameters', -gp_result.fun)
         best_fire_dict = {'w_speed': int(wind_speed), 'shift': shift, 'roll': roll}
-        plot_objective(gp_result)
+        if vis:
+            plot_objective(gp_result)
     else:
         print(f'old fire parameter {best_score} is still better than optimized score ={score}' )
         
@@ -273,7 +278,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
 
     #. Optimization 1: optimize for the best randomforest model 
     # split the data into 4 set
-    print('optimize 1: find the best RF model')
+    print('=================optimize 1: find the best RF model=================')
     data.split_data(split_ratio=[0.4, 0.2, 0.2, 0.2])
     xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0])
     xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
@@ -286,9 +291,9 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     importances = model.feature_importances_
     feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + 'fea_imp1.png')
+    show_fea_imp(feat_imp,filename=data.report_folder + 'fea_imp1.png', title='rf feature of importance(raw)')
 
-    print('optimize 2: remove unncessary columns ')
+    print('=================optimize 2: remove unncessary columns=================')
     # columns to consider droping are columns with low importance
     to_drop = feat_imp['index']
     to_drop = [a for a in to_drop if 'fire' not in a]
@@ -298,23 +303,23 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     model, new_x_cols = reduce_cols(dataset=data,x_cols=x_cols,to_drop=to_drop,model=model,trn_i=0, val_i=1)
     data.x_cols = new_x_cols
 
-    print('optimization 3: find the best fire feature')
+    print('================= optimization 3: find the best fire feature ===================')
     # reduce the number of split
     data.split_data(split_ratio=[0.6, 0.2, 0.2])
     data.fire_dict = sk_op_fire(data, model, trn_index=data.split_list[0], val_index=data.split_list[1])
 
-    print('optimization 4: optimize for the best RF again and search for other model in TPOT')
+    print('================= optimization 4: optimize for the best RF again and search for other model in TPOT =================')
 
     data.split_data(split_ratio=[0.7, 0.3])
     trn_index = data.split_list[0]
     test_index = data.split_list[1]
     data.merge_fire(data.fire_dict)
-    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.trn_index)
-    xtest, ytest, _ = data.get_data_matrix(use_index=data.test_index)
+    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=trn_index,x_cols=new_x_cols)
+    xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=new_x_cols)
 
     print('optimize RF')
     rf_model = do_rf_search(xtrn,ytrn)
-    rf_score_dict = cal_scores(ytest, rf_model.predict(xtest), header_str ='test_',title='rf feature of importance(raw)')
+    rf_score_dict = cal_scores(ytest, rf_model.predict(xtest), header_str ='test_')
     print(rf_score_dict)
     rf_dict = rf_model.get_params()
     # save rf model 
@@ -328,7 +333,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     show_fea_imp(feat_imp,filename=data.report_folder + 'rf_fea1.png', title='rf feature of importance(default)')
     # custom feature of importance
     fea_imp = feat_importance(rf_model,xtrn,ytrn,x_cols,n_iter=50)
-    show_fea_imp(fea_imp,filename=data.report_folder + 'rf_fea2.png',title='rf feature of importance(shuffle)')
+    show_fea_imp(fea_imp,filename=data.report_folder + 'rf_fea2.png', title='rf feature of importance(shuffle)')
 
     print('optimize tpot')
     tpot = TPOTRegressor( generations=5, population_size=50, verbosity=2,n_jobs=-1)
@@ -356,6 +361,10 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
                     'tpot_dict': tpot_dict
     }
 
+    model_meta = load_meta(data.model_filename + 'model_meta.json')
+    model_meta[pollutant] = poll_meta
+    save_meta(data.model_filename + 'model_meta.json', model_meta)
+     
     return data, rf_model, tpot_model 
 
     

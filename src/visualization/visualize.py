@@ -75,15 +75,19 @@ def show_fea_imp(fea_imp,x_log=False, filename=None,title=''):
         title: figure title
     
     """
+    plt.rcParams.update({'font.size': 14})
+
+
     if 'imp_std' in fea_imp.columns:
-        fea_imp.drop(0).plot('index','importance',kind='barh',xerr='imp_std',figsize=(5,8),linewidth=1,edgecolor='black')
+        fea_imp.drop(0).plot('index','importance',kind='barh',xerr='imp_std',figsize=(5,8),linewidth=1,edgecolor='black',legend=False)
     else:
-        fea_imp.drop(0).plot('index','importance',kind='barh',figsize=(5,8),linewidth=1,edgecolor='black')
+        fea_imp.drop(0).plot('index','importance',kind='barh',figsize=(5,8),linewidth=1,edgecolor='black', legend=False)
 
     if x_log:
         plt.xscale('log')
 
     plt.title(title)
     plt.xlabel('importance index')
+    plt.tight_layout()
     if filename:
         plt.savefig(filename)
