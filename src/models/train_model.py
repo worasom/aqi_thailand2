@@ -34,7 +34,7 @@ def save_meta(meta_filename:str, model_meta):
     """ 
 
     with open(meta_filename, 'w') as f:
-        json.dump(model_meta, meta_filename)
+        json.dump(model_meta, f)
 
 
 def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None):
@@ -192,7 +192,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     score = -gp_result.fun
     if score> best_score:
         print('r2 score for the best fire parameters', -gp_result.fun)
-        best_fire_dict = {'w_speed': int(wind_speed), 'shift': shift, 'roll': roll}
+        best_fire_dict = {'w_speed': int(wind_speed), 'shift': int(shift), 'roll': int(roll)}
         if vis:
             plot_objective(gp_result)
     else:
@@ -263,6 +263,8 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     """
 
     data = Dataset(city)
+    # remove . from pollutant name for saving file
+    poll_name = pollutant.replace('.')
     if build:
         # build data from scratch 
         data.build_all_data(build_fire=True,build_holiday=False)
@@ -291,7 +293,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     importances = model.feature_importances_
     feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + 'fea_imp1.png', title='rf feature of importance(raw)')
+    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_fea_imp1.png', title='rf feature of importance(raw)')
 
     print('=================optimize 2: remove unncessary columns=================')
     # columns to consider droping are columns with low importance
@@ -323,48 +325,52 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     print(rf_score_dict)
     rf_dict = rf_model.get_params()
     # save rf model 
-    with open(data.model_folder +'rf_model.pkl','wb') as f:
+    with open(data.model_folder +f'{poll_name}_rf_model.pkl','wb') as f:
         pickle.dump(rf_model, f)
 
     # build feature of importance using build in rf
     importances = rf_model.feature_importances_
     feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + 'rf_fea1.png', title='rf feature of importance(default)')
+    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea1.png', title='rf feature of importance(default)')
     # custom feature of importance
     fea_imp = feat_importance(rf_model,xtrn,ytrn,x_cols,n_iter=50)
-    show_fea_imp(fea_imp,filename=data.report_folder + 'rf_fea2.png', title='rf feature of importance(shuffle)')
+    show_fea_imp(fea_imp,filename=data.report_folder + f'{poll_name}_rf_fea2.png', title='rf feature of importance(shuffle)')
 
-    print('optimize tpot')
-    tpot = TPOTRegressor( generations=5, population_size=50, verbosity=2,n_jobs=-1)
-    tpot.fit(xtrn, ytrn)
-    tpot.export(data.model_folder + 'tpot.py')
-    tpot_model = tpot.fitted_pipeline_
-    tpot_score_dict = cal_scores(ytest, tpot_model.predict(xtest), header_str ='test_')
-    print(tpot_score_dict)
-    tpot_dict = tpot_model.get_params()
-    # save tpot model 
-    with open(data.model_folder +'tpot_model.pkl','wb') as f:
-        pickle.dump(tpot_model, f)
+    # print('optimize tpot')
+    # tpot = TPOTRegressor( generations=5, population_size=50, verbosity=2,n_jobs=-1)
+    # tpot.fit(xtrn, ytrn)
+    # tpot.export(data.model_folder + 'tpot.py')
+    # tpot_model = tpot.fitted_pipeline_
+    # tpot_score_dict = cal_scores(ytest, tpot_model.predict(xtest), header_str ='test_')
+    # print(tpot_score_dict)
+    # tpot_dict = tpot_model.get_params()
+    # # save tpot model 
+    # with open(data.model_folder + f'{poll_name}_tpot_model.pkl','wb') as f:
+    #     pickle.dump(tpot_model, f)
 
-    # custom feature of importance
-    fea_imp = feat_importance(tpot_model,xtrn,ytrn,x_cols,n_iter=50)
-    show_fea_imp(fea_imp,filename=data.report_folder + 'tpot_fea.png',title='tpot feature of importance')
+    # # custom feature of importance
+    # fea_imp = feat_importance(tpot_model,xtrn,ytrn,x_cols,n_iter=50)
+    # show_fea_imp(fea_imp,filename=data.report_folder + 'tpot_fea.png',title='tpot feature of importance')
 
-    # build model meta and save 
-    # create a pollution meta 
-    poll_meta =  { 'x_cols': x_cols,
+    # # build model meta and save 
+    # # create a pollution meta 
+    # poll_meta =  { 'x_cols': x_cols.to_list(),
+    #                 'fire_dict': data.fire_dict,
+    #                 'rf_score': rf_score_dict,
+    #                 'rf_params': rf_dict,
+    #                 'tpot_score': tpot_score_dict
+    # }
+
+    poll_meta =  { 'x_cols': x_cols.to_list(),
                     'fire_dict': data.fire_dict,
                     'rf_score': rf_score_dict,
-                    'rf_params': rf_dict,
-                    'tpot_score': tpot_score_dict,
-                    'tpot_dict': tpot_dict
-    }
+                    'rf_params': rf_dict}
 
-    model_meta = load_meta(data.model_filename + 'model_meta.json')
+    model_meta = load_meta(data.model_folder + 'model_meta.json')
     model_meta[pollutant] = poll_meta
-    save_meta(data.model_filename + 'model_meta.json', model_meta)
+    save_meta(data.model_folder + 'model_meta.json', model_meta)
      
-    return data, rf_model, tpot_model 
+    return data, rf_model , poll_meta
 
     
