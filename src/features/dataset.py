@@ -258,7 +258,7 @@ class Dataset():
         data = data.groupby('datetime').mean()
         data = data.dropna(how='all')
 
-        self.poll_df = data
+        self.poll_df = data.round()
 
     def build_fire(self, instr: str = 'MODIS', distance=1000,
                    fire_data_folder: str = 'fire_map/world_2000-2020/'):
@@ -528,7 +528,7 @@ class Dataset():
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 
-        fire_proc, _ = get_fire_feature(self.fire, zone_list=zone_list,
+        fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=zone_list,
                                         fire_col='power', damp_surface='sphere',
                                         shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
@@ -541,6 +541,7 @@ class Dataset():
         data = data.dropna()
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
+        return fire_cols
 
     def split_data(self, split_ratio:list=[0.4, 0.2, 0.2, 0.2], shuffle:bool=False):
         """Split the data datetime index into train, valiadation and test sets

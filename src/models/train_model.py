@@ -151,7 +151,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     """
     
     # check the baseline 
-    dataset.merge_fire(dataset.fire_dict)
+    _ = dataset.merge_fire(dataset.fire_dict)
     x_cols = dataset.x_cols
     print('skop_ fire use x_cols', x_cols)
     # establish the baseline 
@@ -177,7 +177,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         fire_dict = { 'w_speed': wind_speed, 
                       'shift': shift,
                       'roll': roll}
-        dataset.merge_fire(fire_dict)
+        _ = dataset.merge_fire(fire_dict)
     
         xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index= trn_index, x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=dataset.x_cols)
@@ -274,7 +274,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     # build the first dataset 
     data.feature_no_fire()
     # use default fire feature
-    data.merge_fire()
+    fire_cols = data.merge_fire()
     data.pollutant = pollutant
     data.save_()
 
@@ -315,7 +315,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     data.split_data(split_ratio=[0.7, 0.3])
     trn_index = data.split_list[0]
     test_index = data.split_list[1]
-    data.merge_fire(data.fire_dict)
+    fire_cols = data.merge_fire(data.fire_dict)
     xtrn, ytrn, x_cols = data.get_data_matrix(use_index=trn_index,x_cols=new_x_cols)
     xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=new_x_cols)
 
@@ -325,8 +325,10 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     print(rf_score_dict)
     rf_dict = rf_model.get_params()
     # save rf model 
-    with open(data.model_folder +f'{poll_name}_rf_model.pkl','wb') as f:
-        pickle.dump(rf_model, f)
+    #with open(data.model_folder +f'{poll_name}_rf_model.pkl','wb') as f:
+    #    pickle.dump(rf_model, f)
+
+    pickle.dump(rf_model, open(data.model_folder +f'{poll_name}_rf_model.pkl', 'wb'))
 
     # build feature of importance using build in rf
     importances = rf_model.feature_importances_
@@ -363,6 +365,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     # }
 
     poll_meta =  { 'x_cols': x_cols.to_list(),
+                    'fire_cols':fire_cols.to_list(),
                     'fire_dict': data.fire_dict,
                     'rf_score': rf_score_dict,
                     'rf_params': rf_dict}
