@@ -264,7 +264,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
 
     data = Dataset(city)
     # remove . from pollutant name for saving file
-    poll_name = pollutant.replace('.')
+    poll_name = pollutant.replace('.','')
     if build:
         # build data from scratch 
         data.build_all_data(build_fire=True,build_holiday=False)

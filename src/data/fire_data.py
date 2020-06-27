@@ -1,8 +1,31 @@
 # -*- coding: utf-8 -*-
 from ..imports import *
-""" Proess hospot data
+from ..gen_functions import *
+""" Functions for proess hospots data.
 
 """
+def read_fire(file:str,lat_km:float, long_km:float, distance:(int, float)=1000)-> pd.core.frame.DataFrame:
+    """Read fire data and keep the data within distance 
+    Args:
+        file: fire data csv filename 
+        lat_km: latitude of the city center in km
+        long_km: longitude of the city center in km
+        distance(optional): distance in km from the city center for keeping the data 
+
+    Returns: dataframe of fire data 
+
+    """
+   
+    f = pd.read_csv(file)
+     
+    # convert lat 
+    f['lat_km'] = (f['latitude'].apply(merc_y)/1E3).round().astype(int)
+    f['long_km'] = (merc_x(f['longitude'])/1E3).round().astype(int)
+    # remove by lat 
+    f = f[(f['lat_km'] <= (lat_km+distance)) & (f['lat_km'] >= (lat_km-distance))]
+    # remove by long 
+    f = f[(f['long_km'] <= (long_km+distance)) & (f['long_km'] >= (long_km-distance))]
+    return f
 
 
 def add_datetime_fire(fire):

@@ -72,6 +72,7 @@ from skopt import gp_minimize
 from skopt.utils import use_named_args
 from skopt.space import Real, Categorical, Integer
 import joblib
+from joblib import Parallel, delayed
 import pickle
 from dask.distributed import Client
 

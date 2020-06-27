@@ -295,30 +295,34 @@ class Dataset():
                 'instrument name can be either MODIS or VIIRS')
 
         # keeping radius
-        upper_lat = self.city_info['lat_km'] + distance
-        lower_lat = self.city_info['lat_km'] - distance
-        upper_long = self.city_info['long_km'] + distance
-        lower_long = self.city_info['long_km'] - distance
+        #upper_lat = self.city_info['lat_km'] + distance
+        #lower_lat = self.city_info['lat_km'] - distance
+        #upper_long = self.city_info['long_km'] + distance
+        #lower_long = self.city_info['long_km'] - distance
 
         files = glob(folder)
 
         fire = pd.DataFrame()
-        for file in tqdm(files):
+        # for file in tqdm(files):
 
-            df = pd.read_csv(file)
-            # convert lat and long to km
-            df['lat_km'] = (
-                df['latitude'].apply(merc_y) /
-                1E3).round().astype(int)
-            df['long_km'] = (merc_x(df['longitude']) / 1E3).round().astype(int)
+        #     df = pd.read_csv(file)
+        #     # convert lat and long to km
+        #     df['lat_km'] = (
+        #         df['latitude'].apply(merc_y) /
+        #         1E3).round().astype(int)
+        #     df['long_km'] = (merc_x(df['longitude']) / 1E3).round().astype(int)
 
-            # remove by lat
-            df = df[(df['lat_km'] <= (upper_lat)) & (df['lat_km'] >= (lower_lat))]
+        #     # remove by lat
+        #     df = df[(df['lat_km'] <= (upper_lat)) & (df['lat_km'] >= (lower_lat))]
 
-            # remove by long
-            df = df[(df['long_km'] <= (upper_long)) & (df['long_km'] >= (lower_long))]
+        #     # remove by long
+        #     df = df[(df['long_km'] <= (upper_long)) & (df['long_km'] >= (lower_long))]
+        lat_km = self.city_info['lat_km']
+        long_km = self.city_info['long_km']
 
-            fire = pd.concat([fire, df], ignore_index=True)
+        # use joblib to speed up the file reading process over 2 cpus
+        fire = Parallel(n_jobs=2)(delayed(read_fire)(file, lat_km, long_km, distance) for file in files)
+        fire = pd.concat(fire, ignore_index=True)
 
         fire = process_fire_data(filename=None, fire=fire, and_save=False)
 
