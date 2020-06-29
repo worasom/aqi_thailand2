@@ -282,8 +282,12 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     # split the data into 4 set
     print('=================optimize 1: find the best RF model=================')
     data.split_data(split_ratio=[0.4, 0.2, 0.2, 0.2])
-    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0])
-    xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
+    x_cols = ['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)',
+    'wind_CALM', 'wind_E', 'wind_N', 'wind_S', 'wind_W', 'is_rain',
+    'is_holiday', 'is_weekend', 'day_of_week', 'time_of_day', 'fire_0_100',
+    'fire_100_400', 'fire_400_700', 'fire_700_1000']
+    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0], x_cols=x_cols)
+    xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1], x_cols=x_cols)
     data.x_cols = x_cols
 
     model = do_rf_search(xtrn,ytrn)
@@ -364,7 +368,7 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     #                 'tpot_score': tpot_score_dict
     # }
 
-    poll_meta =  { 'x_cols': x_cols.to_list(),
+    poll_meta =  { 'x_cols': x_cols,
                     'fire_cols':fire_cols.to_list(),
                     'fire_dict': data.fire_dict,
                     'rf_score': rf_score_dict,

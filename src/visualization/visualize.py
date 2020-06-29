@@ -2,7 +2,6 @@
 from ..imports import *
 from ..gen_functions import *
 
-
 def plot_dendogram(data:pd.core.frame.DataFrame, cols=None, front_size=16,filename=None):
     """Plot hierarchical relationship between features in the data. 
     
@@ -92,6 +91,66 @@ def show_fea_imp(fea_imp,x_log=False, filename=None,title=''):
     if filename:
         plt.savefig(filename)
 
+
+def plot_corr(poll_df, avg='d',filename=None):
+    """Plot the correlation between different pollutants 
+    
+    Args:
+        poll_df:
+        avg: 'd' or 'm' 
+
+    """
+    df = poll_df.resample(avg).max()
+    plt.figure(figsize=(10,8))
+    mask = np.tril(df.corr())
+    # use spearman rank correlation 
+    sns.heatmap(df.corr(method='spearman'), annot=True,mask=mask)
+    
+    if filename:
+        plt.savefig(filename)
+
+def plot_season_avg(poll_df, pollutant, ax, plot_error=True):
+    """Plot the average by date of year. Good for looking seasonal pattern.
+
+    """
+    plt.rcParams.update({'font.size': 14})
+
+    df = poll_df[[pollutant]].resample('d').max().copy().dropna()
+    df['dayofyear'] = df.index.dayofyear
+    df['year'] = df.index.year
+
+    # add winter day by substratcing the first day of july
+    winterday = df['dayofyear'] - 182
+    # get rid of the negative number
+    winter_day_max = winterday.max()
+    winterday[winterday < 0] = winterday[winterday < 0] + 182 + winter_day_max  
+    df['winter_day'] = winterday
+
+    # add month-day 
+    df['month_day'] = df.index.strftime('%m-%d')
+    temp = df[['winter_day', 'month_day']].set_index('winter_day')
+    temp.index = temp.index.astype(str)
+    winter_day_dict = temp.to_dict()['month_day']
+
+    if plot_error:
+        sns.lineplot(data=df,x='winter_day', y=pollutant, ax=ax, legend='brief',label=pollutant,color='blue')
+    
+    else:
+        mean_day = df.groupby('winter_day').mean()[pollutant]
+        ax.plot(mean_day,label=pollutant)
+
+    ax.set_xlim([0, 366])
+    new_ticks = ['07-01', '08-20', '10-09', '11-28', '01-16', '03-06', '04-25', '06-14', '']         
+        
+    ax.set_xticklabels(new_ticks)
+    ax.set_xlim([df['winter_day'].min(), df['winter_day'].max()])
+    ax.legend()
+    ax.set_xlabel('month-date')
+    #plt.show()
+    return winter_day_dict
+
+
+
 def plot_all_pollutions(poll_df, city_name='',filename=None,transition_dict=None, color_labels=None, level_name=None):
     """Plot all pollutant data over time. 
 
@@ -152,6 +211,9 @@ def plot_all_pollutions(poll_df, city_name='',filename=None,transition_dict=None
     ax[-1].set_xlabel('date')
 
     plt.tight_layout()
+
+    if filename:
+        plt.savefig(filename)
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand AQI conversion.
