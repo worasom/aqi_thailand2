@@ -38,6 +38,8 @@ class Dataset():
         data: processed pollution, weather and fire data 
         x_cols:
         fire_dict: 
+        pollutant
+        monitor
 
     Raises:
         AssertionError: if the city_name is not in city_names list
@@ -543,6 +545,28 @@ class Dataset():
         self.data = data
         return fire_cols
 
+    def make_diff_col(self):
+        """Add pollutant diff column for modeling the diff instead of the actual value. 
+        Drop all the columns with 'lag' name on it. 
+
+        The function update self.data_no_fire attribute, x_cols attribute, and monitor attribute. 
+
+        """
+        # create diff columns
+        new_col = self.pollutant + '_diff'
+        self.data_no_fire[new_col] = self.data_no_fire[self.pollutant].diff()
+        # add monitor col
+        self.monitor = new_col
+
+        # the first row of diff is nan. Add that value as attribute before deleting the row. 
+        self.start_value = self.data_no_fire.iloc[0][self.pollutant]
+        self.data_no_fire = self.data_no_fire.dropna()
+
+        # find the columns to drop 
+        to_drop = self.data_no_fire.columns[self.data_no_fire.columns.str.contains('lag_')]
+        self.data_no_fire.drop(to_drop, axis=1, inplace=True)
+
+
     def split_data(self, split_ratio:list=[0.4, 0.2, 0.2, 0.2], shuffle:bool=False):
         """Split the data datetime index into train, valiadation and test sets
 
@@ -569,7 +593,7 @@ class Dataset():
     def get_data_matrix(self, use_index:list, x_cols:list=[]):
         """Extract data in data dataframe into x,y matricies using input index list.
         
-        y is specified by self.pollutant attribute. Use the data specified by x_cols.
+        y is specified by self.monitor attribute. Use the data specified by x_cols.
         If x_cols is an empty list, use entire columns in self.data 
         
         Args: 
@@ -587,10 +611,10 @@ class Dataset():
         except:
             raise AssertionError('no self.data attribute. Call self.merge_fire() first')
 
-        y = temp[self.pollutant].values
+        y = temp[self.monitor].values
 
         if len(x_cols) == 0:
-            x = temp.drop(self.pollutant, axis=1)
+            x = temp.drop(self.monitor, axis=1)
         else:
             x = temp[x_cols]
 
