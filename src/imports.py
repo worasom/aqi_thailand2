@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import re
 import os
-from tqdm import tqdm
+from tqdm import tqdm, tqdm_notebook
 import json
 import numpy as np
 import pandas as pd
@@ -60,9 +60,9 @@ from bokeh.tile_providers import get_provider, Vendors
 # machine learning
 
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split, KFold, TimeSeriesSplit
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor

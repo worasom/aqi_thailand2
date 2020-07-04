@@ -37,7 +37,7 @@ def save_meta(meta_filename:str, model_meta):
         json.dump(model_meta, f)
 
 
-def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None):
+def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=True):
     """Perform randomize parameter search for randomforest regressor return the best estimator 
     Args: 
         x_trn: 2D array of x data 
@@ -45,19 +45,23 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
         cv_split(optional): if "time". Use TimeSeriesSplit, which don't shuffle the data.
         n_splits(optional): number of cross validation split [default:5]
         params_dict(optional): search parameter dictionary [default:None]
+        x_tree(optional): if True, use ExtraTreesRegressor instead of RandomForestRegressor
 
     Returns: best estimator 
     """
-    # rf 
-    m = RandomForestRegressor(n_jobs=-1, random_state=42)
+    if x_tree:
+        m = ExtraTreesRegressor(n_jobs=-1, random_state=42)
+    else:
+        # rf 
+        m = RandomForestRegressor(n_jobs=-1, random_state=42)
     
     if param_dict==None:
         param_dict = {'n_estimators':range(20,200,20),
               'max_depth': [3, None],
-              'min_samples_split' : [2, 5, 10, 20], 
+              'min_samples_split' : [2, 5, 10, 20, 50, 100, 200], 
               'max_features' : range(2,x_trn.shape[1]),
                'bootstrap' : [True, False],
-              'min_samples_leaf': range(1, 8)}
+              'min_samples_leaf': range(1, x_trn.shape[1] )}
     
     if cv_split =='time':
         cv = TimeSeriesSplit(n_splits=n_splits)
@@ -185,13 +189,13 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         model.fit(xtrn,ytrn)
         y_pred = model.predict(xval)
     
-        return -r2_score(yval,y_pred)
+        return mean_absolute_error(yval,y_pred)
     gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
     
-    wind_speed,shift,roll = gp_result.x
+    wind_speed, shift, roll = gp_result.x
     score = -gp_result.fun
     if score> best_score:
-        print('r2 score for the best fire parameters', -gp_result.fun)
+        print('mean_absolute_error for the best fire parameters', gp_result.fun)
         best_fire_dict = {'w_speed': int(wind_speed), 'shift': int(shift), 'roll': int(roll)}
         if vis:
             plot_objective(gp_result)
@@ -218,7 +222,7 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
      
     imp = []
     imp_std = []
-    for i, col in tqdm(enumerate(x_cols)):
+    for i, col in tqdm_notebook(enumerate(x_cols)):
         shuffle = []
         for _ in range(n_iter):
             shuffle_x = x.copy()

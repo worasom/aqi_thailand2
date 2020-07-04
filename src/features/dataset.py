@@ -305,7 +305,7 @@ class Dataset():
         files = glob(folder)
 
         fire = pd.DataFrame()
-        # for file in tqdm(files):
+        # for file in tqdm_notebook(files):
 
         #     df = pd.read_csv(file)
         #     # convert lat and long to km
@@ -509,7 +509,7 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self, fire_dict=None):
+    def merge_fire(self, fire_dict=None, damp_surface='sphere'):
         """Process raw hotspot data into fire feature and merge with the rest of the data
         Args:
             fire_dict(optional): fire dictionary [default:None]
@@ -530,8 +530,9 @@ class Dataset():
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 
+         
         fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=zone_list,
-                                        fire_col='power', damp_surface='sphere',
+                                        fire_col='power', damp_surface=damp_surface,
                                         shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
         # merge with fire data

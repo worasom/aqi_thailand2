@@ -136,7 +136,7 @@ def scrape_weather(city_json, date_range):
     specific_url = city_json['specific_url']
     header_url = 'https://www.wunderground.com/history/daily/' + specific_url + 'date/'
 
-    for i, date in tqdm(enumerate(date_range)):
+    for i, date in tqdm_notebook(enumerate(date_range)):
 
         try:
             # obtain daily weather dataframe

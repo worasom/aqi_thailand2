@@ -98,7 +98,7 @@ def update_last_air4Thai(
     # print(para_selector_list)
     assert os.path.exists(data_folder), f'no data folder {data_folder}'
 
-    for sta_id, sta_name in tqdm(zip(sta_selector_list, station_name_list)):
+    for sta_id, sta_name in tqdm_notebook(zip(sta_selector_list, station_name_list)):
         get_station_data_save(
             url,
             browser,
@@ -295,7 +295,7 @@ def download_cdc_data(
             station_info_list = json.load(f)
 
     # download data for all station
-    for station_dict in tqdm(station_info_list):
+    for station_dict in tqdm_notebook(station_info_list):
 
         station_id = station_dict['dustboy_id']
         # download the data
@@ -398,7 +398,7 @@ def main(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
     len(weather_station_info)
 
-    for city_json in tqdm(weather_station_info):
+    for city_json in tqdm_notebook(weather_station_info):
         print('update weather data for ', city_json['city_name'])
         start_date = datetime(2020, 1, 1)
         end_date = datetime.now()

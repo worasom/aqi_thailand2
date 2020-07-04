@@ -75,7 +75,7 @@ def cal_scores(
         ypred: np.array,
         score_list: list = [
             r2_score,
-            mean_squared_error],
+            mean_squared_error, mean_absolute_error],
     header_str: str = 'test_',
         to_print=False):
     """Calculate the prediction score
