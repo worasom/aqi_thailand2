@@ -4,6 +4,7 @@ from ..gen_functions import *
 from ..features.dataset import Dataset
 from ..visualization.visualize import *
 
+
 def load_meta(meta_filename:str):
     """Read model_meta dictionary and return model_meta dicitonary
 
@@ -50,13 +51,22 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
     Returns: best estimator 
     """
     if x_tree:
-        m = ExtraTreesRegressor(n_jobs=-1, random_state=42)
+        m = GradientBoostingRegressor(random_state=42)
     else:
         # rf 
-        m = RandomForestRegressor(n_jobs=-1, random_state=42)
+        m = RandomForestRegressor(random_state=42)
     
     if param_dict==None:
-        param_dict = {'n_estimators':range(20,200,20),
+        if x_tree:
+
+            param_dict = {
+                'n_estimators':range(20,200,20),
+                'min_samples_split' : [2, 5, 10, 20, 50, 100, 200],
+                'criterion': ['mse', 'mae'],
+                'max_depth': [3, None],
+                'max_features' : ['auto','sqrt','log2']}
+        else:
+            param_dict = {'n_estimators':range(20,200,20),
               'max_depth': [3, None],
               'min_samples_split' : [2, 5, 10, 20, 50, 100, 200], 
               'max_features' : range(2,x_trn.shape[1]),
@@ -94,7 +104,7 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
         x_cols: a list of new x_cols data 
         
     """
-    print('old cols', x_cols)
+    print('old cols length', len(x_cols))
     trn_index = dataset.split_list[trn_i]
     val_index = dataset.split_list[val_i]
     
@@ -111,13 +121,13 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
         xtrn, ytrn, new_x_cols = dataset.get_data_matrix(use_index=trn_index,x_cols=new_cols)
         xval, yval, _ =  dataset.get_data_matrix(use_index=val_index,x_cols=new_cols)
     
-        params_dict = model.get_params()
+        #params_dict = model.get_params()
         # function for tree-based model. this step prevent the code from breaking 
         # when removeing some features and the dimension is less than 'max_features'
         
-        if ('max_features' in params_dict.keys()) and (params_dict['max_features'] > xtrn.shape[1]):
-            params_dict['max_features'] = xtrn.shape[1]
-            model.set_params(**params_dict)
+        #if ('max_features' in params_dict.keys()) and (params_dict['max_features'] > xtrn.shape[1]):
+           # params_dict['max_features'] = xtrn.shape[1]
+            #model.set_params(**params_dict)
             
         model.fit(xtrn,ytrn)
         score = cal_scores(yval, model.predict(xval), header_str ='')['r2_score']
@@ -137,7 +147,7 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
     print('r2_score after dropping columns', score)
     return model, x_cols
 
-def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-48,48],roll_range:list=[24, 120],vis:bool=False)-> dict:
+def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-72,72],roll_range:list=[24, 120],vis:bool=False)-> dict:
     """Search for the best fire parameter using skopt optimization 
     
     Args: 
@@ -163,7 +173,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
     
     model.fit(xtrn,ytrn)
-    best_score = r2_score(yval,model.predict(xval))
+    best_score = mean_absolute_error(yval,model.predict(xval))
     best_fire_dict = dataset.fire_dict
     print('old score', best_score, 'fire dict', best_fire_dict)
     
@@ -193,8 +203,8 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
     
     wind_speed, shift, roll = gp_result.x
-    score = -gp_result.fun
-    if score> best_score:
+    score = gp_result.fun
+    if score < best_score:
         print('mean_absolute_error for the best fire parameters', gp_result.fun)
         best_fire_dict = {'w_speed': int(wind_speed), 'shift': int(shift), 'roll': int(roll)}
         if vis:
@@ -202,7 +212,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     else:
         print(f'old fire parameter {best_score} is still better than optimized score ={score}' )
         
-    return best_fire_dict
+    return best_fire_dict, gp_result
 
 
 def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
