@@ -489,7 +489,7 @@ class Dataset():
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
             data = data.loc['2010':]
         # add lag information
-        data = add_lags(data, pollutant)
+        # data = add_lags(data, pollutant)
         # one hot encode wind data
         dummies = wind_to_dummies(data['Wind'])
         data.drop('Wind', axis=1, inplace=True)
@@ -622,21 +622,27 @@ class Dataset():
         x_cols = x.columns
         return x.values, y, x_cols
 
-    def get_lag(self, n):
-        """Obtain n lagged value of x_cols return just the lagged df
-    
-        """
-        lag_df = self.data_back[self.x_cols_back].shift(n)
-        lag_df.columns = [ s+ f'_lag_{n}' for s in lag_df.columns]  
-        return lag_df
 
-    def build_lag(self, max_n):
-        """Build the upto max_n lag data. Add as attribute 
+    def build_lag(self, lag_range:list, roll=True):
+        """Build the lag data using number in lag_range. 
+        Add the new data as self.data attribute. 
+
+        Args:
+            lag_range: list of lag value to add. Can be from np.arange(1,5) or [1,3, 10]
+            roll(optional): if True, use the calculate the rolling average of previous values and shift 1
 
         """
-        lag_list = [self.data_back]
-        for n in np.arange(1,max_n):
-            lag_df = self.get_lag( n)
+        lag_list = [self.data_org]
+        for n in lag_range:
+            lag_df = self.data_org[self.x_cols_org].copy()
+            lag_df.columns = [ s+ f'_lag_{n}' for s in lag_df.columns] 
+            if roll:
+                # calculate the rolling average
+                lag_df = lag_df.rolling(n,min_periods=None).mean()
+                lag_df = lag_df.shift(1)
+            else:
+                lag_df = lag_df.shift(n)
+
             lag_list.append(lag_df)
         
         self.data = pd.concat(lag_list, axis=1, ignore_index=False)

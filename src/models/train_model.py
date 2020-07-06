@@ -37,9 +37,9 @@ def save_meta(meta_filename:str, model_meta):
     with open(meta_filename, 'w') as f:
         json.dump(model_meta, f)
 
-
-def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=True):
-    """Perform randomize parameter search for randomforest regressor return the best estimator 
+def do_knn_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=True):
+    """Perform randomize parameter search for KNN regressor return the best estimator 
+    
     Args: 
         x_trn: 2D array of x data 
         y_trn: 2D np.array of y data
@@ -47,6 +47,39 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
         n_splits(optional): number of cross validation split [default:5]
         params_dict(optional): search parameter dictionary [default:None]
         x_tree(optional): if True, use ExtraTreesRegressor instead of RandomForestRegressor
+
+    Returns: best estimator 
+    """
+    m = KNeighborsRegressor()
+
+    param_dict = { 'n_neighbors': range(5,100)}
+
+    if cv_split =='time':
+        cv = TimeSeriesSplit(n_splits=n_splits)
+        
+    else:
+        cv = n_splits
+    #hyper parameter tuning
+    search = RandomizedSearchCV(m, param_distributions=param_dict,
+                        n_iter=100,n_jobs=-1, cv=cv, random_state=40)
+
+    search.fit(x_trn,y_trn)
+    
+    print(search.best_params_, search.best_score_)
+    
+    return search.best_estimator_
+
+def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=True, n_jobs=-1):
+    """Perform randomize parameter search for randomforest regressor return the best estimator 
+    
+    Args: 
+        x_trn: 2D array of x data 
+        y_trn: 2D np.array of y data
+        cv_split(optional): if "time". Use TimeSeriesSplit, which don't shuffle the data.
+        n_splits(optional): number of cross validation split [default:5]
+        params_dict(optional): search parameter dictionary [default:None]
+        x_tree(optional): if True, use ExtraTreesRegressor instead of RandomForestRegressor
+        n_jobs(optional): number of CPU use [default:-1]
 
     Returns: best estimator 
     """
@@ -61,14 +94,14 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
 
             param_dict = {
                 'n_estimators':range(20,200,20),
-                'min_samples_split' : [2, 5, 10, 20, 50, 100, 200],
+                'min_samples_split' : [2, 5, 10, 20, 50],
                 'criterion': ['mse', 'mae'],
                 'max_depth': [3, None],
                 'max_features' : ['auto','sqrt','log2']}
         else:
             param_dict = {'n_estimators':range(20,200,20),
               'max_depth': [3, None],
-              'min_samples_split' : [2, 5, 10, 20, 50, 100, 200], 
+              'min_samples_split' : [2, 5, 10, 20, 50], 
               'max_features' : range(2,x_trn.shape[1]),
                'bootstrap' : [True, False],
               'min_samples_leaf': range(1, x_trn.shape[1] )}
@@ -80,7 +113,7 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
         cv = n_splits
     #hyper parameter tuning
     search = RandomizedSearchCV(m, param_distributions=param_dict,
-                            n_iter=100,n_jobs=-1, cv=cv, random_state=40)
+                            n_iter=100,n_jobs=n_jobs, cv=cv, random_state=40)
 
     search.fit(x_trn,y_trn)
     
@@ -173,7 +206,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
     
     model.fit(xtrn,ytrn)
-    best_score = mean_absolute_error(yval,model.predict(xval))
+    best_score = mean_squared_error(yval,model.predict(xval))
     best_fire_dict = dataset.fire_dict
     print('old score', best_score, 'fire dict', best_fire_dict)
     
@@ -199,14 +232,15 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         model.fit(xtrn,ytrn)
         y_pred = model.predict(xval)
     
-        return mean_absolute_error(yval,y_pred)
+        return mean_squared_error(yval,y_pred)
     gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
     
     wind_speed, shift, roll = gp_result.x
     score = gp_result.fun
     if score < best_score:
-        print('mean_absolute_error for the best fire parameters', gp_result.fun)
+        print('mean_squared_error for the best fire parameters', gp_result.fun)
         best_fire_dict = {'w_speed': int(wind_speed), 'shift': int(shift), 'roll': int(roll)}
+        print('new fire dict', best_fire_dict)
         if vis:
             plot_objective(gp_result)
     else:
@@ -214,6 +248,48 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         
     return best_fire_dict, gp_result
 
+def op_lag(dataset, model, split_ratio, lag_range=[6,36], step_range=[1,25]):
+    """Search for the best lag parameters using skopt optimization 
+    
+    Args: 
+        dataset: dataset object 
+        model: model object
+        split_ratio: list of split ratio
+        lag_range(optional): min and max value of wind speed 
+        step_range(optional): min and max value of shift parameter
+        
+    Return: fire_dict fire dictionary 
+    
+    """
+    # build search space 
+    n_max = Integer(low=lag_range[0], high=lag_range[1], name='n_max')
+    step = Integer(low=step_range[0], high=step_range[1], name='step')
+    dimensions = [n_max, step]
+    
+    
+    # setup the function for skopt
+    @use_named_args(dimensions)
+    def fit_with( n_max, step):
+        # function to return the score (smaller better)
+        dataset.build_lag(lag_range=np.arange(1,n_max,step),roll=True)
+        dataset.x_cols = dataset.data.columns
+        dataset.split_data(split_ratio=split_ratio)
+        xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+        xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+        
+        model.fit(xtrn,ytrn)
+        y_pred = model.predict(xval)
+        
+        return mean_squared_error(yval,y_pred)
+    
+    gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
+    n_max, step = gp_result.x
+    lag_dict = {'n_max':n_max,
+                'step':step}
+    score = gp_result.fun
+    print('new mean squared error', score, 'using', lag_dict )
+    
+    return lag_dict, gp_result
 
 def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
     """Computes the feature importance by shuffle the data
