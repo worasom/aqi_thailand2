@@ -2,7 +2,7 @@
 from ..imports import *
 from ..gen_functions import *
 from ..features.dataset import Dataset
-from ..visualization.visualize import *
+from ..visualization.vis_model import *
 
 
 def load_meta(meta_filename:str):
@@ -61,7 +61,7 @@ def do_knn_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:
         cv = n_splits
     #hyper parameter tuning
     search = RandomizedSearchCV(m, param_distributions=param_dict,
-                        n_iter=100,n_jobs=-1, cv=cv, random_state=40)
+                        n_iter=100,n_jobs=-2, cv=cv, random_state=40)
 
     search.fit(x_trn,y_trn)
     
@@ -69,7 +69,7 @@ def do_knn_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:
     
     return search.best_estimator_
 
-def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=True, n_jobs=-1):
+def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=False, n_jobs=-1):
     """Perform randomize parameter search for randomforest regressor return the best estimator 
     
     Args: 
@@ -102,7 +102,7 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
             param_dict = {'n_estimators':range(20,200,20),
               'max_depth': [3, None],
               'min_samples_split' : [2, 5, 10, 20, 50], 
-              'max_features' : range(2,x_trn.shape[1]),
+              'max_features' : ['auto','sqrt','log2'],
                'bootstrap' : [True, False],
               'min_samples_leaf': range(1, x_trn.shape[1] )}
     
@@ -120,6 +120,50 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
     print(search.best_params_, search.best_score_)
     
     return search.best_estimator_
+
+def do_ln_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, ln_type='elastic', n_jobs=-1):
+    """Perform randomize parameter search for linear regressir return the best estimator 
+
+    Args: 
+        x_trn: 2D array of x data 
+        y_trn: 2D np.array of y data
+        cv_split(optional): if "time". Use TimeSeriesSplit, which don't shuffle the data.
+        n_splits(optional): number of cross validation split [default:5]
+        params_dict(optional): search parameter dictionary [default:None]
+        ln_type(optional): type of linear regressor can be 'elastic', or lasso [default:'elastic']
+        n_jobs(optional): number of CPU use [default:-1]
+
+    Returns: best estimator 
+
+    """
+
+    if ln_type == 'elastic':
+        m = ElasticNet( )
+    elif ln_type == 'lasso':
+        m = Lasso()
+    elif ln_type == 'ridge':
+        m = Ridge()
+
+    if param_dict==None:
+        if ln_type == 'elastic':
+            param_dict  = { "alpha": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+                            "l1_ratio": np.arange(0.0, 1.0, 0.1)}
+
+    if cv_split =='time':
+        cv = TimeSeriesSplit(n_splits=n_splits)
+    else:
+        cv = n_splits
+    
+    #hyper parameter tuning
+    search = RandomizedSearchCV(m, param_distributions=param_dict,
+                        n_iter=100,n_jobs=n_jobs, cv=cv, random_state=40)     
+
+    search.fit(x_trn,y_trn)
+    
+    print(search.best_params_, search.best_score_)
+    
+    return search.best_estimator_   
+
 
 def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
     """Try droping the columns in to_drop. Keep track of the columns which can be remove from the model.
@@ -149,35 +193,28 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
         # obtain the baseline data
         model.fit(xtrn, ytrn)
         base_score = cal_scores(yval, model.predict(xval), header_str ='')['r2_score']
-     
-        new_cols = x_cols.drop(col).copy()
+
+        new_cols = x_cols.copy()
+        new_cols.remove(col) 
         xtrn, ytrn, new_x_cols = dataset.get_data_matrix(use_index=trn_index,x_cols=new_cols)
         xval, yval, _ =  dataset.get_data_matrix(use_index=val_index,x_cols=new_cols)
-    
-        #params_dict = model.get_params()
-        # function for tree-based model. this step prevent the code from breaking 
-        # when removeing some features and the dimension is less than 'max_features'
-        
-        #if ('max_features' in params_dict.keys()) and (params_dict['max_features'] > xtrn.shape[1]):
-           # params_dict['max_features'] = xtrn.shape[1]
-            #model.set_params(**params_dict)
-            
+     
         model.fit(xtrn,ytrn)
         score = cal_scores(yval, model.predict(xval), header_str ='')['r2_score']
         
         if score> base_score:
-            x_cols = x_cols.drop(col)
+            x_cols.remove(col)
             print('drop', col)
-        
+            
     # obtain the final model 
     
     xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=trn_index,x_cols=x_cols)
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index,x_cols=x_cols)
     model.fit(xtrn, ytrn)
-    score = cal_scores(yval, model.predict(xval), header_str ='')['r2_score']   
+    score_dict = cal_scores(yval, model.predict(xval), header_str ='') 
     
     print('use columns', x_cols)
-    print('r2_score after dropping columns', score)
+    print('score after dropping columns', score_dict)
     return model, x_cols
 
 def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-72,72],roll_range:list=[24, 120],vis:bool=False)-> dict:
@@ -198,7 +235,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     """
     
     # check the baseline 
-    _ = dataset.merge_fire(dataset.fire_dict)
+    _, *args = dataset.merge_fire(dataset.fire_dict)
     x_cols = dataset.x_cols
     print('skop_ fire use x_cols', x_cols)
     # establish the baseline 
@@ -212,7 +249,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
     
     print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
     # build search space 
-    wind_speed = Real(low=wind_range[0], high=wind_range[1], name='wind_speed')
+    wind_speed = Integer(low=wind_range[0], high=wind_range[1], name='wind_speed')
     shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
     roll = Integer(low=roll_range[0],high=roll_range[1], name='roll')
     
@@ -224,7 +261,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         fire_dict = { 'w_speed': wind_speed, 
                       'shift': shift,
                       'roll': roll}
-        _ = dataset.merge_fire(fire_dict)
+        _, *args = dataset.merge_fire(fire_dict)
     
         xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index= trn_index, x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=dataset.x_cols)
@@ -248,7 +285,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         
     return best_fire_dict, gp_result
 
-def op_lag(dataset, model, split_ratio, lag_range=[6,36], step_range=[1,25]):
+def op_lag(dataset, model, split_ratio, lag_range=[2,36], step_range=[1,25]):
     """Search for the best lag parameters using skopt optimization 
     
     Args: 
@@ -264,28 +301,33 @@ def op_lag(dataset, model, split_ratio, lag_range=[6,36], step_range=[1,25]):
     # build search space 
     n_max = Integer(low=lag_range[0], high=lag_range[1], name='n_max')
     step = Integer(low=step_range[0], high=step_range[1], name='step')
-    dimensions = [n_max, step]
+    roll = Categorical([True, False], name='roll')
+    dimensions = [n_max, step, roll]
     
     
     # setup the function for skopt
     @use_named_args(dimensions)
-    def fit_with( n_max, step):
+    def fit_with(n_max, step, roll):
         # function to return the score (smaller better)
-        dataset.build_lag(lag_range=np.arange(1,n_max,step),roll=True)
-        dataset.x_cols = dataset.data.columns
+        print(np.arange(1, n_max, step))
+        dataset.build_lag(lag_range=np.arange(1, n_max, step), roll=True)
+        dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
+        print(dataset.x_cols.shape)
         dataset.split_data(split_ratio=split_ratio)
         xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-        
+        print(xtrn.shape)
         model.fit(xtrn,ytrn)
         y_pred = model.predict(xval)
+        
         
         return mean_squared_error(yval,y_pred)
     
     gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
-    n_max, step = gp_result.x
-    lag_dict = {'n_max':n_max,
-                'step':step}
+    n_max, step, roll = gp_result.x
+    lag_dict = {'n_max':int(n_max),
+                'step':int(step),
+                'roll': roll}
     score = gp_result.fun
     print('new mean squared error', score, 'using', lag_dict )
     
@@ -328,8 +370,100 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
     
     return fea_imp.sort_values('importance', ascending=False).reset_index(drop=True)
 
+def get_nn_model(input_shape:int, output_shape:int, num_layer:int, nn_size:int, act_fun:str, drop:float, lr:float,momentum:float):
+    """Get fully connected NN model according to the specified parameters
+    
+    Args:
+        input_shape: input dimension (according to the len of the columns)
+        output_shape: output dimension
+        num_layer: number of hidden layer can be 0 
+        nn_size: number of neuron in one layer
+        act_fun: name of activation function
+        drop: dropout parameter
+        lr: optimizer learning rate
+        momentum: momentum parameter
+        
+    """
+    # set optimizser
+    adam = Adam(learning_rate=lr)
+    # create model 
+    model = Sequential()
+    # Input - Layer
+    model.add(Dense(nn_size, activation=act_fun, input_dim=input_shape))
+    
+    if num_layer>0:
+        for i in range(num_layer):
+            name = f'layer_dense{i+1}'
+            model.add(Dense(nn_size,
+                 activation=act_fun,
+                        name=name))
+            model.add(BatchNormalization(momentum=momentum))
+            
+    model.add(Dropout(drop))
+    # Output- Layer
+    model.add(Dense(output_shape, activation = 'linear')) 
+    model.compile(loss='mse', optimizer=adam)
+    return model    
 
-def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
+def do_nn_search(xtrn:np.array, ytrn:np.array, xval, yval,n_jobs=-1):
+    """Perform skopt optimization search for the best NN architecture.
+
+    Args:
+        xtrn: normalized xtrn
+        ytrn: normalized ytrn 
+        xval: normalized xval
+        ytrn: normalized yval 
+    """
+
+    # nn search parameters
+    num_layers = Integer(low=1, high=5, name='num_layer')
+    nn_sizes = Integer(low=8, high=1024, name='nn_size')
+    act_funs = Categorical(categories=['relu','softplus'],
+                                 name='act_fun')
+    drops = Real(low=0, high=0.2,
+                             name='drop')
+    lrs = Real(low=1e-4, high=1e-2, prior='log-uniform',
+                             name='lr')
+    momentums = Real(low=0.7, high=0.99, 
+                             name='momentum')
+
+    dimensions = [num_layers,nn_sizes,act_funs,drops,lrs,momentums]
+
+    @use_named_args(dimensions)
+    def fit_with(num_layer, nn_size, act_fun, drop, lr, momentum):
+        # function to return the score (smaller better)
+        model = get_nn_model(input_shape=xtrn.shape[1], output_shape=ytrn.shape[1], num_layer=num_layer,
+                          nn_size=nn_size, act_fun=act_fun, drop=drop, lr=lr, momentum=momentum)
+        # set early stoping
+        esm = EarlyStopping(patience=8, verbose=0, restore_best_weights=True)
+        # train model
+        history = model.fit(xtrn, ytrn, validation_split=0.2,
+                            verbose=0, epochs=200, callbacks=[esm])
+
+        y_pred = model.predict(xval)
+        K.clear_session()
+
+        return mean_squared_error(yval, y_pred)
+
+
+    gp_result = gp_minimize(
+        func=fit_with, dimensions=dimensions, n_jobs=n_jobs, random_state=30)
+    
+    num_layer, nn_size, act_fun, drop, lr, momentum = gp_result.x
+    nn_params_dict = {'num_layer': int(num_layer),
+                       'nn_size': int(nn_size), 
+                       'act_fun': str(act_fun), 
+                       'drop': float(drop).round(2), 
+                       'lr': float(lr).round(2), 
+                       'momentum': float(momentum).round(2)}
+    print('nn parameter is ', nn_params_dict)
+    score = gp_result.fun
+    print(score)
+
+    return nn_params_dict, gp_result
+
+
+def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[]):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
         #. If build True, build the raw data from files 
@@ -337,18 +471,23 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
         #. Optimization 1: optimize for the best randomforest model 
         #. Optimization 2: remove unncessary columns 
         #. Optimization 3: find the best fire feature 
-        #. Optimization 4: optimize for the best RF again and search for other model in TPOT
+        #. Optimization 4: optimize for the best RF again  
         #. Build pollution meta and save
 
     Args:
         city: city name
         pollutant(optional): pollutant name
         build(optional): if True, also build the data
+        model(optional):
+        op_fire(optional):
+        x_cols_org(optional):
+        lag_dict(optional):
+        x_cols(optional):
 
     Returns: 
         dataset
-        rf_model
-        tpot_model 
+        model
+        poll_meta(dict) 
 
     """
 
@@ -363,111 +502,271 @@ def train_city(city:str='Chiang Mai', pollutant:str='PM2.5',build=False):
     data.load_()
     # build the first dataset 
     data.feature_no_fire()
-    # use default fire feature
-    fire_cols = data.merge_fire()
-    data.pollutant = pollutant
-    data.save_()
+    if fire_dict==None:
+        # use default fire feature
+        fire_cols, *args = data.merge_fire()
+    else:
+        data.fire_dict = fire_dict 
+        fire_cols, *args = data.merge_fire(data.fire_dict)
+    data.monitor = data.pollutant = pollutant
+    
 
     #. Optimization 1: optimize for the best randomforest model 
-    # split the data into 4 set
-    print('=================optimize 1: find the best RF model=================')
-    data.split_data(split_ratio=[0.4, 0.2, 0.2, 0.2])
-    x_cols = ['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)',
-    'wind_CALM', 'wind_E', 'wind_N', 'wind_S', 'wind_W', 'is_rain',
-    'is_holiday', 'is_weekend', 'day_of_week', 'time_of_day', 'fire_0_100',
-    'fire_100_400', 'fire_400_700', 'fire_700_1000']
-    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0], x_cols=x_cols)
-    xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1], x_cols=x_cols)
-    data.x_cols = x_cols
 
-    model = do_rf_search(xtrn,ytrn)
-    score_dict = cal_scores(yval, model.predict(xval), header_str ='val_')
-    print('optimize 1 score', score_dict)    
+    if (model==None) or ( len(x_cols_org) == 0):
+        # split the data into 4 set
+        print('=================optimize 1: find the best RF model=================')
+        data.split_data(split_ratio=[0.45, 0.25, 0.3])
+        xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0] )
+        xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
+        data.x_cols = x_cols
 
-    importances = model.feature_importances_
-    feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
-    feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_fea_imp1.png', title='rf feature of importance(raw)')
+        model = do_rf_search(xtrn,ytrn, cv_split='other')
+        score_dict = cal_scores(yval, model.predict(xval), header_str ='val_')
+        print('optimize 1 score', score_dict)    
 
-    print('=================optimize 2: remove unncessary columns=================')
-    # columns to consider droping are columns with low importance
-    to_drop = feat_imp['index']
-    to_drop = [a for a in to_drop if 'fire' not in a]
-    for s in ['Humidity(%)','Temperature(C)','Wind Speed(kmph)']:
-        to_drop.remove(s)
-    to_drop.reverse()
-    model, new_x_cols = reduce_cols(dataset=data,x_cols=x_cols,to_drop=to_drop,model=model,trn_i=0, val_i=1)
-    data.x_cols = new_x_cols
+        print('=================optimize 2: remove unncessary columns=================')
+        importances = model.feature_importances_
+        feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
+        feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+        show_fea_imp(feat_imp, filename=data.report_folder + f'{poll_name}_fea_imp_op1.png', title='rf feature of importance(raw)')
+        
+        # columns to consider droping are columns with low importance
+        to_drop = feat_imp['index']
+        to_drop = [a for a in to_drop if 'fire' not in a]
+        for s in ['Humidity(%)','Temperature(C)','Wind Speed(kmph)']:
+            to_drop.remove(s)
+        to_drop.reverse()
+        model, x_cols_org = reduce_cols(dataset=data,x_cols=data.x_cols,to_drop=to_drop,model=model,trn_i=0, val_i=1)
+   
+    
+    if fire_dict==None:
+        print('================= optimization 3: find the best fire feature ===================')
+        data.fire_dict, gp_result  = sk_op_fire(data, model, trn_index=data.split_list[0], val_index=data.split_list[1])
+        fire_cols, *args = data.merge_fire(data.fire_dict)
 
-    print('================= optimization 3: find the best fire feature ===================')
-    # reduce the number of split
-    data.split_data(split_ratio=[0.6, 0.2, 0.2])
-    data.fire_dict = sk_op_fire(data, model, trn_index=data.split_list[0], val_index=data.split_list[1])
+    if lag_dict==None:
+        print('================= optimization 4: improve model performance by adding lag columns =================')
+        # prepare no-lag columns 
+        data.x_cols_org = x_cols_org  
+        data.data_org = data.data[ [data.monitor] + data.x_cols_org]
+        print('model parameters', model.get_params())
+        # look for the best lag 
+        data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
+        #data.lag_dict = {'n_max': 2, 'step': 5}
+        data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
+        print('data.column with lag', data.data.columns)
+        data.x_cols = data.data.columns.drop(data.monitor)
 
-    print('================= optimization 4: optimize for the best RF again and search for other model in TPOT =================')
+        print('x_cols', data.x_cols)
+        data.split_data(split_ratio=[0.45, 0.25, 0.3])
+        xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=data.split_list[0], x_cols=data.x_cols)
+        xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1], x_cols=data.x_cols)
+        print('xtrn has shape', xtrn.shape)
+        model.fit(xtrn,ytrn)
+        score_dict = cal_scores(yval, model.predict(xval), header_str = 'val_')
+        print('op4 score', score_dict)
 
-    data.split_data(split_ratio=[0.7, 0.3])
+        print('================= optimization 5: remove unncessary lag columns =================')
+        importances = model.feature_importances_
+        feat_imp = pd.DataFrame(importances, index=data.x_cols, columns=['importance']) 
+        feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+
+        # optimize 1 drop unuse cols 
+        to_drop = feat_imp['index'].to_list()
+        no_drop = ['Humidity(%)','Temperature(C)','Wind Speed(kmph)']  + [a for a in data.x_cols_org if 'fire' in a]
+        for s in no_drop:
+            to_drop.remove(s)
+        to_drop.reverse()
+        model, data.x_cols = reduce_cols(dataset=data,x_cols=data.x_cols,to_drop=to_drop,model=model,trn_i=0, val_i=1)
+         
+    else:
+        data.lag_dict = lag_dict
+        data.x_cols_org = x_cols_org
+        data.data_org = data.data[ [data.monitor] + data.x_cols_org]
+        data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=True)
+        data.x_cols = x_cols
+        
+
+
+    print('================= optimization 6: optimize for the best rf again =================')
+    data.split_data(split_ratio=[0.45, 0.25, 0.3])
     trn_index = data.split_list[0]
     test_index = data.split_list[1]
-    fire_cols = data.merge_fire(data.fire_dict)
-    xtrn, ytrn, x_cols = data.get_data_matrix(use_index=trn_index,x_cols=new_x_cols)
-    xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=new_x_cols)
+    print('x_cols in op6', data.x_cols)
+    xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=trn_index,x_cols=data.x_cols)
+    xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=data.x_cols)
 
-    print('optimize RF')
-    rf_model = do_rf_search(xtrn,ytrn)
-    rf_score_dict = cal_scores(ytest, rf_model.predict(xtest), header_str ='test_')
-    print(rf_score_dict)
-    rf_dict = rf_model.get_params()
-    # save rf model 
-    #with open(data.model_folder +f'{poll_name}_rf_model.pkl','wb') as f:
-    #    pickle.dump(rf_model, f)
+    
+    model = do_rf_search(xtrn,ytrn,cv_split='other')
+    score_dict = cal_scores(ytest, model.predict(xtest), header_str ='test_')
+    print(score_dict)
+    
 
-    pickle.dump(rf_model, open(data.model_folder +f'{poll_name}_rf_model.pkl', 'wb'))
+    pickle.dump(model, open(data.model_folder +f'{poll_name}_rf_model.pkl', 'wb'))
 
     # build feature of importance using build in rf
-    importances = rf_model.feature_importances_
-    feat_imp = pd.DataFrame(importances, index=x_cols, columns=['importance']) 
+    try: 
+        importances = model.feature_importances_
+        feat_imp = pd.DataFrame(importances, index=data.x_cols, columns=['importance']) 
+        feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+        show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
+
+    except:
+        # custom feature of importance
+        feat_imp = feat_importance(model, xtrn,ytrn,data.x_cols,n_iter=50)
+        show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(shuffle)')
+
+    # obtain feature of importance without lag 
+    feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
+    feat_imp = feat_imp.groupby('index').sum()
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea1.png', title='rf feature of importance(default)')
-    # custom feature of importance
-    fea_imp = feat_importance(rf_model,xtrn,ytrn,x_cols,n_iter=50)
-    show_fea_imp(fea_imp,filename=data.report_folder + f'{poll_name}_rf_fea2.png', title='rf feature of importance(shuffle)')
+    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance(final)')
 
-    # print('optimize tpot')
-    # tpot = TPOTRegressor( generations=5, population_size=50, verbosity=2,n_jobs=-1)
-    # tpot.fit(xtrn, ytrn)
-    # tpot.export(data.model_folder + 'tpot.py')
-    # tpot_model = tpot.fitted_pipeline_
-    # tpot_score_dict = cal_scores(ytest, tpot_model.predict(xtest), header_str ='test_')
-    # print(tpot_score_dict)
-    # tpot_dict = tpot_model.get_params()
-    # # save tpot model 
-    # with open(data.model_folder + f'{poll_name}_tpot_model.pkl','wb') as f:
-    #     pickle.dump(tpot_model, f)
-
-    # # custom feature of importance
-    # fea_imp = feat_importance(tpot_model,xtrn,ytrn,x_cols,n_iter=50)
-    # show_fea_imp(fea_imp,filename=data.report_folder + 'tpot_fea.png',title='tpot feature of importance')
-
-    # # build model meta and save 
-    # # create a pollution meta 
-    # poll_meta =  { 'x_cols': x_cols.to_list(),
-    #                 'fire_dict': data.fire_dict,
-    #                 'rf_score': rf_score_dict,
-    #                 'rf_params': rf_dict,
-    #                 'tpot_score': tpot_score_dict
-    # }
-
-    poll_meta =  { 'x_cols': x_cols,
-                    'fire_cols':fire_cols.to_list(),
+    poll_meta =  { 'x_cols_org': data.x_cols_org,
+                    'x_cols': data.x_cols,
+                    'fire_cols': fire_cols,
                     'fire_dict': data.fire_dict,
-                    'rf_score': rf_score_dict,
-                    'rf_params': rf_dict}
+                    'lag_dict': data.lag_dict,
+                    'rf_score': score_dict,
+                    'rf_params': model.get_params()}
 
     model_meta = load_meta(data.model_folder + 'model_meta.json')
     model_meta[pollutant] = poll_meta
     save_meta(data.model_folder + 'model_meta.json', model_meta)
+
+    data.save_()
      
-    return data, rf_model , poll_meta
+    return data, model, poll_meta
 
     
+def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split_list=[0.45, 0.25, 0.3], update=True):
+
+    """Load and update the model without optimization steps. Use parameters from model_meta file. 
+
+    Use for small data update without parameters change.
+
+    Args:
+        city:
+        pollutant: 
+        split_list: datasplit for training and testset  
+    
+    Returns: 
+        model: model 
+        dataset: dataset object
+        fire_cols:
+    
+    """
+
+    data = Dataset(city)
+    data.monitor = data.pollutant = pollutant
+    # remove . from pollutant name for saving file
+    poll_name = pollutant.replace('.','')
+    # load model_meta 
+    model_meta = load_meta(data.model_folder + 'model_meta.json')
+    poll_meta = model_meta[pollutant] 
+
+    # load model 
+    model = pickle.load(open(data.model_folder +f'{poll_name}_rf_model.pkl','rb'))
+
+    if build:
+            # build data from scratch 
+            data.build_all_data(build_fire=True,build_holiday=False)
+    # load raw data 
+    data.load_()
+    # build the first dataset 
+    data.feature_no_fire()
+    data.fire_dict = poll_meta['fire_dict']
+    fire_cols, zone_list = data.merge_fire(data.fire_dict)
+
+    print('\n fire_columns', fire_cols)
+    # build lag_data
+    data.lag_dict = poll_meta['lag_dict']
+    data.x_cols_org = poll_meta['x_cols_org']
+    print('\n x_cols_org', data.x_cols_org)
+    data.data_org = data.data[ [data.monitor] + data.x_cols_org]
+    data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
+    data.x_cols = poll_meta['x_cols']
+    print('\n x_cols', data.x_cols)
+
+    if update:
+        # split data
+        data.split_data(split_ratio=split_list)
+        trn_index = data.split_list[0]
+        test_index = data.split_list[1]
+         
+        xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=trn_index,x_cols=data.x_cols)
+        xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=data.x_cols)
+
+        model.fit(xtrn, ytrn)
+        print('model performance', cal_scores(ytest, model.predict(xtest), header_str ='test_'))
+
+    return data, model, fire_cols
+
+
+def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None):
+    """Training pipeline from process raw data, hyperparameter tune, and save model.
+
+    #. If build True, build the raw data from files 
+    #. Process draw data into data using default values
+    #. Optimization 1: optimize for the best randomforest model 
+    #. Optimization 2: remove unncessary columns 
+    #. Optimization 3: find the best fire feature 
+    #. Optimization 4: optimize for the best RF again and search for other model in TPOT
+    #. Build pollution meta and save
+
+    Args:
+    city: city name
+    pollutant(optional): pollutant name
+    build(optional): if True, also build the data
+    model(optional): 
+    x_cols_org(optional):
+    lag_dict(optional):
+
+    Returns: 
+        dataset
+        model
+
+    """
+
+    print('====== NN op1 load RF model ====== ')
+    data, model, fire_cols = load_model1(city='Chiang Mai', pollutant='PM2.5', split_list=[0.7, 0.3])
+
+    if (len(x_cols_org) != 0) and (lag_dict !=None):
+        data.x_cols_org = poll_meta['x_cols_org']
+        print('\n x_cols_org', data.x_cols_org)
+        data.data_org = data.data[ [data.monitor] + data.x_cols_org]
+        data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
+        data.x_cols = data.data.columns.drop(data.monitor)
+         
+
+    if len(x_cols)==0:
+        data.x_cols = data.data.columns.drop(data.monitor)
+        print('x_cols', data.x_cols )
+    else:
+        data.x_cols = x_cols 
+
+
+    data.split_data(split_ratio=[0.45, 0.25, 0.3])
+    xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=data.split_list[0], x_cols=data.x_cols)
+    ytrn = ytrn.reshape(-1,1)
+    xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1], x_cols=data.x_cols)
+    yval = yval.reshape(-1,1)
+
+    x_scaler = MinMaxScaler()
+    xtrn = x_scaler.fit_transform(xtrn)
+    xval = x_scaler.transform(xval)
+    y_scaler = MinMaxScaler()
+    ytrn = y_scaler.fit_transform(ytrn)
+    
+    nn_dict, gp_result = do_nn_search(xtrn, ytrn, xval, yval, n_jobs=-1)
+
+    
+    model = get_nn_model(input_shape=xtrn.shape[1], output_shape=ytrn.shape[1], num_layer=nn_dict['num_layer'],nn_size=nn_dict['nn_size'],act_fun=nn_dict['act_fun'], drop=nn_dict['drop'],lr=nn_dict['lr'],momentum=nn_dict['momentum'])
+    esm = EarlyStopping(patience=8,verbose=0,restore_best_weights=True)
+    history = model.fit(xtrn, ytrn,validation_split=0.2,verbose=1,epochs=1000,callbacks=[esm])
+    model.predict(xval)
+    print('validation score', cal_scores(yval, y_scaler.inverse_transform(model.predict(xval)), header_str='val_'))
+
+    return nn_dict, model 
+ 

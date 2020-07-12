@@ -519,14 +519,11 @@ class Dataset():
         # use self.fire_dict attribute
         if fire_dict==None:
             print('use default fire feature')
-            fire_dict = { 
-                'w_speed': 4,
-                'shift': -24,
-                'roll': 108}
+            fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
             self.fire_dict = fire_dict
 
         if self.city_name == 'Chiang Mai':
-            zone_list = [0, 100, 400, 700, 1000]
+            zone_list = [0, 100, 200, 400, 700, 1000]
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 
@@ -544,7 +541,7 @@ class Dataset():
         data = data.dropna()
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
-        return fire_cols
+        return fire_cols, zone_list
 
     def make_diff_col(self):
         """Add pollutant diff column for modeling the diff instead of the actual value. 
@@ -619,7 +616,7 @@ class Dataset():
         else:
             x = temp[x_cols]
 
-        x_cols = x.columns
+        x_cols = x.columns.to_list()
         return x.values, y, x_cols
 
 
@@ -632,6 +629,7 @@ class Dataset():
             roll(optional): if True, use the calculate the rolling average of previous values and shift 1
 
         """
+        
         lag_list = [self.data_org]
         for n in lag_range:
             lag_df = self.data_org[self.x_cols_org].copy()
@@ -656,9 +654,11 @@ class Dataset():
         - save pollution data 
         - save weather data 
         - save data no fire 
+        - save data_org
         - save data 
-        
+
         """
+
         if hasattr(self, 'poll_df'):
             # save pollution data
             if 'datetime' in self.poll_df.columns:
@@ -690,6 +690,17 @@ class Dataset():
                 # save with index
                 self.data_no_fire.to_csv(self.data_folder + 'data_no_fire.csv')
 
+        if hasattr(self, 'data_org'):
+            # save fire data
+            if 'datetime' in self.data_no_fire.columns:
+                # save without index
+                self.data.to_csv(
+                    self.data_folder + 'data_org.csv', index=False)
+
+            else:
+                # save with index
+                self.data.to_csv(self.data_folder + 'data_org.csv')
+
         if hasattr(self, 'data'):
             # save fire data
             if 'datetime' in self.data_no_fire.columns:
@@ -708,8 +719,8 @@ class Dataset():
         - pollution data 
         - weather data 
         - data no fire 
+        - data_org
         - data 
-
         """
 
         if os.path.exists(self.data_folder + 'poll.csv'):
@@ -756,6 +767,12 @@ class Dataset():
             self.data_no_fire['datetime'] = pd.to_datetime(
                 self.data_no_fire['datetime'])
             self.data_no_fire.set_index('datetime', inplace=True)
+
+        if os.path.exists(self.data_folder + 'data_org.csv'):
+            self.data = pd.read_csv( self.data_folder + 'data_org.csv')
+            self.data['datetime'] = pd.to_datetime(
+                self.data['datetime'])
+            self.data.set_index('datetime', inplace=True)
 
         if os.path.exists(self.data_folder + 'data.csv'):
             self.data = pd.read_csv(

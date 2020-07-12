@@ -121,12 +121,14 @@ def find_num_lag(poll_series, thres=0.5):
     return idxs[1:]
 
 
-def add_lags(data, pollutant):
+def add_lags(data, pollutant, num_lags=None):
     """Add lags columns to x_data.
 
     """
     # calculate num lags
-    num_lags = find_num_lag(data[pollutant])
+    if num_lags==None:
+        num_lags = find_num_lag(data[pollutant])
+    
     for idx in num_lags:
         lag_name = f'{pollutant}_lag_{idx}'
         lag_series = data[pollutant].shift(idx)
