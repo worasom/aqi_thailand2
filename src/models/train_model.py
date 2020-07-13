@@ -69,7 +69,7 @@ def do_knn_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:
     
     return search.best_estimator_
 
-def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=False, n_jobs=-1):
+def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, x_tree=False, n_jobs=-2):
     """Perform randomize parameter search for randomforest regressor return the best estimator 
     
     Args: 
@@ -121,7 +121,7 @@ def do_rf_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:i
     
     return search.best_estimator_
 
-def do_ln_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, ln_type='elastic', n_jobs=-1):
+def do_ln_search(x_trn:np.array, y_trn:np.array, cv_split:str='time', n_splits:int=5,param_dict:dict=None, ln_type='elastic', n_jobs=-2):
     """Perform randomize parameter search for linear regressir return the best estimator 
 
     Args: 
@@ -217,6 +217,7 @@ def reduce_cols(dataset, x_cols:list, to_drop:list, model,trn_i, val_i):
     print('score after dropping columns', score_dict)
     return model, x_cols
 
+
 def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift_range:list=[-72,72],roll_range:list=[24, 120],vis:bool=False)-> dict:
     """Search for the best fire parameter using skopt optimization 
     
@@ -270,7 +271,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         y_pred = model.predict(xval)
     
         return mean_squared_error(yval,y_pred)
-    gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
+    gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-2,random_state=30)
     
     wind_speed, shift, roll = gp_result.x
     score = gp_result.fun
@@ -301,33 +302,30 @@ def op_lag(dataset, model, split_ratio, lag_range=[2,36], step_range=[1,25]):
     # build search space 
     n_max = Integer(low=lag_range[0], high=lag_range[1], name='n_max')
     step = Integer(low=step_range[0], high=step_range[1], name='step')
-    roll = Categorical([True, False], name='roll')
-    dimensions = [n_max, step, roll]
+    #roll = Categorical([True, False], name='roll')
+    dimensions = [n_max, step]
     
     
     # setup the function for skopt
     @use_named_args(dimensions)
     def fit_with(n_max, step, roll):
         # function to return the score (smaller better)
-        print(np.arange(1, n_max, step))
         dataset.build_lag(lag_range=np.arange(1, n_max, step), roll=True)
         dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
-        print(dataset.x_cols.shape)
         dataset.split_data(split_ratio=split_ratio)
         xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-        print(xtrn.shape)
         model.fit(xtrn,ytrn)
         y_pred = model.predict(xval)
         
         
         return mean_squared_error(yval,y_pred)
     
-    gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-1,random_state=30)
+    gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-2,random_state=30)
     n_max, step, roll = gp_result.x
     lag_dict = {'n_max':int(n_max),
                 'step':int(step),
-                'roll': roll}
+                'roll': True}
     score = gp_result.fun
     print('new mean squared error', score, 'using', lag_dict )
     
@@ -405,7 +403,7 @@ def get_nn_model(input_shape:int, output_shape:int, num_layer:int, nn_size:int, 
     model.compile(loss='mse', optimizer=adam)
     return model    
 
-def do_nn_search(xtrn:np.array, ytrn:np.array, xval, yval,n_jobs=-1):
+def do_nn_search(xtrn:np.array, ytrn:np.array, xval, yval,n_jobs=-2):
     """Perform skopt optimization search for the best NN architecture.
 
     Args:
@@ -453,9 +451,10 @@ def do_nn_search(xtrn:np.array, ytrn:np.array, xval, yval,n_jobs=-1):
     nn_params_dict = {'num_layer': int(num_layer),
                        'nn_size': int(nn_size), 
                        'act_fun': str(act_fun), 
-                       'drop': float(drop).round(2), 
-                       'lr': float(lr).round(2), 
-                       'momentum': float(momentum).round(2)}
+                       'drop': round(float(drop), 2), 
+                       'lr': round(float(lr), 2), 
+                       'momentum': round(float(momentum), 2)}
+    
     print('nn parameter is ', nn_params_dict)
     score = gp_result.fun
     print(score)
@@ -471,7 +470,9 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
         #. Optimization 1: optimize for the best randomforest model 
         #. Optimization 2: remove unncessary columns 
         #. Optimization 3: find the best fire feature 
-        #. Optimization 4: optimize for the best RF again  
+        #. Optimization 4: optimize for lag columns
+        #. Optimization 5: drop unncessary lag columns
+        #. Optimization 6: optimize for the best RF again  
         #. Build pollution meta and save
 
     Args:
@@ -704,15 +705,13 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     return data, model, fire_cols
 
 
-def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None):
+def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None, x_cols=[]):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
     #. If build True, build the raw data from files 
     #. Process draw data into data using default values
-    #. Optimization 1: optimize for the best randomforest model 
-    #. Optimization 2: remove unncessary columns 
-    #. Optimization 3: find the best fire feature 
-    #. Optimization 4: optimize for the best RF again and search for other model in TPOT
+    #. Optimization 1: optimize for the best NN model 
+    
     #. Build pollution meta and save
 
     Args:
@@ -759,14 +758,14 @@ def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     y_scaler = MinMaxScaler()
     ytrn = y_scaler.fit_transform(ytrn)
     
-    nn_dict, gp_result = do_nn_search(xtrn, ytrn, xval, yval, n_jobs=-1)
-
+    nn_dict, gp_result = do_nn_search(xtrn, ytrn, xval, yval, n_jobs=-2)
     
     model = get_nn_model(input_shape=xtrn.shape[1], output_shape=ytrn.shape[1], num_layer=nn_dict['num_layer'],nn_size=nn_dict['nn_size'],act_fun=nn_dict['act_fun'], drop=nn_dict['drop'],lr=nn_dict['lr'],momentum=nn_dict['momentum'])
     esm = EarlyStopping(patience=8,verbose=0,restore_best_weights=True)
     history = model.fit(xtrn, ytrn,validation_split=0.2,verbose=1,epochs=1000,callbacks=[esm])
-    model.predict(xval)
-    print('validation score', cal_scores(yval, y_scaler.inverse_transform(model.predict(xval)), header_str='val_'))
+    ypred = model.predict(xval)
+    ypred = yscaler.inverse_transform(ypred)
+    print('validation score', cal_scores(yval, ypred, header_str='val_')) 
 
-    return nn_dict, model 
+    return nn_dict, model, xtrn, ytrn, x_scaler, y_scaler
  
