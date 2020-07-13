@@ -308,7 +308,7 @@ def op_lag(dataset, model, split_ratio, lag_range=[2,36], step_range=[1,25]):
     
     # setup the function for skopt
     @use_named_args(dimensions)
-    def fit_with(n_max, step, roll):
+    def fit_with(n_max, step):
         # function to return the score (smaller better)
         dataset.build_lag(lag_range=np.arange(1, n_max, step), roll=True)
         dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
@@ -322,7 +322,7 @@ def op_lag(dataset, model, split_ratio, lag_range=[2,36], step_range=[1,25]):
         return mean_squared_error(yval,y_pred)
     
     gp_result = gp_minimize(func=fit_with,dimensions=dimensions,n_jobs=-2,random_state=30)
-    n_max, step, roll = gp_result.x
+    n_max, step = gp_result.x
     lag_dict = {'n_max':int(n_max),
                 'step':int(step),
                 'roll': True}
@@ -451,9 +451,9 @@ def do_nn_search(xtrn:np.array, ytrn:np.array, xval, yval,n_jobs=-2):
     nn_params_dict = {'num_layer': int(num_layer),
                        'nn_size': int(nn_size), 
                        'act_fun': str(act_fun), 
-                       'drop': round(float(drop), 2), 
-                       'lr': round(float(lr), 2), 
-                       'momentum': round(float(momentum), 2)}
+                       'drop': round(float(drop), 3), 
+                       'lr': round(float(lr), 3), 
+                       'momentum': round(float(momentum), 3)}
     
     print('nn parameter is ', nn_params_dict)
     score = gp_result.fun
