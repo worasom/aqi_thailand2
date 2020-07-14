@@ -286,7 +286,7 @@ def sk_op_fire(dataset, model, trn_index, val_index,wind_range:list=[2,20],shift
         
     return best_fire_dict, gp_result
 
-def op_lag(dataset, model, split_ratio, lag_range=[2,36], step_range=[1,25]):
+def op_lag(dataset, model, split_ratio, lag_range=[2, 168], step_range=[1,25]):
     """Search for the best lag parameters using skopt optimization 
     
     Args: 
@@ -599,7 +599,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=data.x_cols)
 
     
-    model = do_rf_search(xtrn,ytrn,cv_split='other')
+    model = do_rf_search(xtrn, ytrn,cv_split='other')
     score_dict = cal_scores(ytest, model.predict(xtest), header_str ='test_')
     print(score_dict)
     
@@ -762,10 +762,12 @@ def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     
     model = get_nn_model(input_shape=xtrn.shape[1], output_shape=ytrn.shape[1], num_layer=nn_dict['num_layer'],nn_size=nn_dict['nn_size'],act_fun=nn_dict['act_fun'], drop=nn_dict['drop'],lr=nn_dict['lr'],momentum=nn_dict['momentum'])
     esm = EarlyStopping(patience=8,verbose=0,restore_best_weights=True)
-    history = model.fit(xtrn, ytrn,validation_split=0.2,verbose=1,epochs=1000,callbacks=[esm])
+    history = model.fit(xtrn, ytrn, validation_split=0.2,verbose=0,epochs=1000,callbacks=[esm])
     ypred = model.predict(xval)
-    ypred = yscaler.inverse_transform(ypred)
+    ypred = y_scaler.inverse_transform(ypred)
     print('validation score', cal_scores(yval, ypred, header_str='val_')) 
 
-    return nn_dict, model, xtrn, ytrn, x_scaler, y_scaler
+
+
+    return data, nn_dict, model, x_scaler, y_scaler
  
