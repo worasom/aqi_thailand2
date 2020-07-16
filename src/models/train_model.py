@@ -517,7 +517,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     if (model==None) or ( len(x_cols_org) == 0):
         # split the data into 4 set
         print('=================optimize 1: find the best RF model=================')
-        data.split_data(split_ratio=[0.6, 0.2, 0.2])
+        data.split_data(split_ratio=[0.45, 0.25, 0.3])
         xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0] )
         xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
         data.x_cols = x_cols
@@ -554,7 +554,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
         print('model parameters', model.get_params())
         # look for the best lag 
         #data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
-        data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.6, 0.2, 0.2])
+        data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
         #data.lag_dict = {'n_max': 2, 'step': 5}
         data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
         print('data.column with lag', data.data.columns)
@@ -592,7 +592,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
 
 
     print('================= optimization 6: optimize for the best rf again =================')
-    data.split_data(split_ratio=[0.6, 0.2, 0.2])
+    data.split_data(split_ratio=[0.45, 0.25, 0.3])
     trn_index = data.split_list[0]
     test_index = data.split_list[1]
     print('x_cols in op6', data.x_cols)
@@ -642,7 +642,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     return data, model, poll_meta
 
     
-def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split_list=[0.6, 0.2, 0.2], update=True):
+def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split_list=[0.45, 0.25, 0.3], update=True):
 
     """Load and update the model without optimization steps. Use parameters from model_meta file. 
 
@@ -730,7 +730,7 @@ def train_city_s2(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     """
 
     print('====== NN op1 load RF model ====== ')
-    data, model, fire_cols = load_model1(city='Chiang Mai', pollutant='PM2.5', split_list=[0.8, 0.2])
+    data, model, fire_cols = load_model1(city='Chiang Mai', pollutant='PM2.5', split_list=[0.45, 0.25, 0.3])
 
     if (len(x_cols_org) != 0) and (lag_dict !=None):
         data.x_cols_org = poll_meta['x_cols_org']

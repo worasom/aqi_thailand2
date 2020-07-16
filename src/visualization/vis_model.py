@@ -44,6 +44,7 @@ def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], to_save=True)
     dataset.split_data(split_ratio=split_list)
     xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
     xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+     
 
     plt.figure(figsize=(10, 4))
 
