@@ -83,13 +83,25 @@ def plot_corr(poll_df, avg='d',filename=None):
     if filename:
         plt.savefig(filename)
 
-def plot_season_avg(poll_df, pollutant, ax, plot_error=True):
+def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max'):
     """Plot the average by date of year. Good for looking seasonal pattern.
+
+    Args:
+        poll_df: dataframe for plotting the data. Must have datetime index
+        pollutant: columns to plot 
+        ax: axis object to plot
+        plot_error: if True, use sns.lineplot to show the error
+        roll: if True, calculate the rolling average or use daily average 
+        agg: either 'max' or 'mean' 
 
     """
     plt.rcParams.update({'font.size': 14})
 
-    df = poll_df[[pollutant]].resample('d').max().copy().dropna()
+    if roll:
+        df = poll_df[[pollutant]].rolling(24, min_periods=None).agg(agg).copy().dropna()
+    else:
+        df = poll_df[[pollutant]].resample('d').agg(agg).copy().dropna()
+    
     df['dayofyear'] = df.index.dayofyear
     df['year'] = df.index.year
 
