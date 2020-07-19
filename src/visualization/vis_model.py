@@ -50,12 +50,6 @@ def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], to_save=True)
     """
 
     ytrn_pred_df, ytest_pred_df = cal_error(dataset, model, split_list=split_list)
-    # dataset.split_data(split_ratio=split_list)
-    # xtrn, ytrn, _ = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-    # xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-
-    # ytrn_pred = model.predict(xtrn)
-    # ytest_pred = model.predict(xtest)
      
 
     _, ax = plt.subplots(2, 1, figsize=(10, 8))
