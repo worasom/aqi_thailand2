@@ -172,3 +172,47 @@ def smooth(x,window_len=11,window='hanning'):
     return y[int(window_len/2-1):-int(window_len/2)-1] 
 
 
+def season_avg(df, cols=[], roll=True, agg='max', offset=182):
+    """Calculate thea seasonal average.
+    
+    Args:
+        df: dataframe to calculate the average of
+        cols: columns to use for the means
+        roll: if True, calculate the rolling average or use daily average 
+        agg: either 'max' or 'mean' 
+        offset: date of year offset 
+    
+    Returns: pd.DataFrame(), dict
+        df:  dataframe of the seasonal pattern 
+        winder_day_dict: dictionary that map dayof year to month-day 
+
+    """
+
+    if len(cols) ==0:
+        cols = df.columns
+
+    if roll:
+        df = df[cols].rolling(24, min_periods=0).agg('mean').copy().dropna()
+    else:
+        df = df[cols]
+
+    # resample data
+    df = df.resample('d').agg(agg).copy()
+    df['dayofyear'] = df.index.dayofyear
+    df['year'] = df.index.year
+
+    # add winter day by substratcing the first day of july
+    winterday = df['dayofyear'] - offset
+    # get rid of the negative number
+    winter_day_max = winterday.max()
+    winterday[winterday < 0] = winterday[winterday < 0] + offset + winter_day_max  
+    df['winter_day'] = winterday
+
+    # add month-day 
+    df['month_day'] = df.index.strftime('%m-%d')
+    temp = df[['winter_day', 'month_day']].set_index('winter_day')
+    temp.index = temp.index.astype(str)
+    winter_day_dict = temp.to_dict()['month_day']
+
+    return df, winter_day_dict
+

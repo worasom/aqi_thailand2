@@ -4,7 +4,7 @@ from ..gen_functions import *
 from ..features.dataset import Dataset
 from .train_model import *
 
-def cal_error(dataset, model, split_list=[0.7, 0.3]):
+def cal_error(dataset, model, data_index):
     """Calculate model performance over training and test data.
      
     - take the daily average and plot actual vs prediction for training and test set
@@ -23,25 +23,42 @@ def cal_error(dataset, model, split_list=[0.7, 0.3]):
     
     """ 
 
-    dataset.split_data(split_ratio=split_list)
-    xtrn, ytrn, _ = dataset.get_data_matrix(use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-    xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+    #dataset.split_data(split_ratio=split_list)
+    xtrn, ytrn, _ = dataset.get_data_matrix(use_index=data_index, x_cols=dataset.x_cols)
+    #xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
 
     ytrn_pred = model.predict(xtrn)
-    ytest_pred = model.predict(xtest)
+    #ytest_pred = model.predict(xtest)
 
      # turn into df 
-    ytrn_pred_df = pd.DataFrame(ytrn, index=dataset.split_list[0], columns=['actual'])
+    ytrn_pred_df = pd.DataFrame(ytrn, index=data_index, columns=['actual'])
     ytrn_pred_df['pred'] = ytrn_pred
     ytrn_pred_df['error'] = ytrn_pred_df['actual'] - ytrn_pred_df['pred'] 
     ytrn_pred_df['rmse'] = np.sqrt(ytrn_pred_df['error']**2)
      
-    ytest_pred_df = pd.DataFrame(ytest, index=dataset.split_list[1], columns=['actual'])
-    ytest_pred_df['pred'] = ytest_pred
-    ytest_pred_df['error'] = ytest_pred_df['actual'] - ytest_pred_df['pred'] 
-    ytest_pred_df['rmse'] = np.sqrt(ytest_pred_df['error']**2)
+    #ytest_pred_df = pd.DataFrame(ytest, index=dataset.split_list[1], columns=['actual'])
+    #ytest_pred_df['pred'] = ytest_pred
+    #ytest_pred_df['error'] = ytest_pred_df['actual'] - ytest_pred_df['pred'] 
+    #ytest_pred_df['rmse'] = np.sqrt(ytest_pred_df['error']**2)
 
-    return ytrn_pred_df.dropna(), ytest_pred_df.dropna()
+    return ytrn_pred_df.dropna() 
+
+def cal_season_error(error_df, roll_win=15, agg='mean'):
+    """ Calculate seasonal error 
+    
+    Args:
+        error_df: hourly training error 
+        roll_win: rolling window 
+        agg: aggegration statistic
+
+    Returns: pd.DataFrame
+        seasonal pattern of the error 
+
+    """
+    sea_error, _ = season_avg(error_df, cols=['error','rmse'], roll=False, agg='mean', offset=182)
+    sea_error = sea_error.groupby('winter_day').mean()
+    sea_error = sea_error.drop(['dayofyear','year'],axis=1)
+    return sea_error.rolling(roll_win, min_periods=0, center=True).agg(agg)
 
     
 def get_year_sample(year_list, n_samples=100):
@@ -202,6 +219,51 @@ def make_band(ypred_df, q_list=[0.01, 0.25, 0.5, 0.75,  0.99]):
     
     return pd.concat(band_df, axis=1)
 
+def make_senario(model, data_samples, feature, per_cut, x_cols):
+    """Make prediction of the data sample with some feature value reduced. 
+
+    Args:
+        model: model for prediction
+        data_samples: test data sample for different data
+        feature: columns to cut down
+        per_cut: percent reduction must be between 0 - 1
+        x_cols: x_columns to use for the model
+
+    Returns: pd.DataFrame
+        predicted value for calculate band 
+
+    """
+    cols_to_cut = data_samples.columns[data_samples.columns.str.contains(feature)]
+    print(cols_to_cut)
+    data_senario = data_samples.copy()
+    data_senario[cols_to_cut] = data_samples[cols_to_cut]*(1-per_cut)
+    x = data_senario[x_cols].values
+    y = model.predict(x)
+
+    return pd.Series(y, index = data_samples.index) 
+
+
+def cal_season_band(band_df, sea_error):
+    """Convert daily prediction to seasonal prediction 
+    
+    Args:
+        band_df: daily prediction value after rolling average
+        sea_error: seasonal prediction error 
+    
+    Returns: pd.DataFrame
+        seasonal prediction with error corrected 
+
+    """
+    sea_pred, _ = season_avg(band_df, cols=[], roll=True, agg='mean', offset=182)
+    sea_pred = sea_pred.groupby('winter_day').mean()
+    sea_pred = sea_pred.drop(['dayofyear','year'],axis=1)
+
+
+    # Correct bias 
+    for col in sea_pred.columns:
+        sea_pred[col] += sea_error['error'] 
+
+    return sea_pred
 
      
 

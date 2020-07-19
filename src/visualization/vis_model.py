@@ -48,8 +48,9 @@ def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], to_save=True)
         trn_pred_df: actual, prediction of the training set (no averaging)
         test_pred_df: actual, prediction of the test set (no averaging)
     """
-
-    ytrn_pred_df, ytest_pred_df = cal_error(dataset, model, split_list=split_list)
+    dataset.split_data(split_list)
+    ytrn_pred_df = cal_error(dataset, model, data_index=dataset.split_list[0])
+    ytest_pred_df = cal_error(dataset, model, data_index=dataset.split_list[1])
      
 
     _, ax = plt.subplots(2, 1, figsize=(10, 8))

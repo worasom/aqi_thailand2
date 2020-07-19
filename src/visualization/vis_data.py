@@ -33,7 +33,6 @@ def plot_dendogram(data:pd.core.frame.DataFrame, cols=None, front_size=16,filena
         plt.savefig(filename)
 
 
-
 def display_time_split(index_list):
     """ Display how the time series data is split.
 
@@ -83,46 +82,7 @@ def plot_corr(poll_df, avg='d',filename=None):
     if filename:
         plt.savefig(filename)
 
-def season_avg(df, cols=[], roll=True, agg='max', offset=182):
-    """Calculate thea seasonal average.
-    
-    Args:
-        df: dataframe to calculate the average of
-        cols: columns to use for the means
-        roll: if True, calculate the rolling average or use daily average 
-        agg: either 'max' or 'mean' 
-        offset: date of year offset 
-    
-    Returns: pd.DataFrame(), dict
-        df:  dataframe of the seasonal pattern 
-        winder_day_dict: dictionary that map dayof year to month-day 
 
-    """
-
-    if len(cols) ==0:
-        cols = df.columns
-
-    if roll:
-        df = df[cols].rolling(24, min_periods=None).agg('mean').copy().dropna()
-    # resample data
-    df = df.resample('d').agg(agg).copy()
-    df['dayofyear'] = df.index.dayofyear
-    df['year'] = df.index.year
-
-    # add winter day by substratcing the first day of july
-    winterday = df['dayofyear'] - offset
-    # get rid of the negative number
-    winter_day_max = winterday.max()
-    winterday[winterday < 0] = winterday[winterday < 0] + offset + winter_day_max  
-    df['winter_day'] = winterday
-
-    # add month-day 
-    df['month_day'] = df.index.strftime('%m-%d')
-    temp = df[['winter_day', 'month_day']].set_index('winter_day')
-    temp.index = temp.index.astype(str)
-    winter_day_dict = temp.to_dict()['month_day']
-
-    return df, winter_day_dict
 
 def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max'):
     """Plot the average by date of year. Good for looking seasonal pattern.
@@ -166,7 +126,7 @@ def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max
     
     else:
         mean_day = df.groupby('winter_day').mean()[pollutant]
-        ax.plot(mean_day,label=pollutant)
+        ax.plot(mean_day,label=pollutant,color='blue',linewidth=3)
 
     ax.set_xlim([0, 366])
     new_ticks = ['07-01', '08-20', '10-09', '11-28', '01-16', '03-06', '04-25', '06-14', '']         

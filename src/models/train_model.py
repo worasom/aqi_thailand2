@@ -574,5 +574,13 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
         model.fit(xtrn, ytrn)
         print('model performance', cal_scores(ytest, model.predict(xtest), header_str ='test_'))
 
-    return data, model, fire_cols
+    # obtain feature of importance without lag 
+    importances = model.feature_importances_
+    feat_imp = pd.DataFrame(importances, index=data.x_cols, columns=['importance']) 
+    feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+    feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
+    feat_imp = feat_imp.groupby('index').sum()
+    feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
+
+    return data, model, fire_cols, feat_imp
 
