@@ -133,16 +133,13 @@ def get_data_samples(dataset, n_samples=100,time_range=[]):
     wea_cols = ['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)', 'wind_CALM', 'wind_E', 'wind_N', 'wind_S', 'wind_W', 'is_rain']
     wea_cols = np.hstack([data_cols[data_cols.str.contains(s[:4])].to_list() for s in wea_cols])
     wea_cols = np.unique(wea_cols)
-    print('wea_cols ', wea_cols)
-
+    
     # look for fire_cols 
     fire_cols = data_cols[data_cols.str.contains('fire')]
-    print('fire_cols ', fire_cols)
-
+    
     date_cols = ['is_holiday', 'is_weekend', 'day_of_week', 'time_of_day']
     date_cols = np.hstack([data_cols[data_cols.str.contains(s[:6])].to_list() for s in date_cols])
     date_cols = np.unique(date_cols)
-    print('date_cols ', date_cols)
 
     # create train and test dfs
     trn_index = dataset.split_list[0]
@@ -171,7 +168,7 @@ def get_data_samples(dataset, n_samples=100,time_range=[]):
 
     # sample the data 
     data_samples = []
-    for test_datetime in tqdm_notebook(time_range[::5]):
+    for test_datetime in tqdm_notebook(time_range):
     
         samples = get_sample(test_datetime, wea, fire,year_list, year_samples=year_sam,day_err=10,hour_err=2)
         data_samples.append(samples)
@@ -182,6 +179,30 @@ def get_data_samples(dataset, n_samples=100,time_range=[]):
     data_samples = data_samples.set_index('datetime')
     data_samples = data_samples.merge(test_data[date_cols], right_index=True, left_index=True, how='left')
 
-    return data_samples
+    return data_samples.dropna()
+
+def make_band(ypred_df, q_list=[0.01, 0.25, 0.5, 0.75,  0.99]):
+    """Convert aggregate prediction for the same timestamp into upper and lower band. 
+
+    Args:
+        ypred_df: prediction dataframe
+        q_list: a list of quantile to calculate
+    
+    Returns: dataframe
+
+    """
+    band_df = []
+    for q in q_list:
+    
+        band = ypred_df.groupby(level=0).quantile(q=q)
+        band_index = band.index
+        #band = smooth(band.values,window_len=41)
+    
+        band_df.append(pd.DataFrame(band, index=band_index, columns=['q'+ str(q)]))
+    
+    return pd.concat(band_df, axis=1)
+
+
+     
 
 

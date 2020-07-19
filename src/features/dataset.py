@@ -440,7 +440,7 @@ class Dataset():
 
         self.save_()
 
-    def feature_no_fire(self, pollutant: str = 'PM2.5', roll=False):
+    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling=False):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data 
@@ -484,7 +484,7 @@ class Dataset():
 
         # select data and drop null value
         data = data[cols]
-        if roll:
+        if rolling:
             data.rolling(24, min_periods=None).mean()
         data = data.dropna()
 

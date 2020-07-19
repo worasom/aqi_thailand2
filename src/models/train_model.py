@@ -308,7 +308,7 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
     return fea_imp.sort_values('importance', ascending=False).reset_index(drop=True)
 
 
-def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],roll=False):
+def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],rolling=False):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
         #. If build True, build the raw data from files 
@@ -348,7 +348,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     # load raw data 
     data.load_()
     # build the first dataset 
-    data.feature_no_fire(pollutant=pollutant, roll=roll)
+    data.feature_no_fire(pollutant=pollutant, rolling=rolling)
     if fire_dict==None:
         # use default fire feature
         fire_cols, *args = data.merge_fire()
@@ -501,7 +501,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
                     'lag_dict': data.lag_dict,
                     'rf_score': score_dict,
                     'rf_params': model.get_params(),
-                    'roll':roll}
+                    'rolling':rolling}
 
     model_meta = load_meta(data.model_folder + 'model_meta.json')
     model_meta[pollutant] = poll_meta
@@ -547,7 +547,8 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     # load raw data 
     data.load_()
     # build the first dataset 
-    data.feature_no_fire()
+    print('rolling', poll_meta['rolling'])
+    data.feature_no_fire(rolling=poll_meta['rolling'])
     data.fire_dict = poll_meta['fire_dict']
     fire_cols, zone_list = data.merge_fire(data.fire_dict)
 

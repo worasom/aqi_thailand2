@@ -31,7 +31,7 @@ def show_fea_imp(fea_imp,x_log=False, filename=None,title=''):
         plt.savefig(filename)
 
 
-def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], roll=True, to_save=True):
+def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], to_save=True):
     """Plot model performance over training and test data.
     - plot actual againt prediction for train and test set
     - take the daily average and plot actual again prediction for training and test set
@@ -70,14 +70,14 @@ def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], roll=True, to
     ax[0].set_title(f'Model Perfromance on Predicting {dataset.monitor}')
     ax[1].set_title(f'Model Perfromance on Predicting Daily Avg of {dataset.monitor}')
 
-    if roll:
+    #if roll:
         # resample
-        ytrn_pred_df_avg = ytrn_pred_df.rolling(24, min_periods=0).mean().dropna()
-        ytest_pred_df_avg = ytest_pred_df.rolling(24, min_periods=0).mean().dropna()
-    else:
+    #    ytrn_pred_df_avg = ytrn_pred_df.rolling(24, min_periods=0).mean().dropna()
+    #    ytest_pred_df_avg = ytest_pred_df.rolling(24, min_periods=0).mean().dropna()
+    #else:
         # resample
-        ytrn_pred_df_avg = ytrn_pred_df.resample('d').mean().dropna()
-        ytest_pred_df_avg = ytest_pred_df.resample('d').mean().dropna()
+    ytrn_pred_df_avg = ytrn_pred_df.resample('d').mean().dropna()
+    ytest_pred_df_avg = ytest_pred_df.resample('d').mean().dropna()
 
 
     # plot data 
