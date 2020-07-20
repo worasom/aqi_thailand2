@@ -258,15 +258,16 @@ def update_weather(
         # obtain new  data
         new_weather, _ = scrape_weather(city_json, date_range=missing_date)
 
-        # fix bad temperature data and missing timestamp
-        new_weather = fix_temperature(new_weather)
-        new_weather = fill_missing_weather(new_weather)
+        if len(new_weather)> 0:
+            # fix bad temperature data and missing timestamp
+            new_weather = fix_temperature(new_weather)
+            new_weather = fill_missing_weather(new_weather)
 
-        # merge to existing value
-        df = pd.concat([df, new_weather], ignore_index=True)
-        df = df.sort_values('datetime')
-        df = df.drop_duplicates('datetime')
-        df.to_csv(current_filename, index=False)
+            # merge to existing value
+            df = pd.concat([df, new_weather], ignore_index=True)
+            df = df.sort_values('datetime')
+            df = df.drop_duplicates('datetime')
+            df.to_csv(current_filename, index=False)
 
 
 def proc_open_weather(wea_df):

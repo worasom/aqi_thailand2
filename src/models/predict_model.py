@@ -234,7 +234,6 @@ def make_senario(model, data_samples, feature, per_cut, x_cols):
 
     """
     cols_to_cut = data_samples.columns[data_samples.columns.str.contains(feature)]
-    print(cols_to_cut)
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut]*(1-per_cut)
     x = data_senario[x_cols].values
@@ -265,6 +264,32 @@ def cal_season_band(band_df, sea_error):
 
     return sea_pred
 
-     
+
+
+def reduc_effect(model, data_samples, x_cols,feature, sea_error, q, red_list= [0.90, 0.75, 0.5, 0.25, 0.10, 0] ):
+    """Calculate effect of reduction for feature. 
+
+    Args:
+        model: model for prediction
+        data_samples: weather and fire data 
+        feature: feature to reduce
+        sea_error: correction factor by dayofyear
+        q: quantile value to sample from 
+        red_list: list of reduction fraction 
+
+    Return:
+        sea_pred_all 
+        
+    """
+    sea_pred_all = []
+    for per_cut in  red_list:    
+        ypred_df = make_senario(model, data_samples, 'fire_0_100', per_cut= per_cut, x_cols=x_cols)
+        band_df = make_band(ypred_df, q_list=[q])
+        sea_pred = cal_season_band(band_df, sea_error)
+        sea_pred.columns = [(1-per_cut)]
+        sea_pred_all.append(sea_pred)
+
+    return  pd.concat(sea_pred_all,axis=1)
+
 
 
