@@ -582,5 +582,5 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     feat_imp = feat_imp.groupby('index').sum()
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
 
-    return data, model, fire_cols, feat_imp
+    return data, model, fire_cols, zone_list, feat_imp
 

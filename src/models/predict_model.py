@@ -234,9 +234,12 @@ def make_senario(model, data_samples, features, per_cut, x_cols):
 
     """
     cols_to_cut = []
+    
+
     for feature in features:
         cols_to_cut = cols_to_cut + data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
     
+   
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut]*(1-per_cut)
     x = data_senario[x_cols].values
@@ -285,6 +288,7 @@ def reduc_effect(model, data_samples, x_cols, features, sea_error, q, red_list= 
 
     """
     sea_pred_all = []
+   
     for per_cut in  red_list:    
         ypred_df = make_senario(model, data_samples, features, per_cut= per_cut, x_cols=x_cols)
         band_df = make_band(ypred_df, q_list=[q])
