@@ -3,6 +3,7 @@ from ..imports import *
 from ..gen_functions import *
 from ..features.dataset import Dataset
 from ..visualization.vis_model import *
+from .predict_model import *
 
 
 def load_meta(meta_filename:str):
@@ -308,7 +309,7 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
     return fea_imp.sort_values('importance', ascending=False).reset_index(drop=True)
 
 
-def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],rolling=False):
+def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],rolling_win=24):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
         #. If build True, build the raw data from files 
@@ -348,7 +349,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     # load raw data 
     data.load_()
     # build the first dataset 
-    data.feature_no_fire(pollutant=pollutant, rolling=rolling)
+    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win)
     if fire_dict==None:
         # use default fire feature
         fire_cols, *args = data.merge_fire()
@@ -501,7 +502,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
                     'lag_dict': data.lag_dict,
                     'rf_score': score_dict,
                     'rf_params': model.get_params(),
-                    'rolling':rolling}
+                    'rolling_win':rolling_win}
 
     model_meta = load_meta(data.model_folder + 'model_meta.json')
     model_meta[pollutant] = poll_meta
@@ -547,8 +548,8 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     # load raw data 
     data.load_()
     # build the first dataset 
-    print('rolling', poll_meta['rolling'])
-    data.feature_no_fire(rolling=poll_meta['rolling'])
+    print('rolling_win', poll_meta['rolling_win'])
+    data.feature_no_fire(rolling_win=poll_meta['rolling_win'])
     data.fire_dict = poll_meta['fire_dict']
     fire_cols, zone_list = data.merge_fire(data.fire_dict)
 
@@ -562,17 +563,31 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     data.x_cols = poll_meta['x_cols']
     #print('\n x_cols', data.x_cols)
 
-    if update:
-        # split data
-        data.split_data(split_ratio=split_list)
-        trn_index = data.split_list[0]
-        test_index = data.split_list[1]
+    
+    # split data
+    data.split_data(split_ratio=split_list)
+    trn_index = data.split_list[0]
+    test_index = data.split_list[1]
          
-        xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=trn_index,x_cols=data.x_cols)
-        xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=data.x_cols)
-
+    xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=trn_index,x_cols=data.x_cols)
+    xtest, ytest, _ = data.get_data_matrix(use_index=test_index,x_cols=data.x_cols)
+        
+    if update:
         model.fit(xtrn, ytrn)
-        print('model performance', cal_scores(ytest, model.predict(xtest), header_str ='test_'))
+    
+    print('raw model performance', cal_scores(ytest, model.predict(xtest), header_str ='test_'))
+
+    # calculate the average error
+    trn_error = cal_error(data, model, data_index=trn_index)
+    # resample
+    ytrn_pred_df_avg = trn_error.resample('d').mean().dropna()
+    print('daily avg training error', cal_scores(ytrn_pred_df_avg['actual'].values, ytrn_pred_df_avg['pred'].values, header_str='avg_trn_'))
+
+    # calculate the average error
+    ytest_pred_df = cal_error(data, model, data_index=test_index)
+    # resample
+    ytest_pred_df_avg = ytest_pred_df.resample('d').mean().dropna()
+    print('daily avg test error', cal_scores(ytest_pred_df_avg['actual'].values, ytest_pred_df_avg['pred'].values, header_str='avg_test_'))
 
     # obtain feature of importance without lag 
     importances = model.feature_importances_
@@ -582,5 +597,5 @@ def load_model1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, split
     feat_imp = feat_imp.groupby('index').sum()
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
 
-    return data, model, fire_cols, zone_list, feat_imp
+    return data, model, fire_cols, zone_list, feat_imp, poll_meta['rolling_win']
 

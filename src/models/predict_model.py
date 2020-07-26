@@ -2,7 +2,11 @@
 from ..imports import *
 from ..gen_functions import *
 from ..features.dataset import Dataset
+from ..features.build_features import *
 from .train_model import *
+from ..visualization.vis_data import *
+from ..visualization.vis_model import *
+
 
 def cal_error(dataset, model, data_index):
     """Calculate model performance over training and test data.
@@ -132,13 +136,47 @@ def get_sample(test_datetime, wea, fire, year_list, year_samples, day_err=7, hou
     
     return data_samples.drop(['day_of_year','hour','year'],axis=1)
 
-def get_data_samples(dataset, n_samples=100,time_range=[]):
+def add_lag(df, lag_dict):
+    """Build the lag data using number in lag_range. 
+    Add the new data as self.data attribute. 
+
+    Args:
+        df: dataframe to build lag 
+        lag_dict: a dictionary containing laging information such n_max, 'step', 'roll'
+
+    Returns: dataframe containing original data and lags
+
+    """
+
+    lag_range = np.arange(1, lag_dict['n_max'], lag_dict['step'])
+    roll = lag_dict['roll']
+        
+    lag_list = [df]
+    for n in lag_range:
+        lag_df = df.copy()
+        lag_df.columns = [ s+ f'_lag_{n}' for s in lag_df.columns] 
+        if roll:
+            # calculate the rolling average
+            lag_df = lag_df.rolling(n,min_periods=None).mean()
+            lag_df = lag_df.shift(1)
+        else:
+            lag_df = lag_df.shift(n)
+
+        lag_list.append(lag_df)
+        
+    new_data = pd.concat(lag_list, axis=1, ignore_index=False)
+    return new_data.dropna()
+
+def get_data_samples(dataset, time_range=[], n_samples=100, step=1,day_err=10,hour_err=2):
     """Sample the possible test data from train data. The dataset must alredy has the lag columns built
 
     Args:
         dataset: load data using load_model1 function 
-        split_list(optional): ratio to split the data between the test and train
+        time_range: time range for inference 
         n_samples: number of sample per hours 
+        step: if not 1, skip some data to make the draw faster 
+        day_err
+        hour_err
     
     Return pd.DataFame
         sample of weather and fire conditon for each hour. Each hour will have n_samples of data
@@ -183,20 +221,29 @@ def get_data_samples(dataset, n_samples=100,time_range=[]):
         # time range from the test data 
         time_range = pd.date_range(start=test_data.index.min(), end=test_data.index.max(), freq='h')
 
-    # sample the data 
-    data_samples = []
-    for test_datetime in tqdm_notebook(time_range):
+    ## sample the data 
+    #data_samples = []
+    #for test_datetime in tqdm_notebook(time_range[::step]):
     
-        samples = get_sample(test_datetime, wea, fire,year_list, year_samples=year_sam,day_err=10,hour_err=2)
-        data_samples.append(samples)
+    #    samples = get_sample(test_datetime, wea, fire,year_list, year_samples=year_sam,day_err=10,hour_err=2)
+    #    data_samples.append(samples)
          
-    
-    data_samples = pd.concat(data_samples, ignore_index=True)
-    # add calenda information by merging with test_data
-    data_samples = data_samples.set_index('datetime')
-    data_samples = data_samples.merge(test_data[date_cols], right_index=True, left_index=True, how='left')
+     # use joblib to speed up sampling process
+    data_samples = Parallel(n_jobs=2)(delayed(get_sample)(test_datetime, wea, fire,year_list, year_sam,day_err,hour_err) for test_datetime in time_range[::step])
+    #data_samples = pd.concat(fire, ignore_index=True)
 
-    return data_samples.dropna()
+
+    data_samples = pd.concat(data_samples, ignore_index=True)
+    # create date_data
+    date_data = pd.DataFrame(index=time_range)
+    date_data = add_calendar_info(date_data, holiday_file=dataset.data_folder + 'holiday.csv')
+    date_data = add_lag(date_data, dataset.lag_dict)
+
+    # add calenda information by merging with data_data
+    data_samples = data_samples.set_index('datetime')
+    data_samples = data_samples.merge(date_data[date_cols], right_index=True, left_index=True, how='left')
+
+    return data_samples.dropna()[dataset.x_cols]
 
 def make_band(ypred_df, q_list=[0.01, 0.25, 0.5, 0.75,  0.99]):
     """Convert aggregate prediction for the same timestamp into upper and lower band. 
@@ -219,7 +266,7 @@ def make_band(ypred_df, q_list=[0.01, 0.25, 0.5, 0.75,  0.99]):
     
     return pd.concat(band_df, axis=1)
 
-def make_senario(model, data_samples, features, per_cut, x_cols):
+def make_senario(model, data_samples, features, per_cut):
     """Make prediction of the data sample with some feature value reduced. 
 
     Args:
@@ -242,7 +289,7 @@ def make_senario(model, data_samples, features, per_cut, x_cols):
    
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut]*(1-per_cut)
-    x = data_senario[x_cols].values
+    x = data_senario.values
     y = model.predict(x)
 
     return pd.Series(y, index = data_samples.index) 
@@ -270,9 +317,29 @@ def cal_season_band(band_df, sea_error):
 
     return sea_pred
 
+def _reduct_effect_q(model, data_samples, features, sea_error, q, per_cut):
+    """Calculate the reduction effect of a single q value.
 
+    Convert to seasonal pattern 
 
-def reduc_effect(model, data_samples, x_cols, features, sea_error, q, red_list= [0.90, 0.75, 0.5, 0.25, 0.10, 0] ):
+    Args:
+        model: model for prediction
+        data_samples: weather and fire data 
+        features: a list of features to reduce
+        sea_error: correction factor by dayofyear
+        q: quantile value to sample from 
+    
+    Returns: seasonal pattern dataframe 
+        
+    """
+    ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)
+    band_df = make_band(ypred_df, q_list=[q])
+    sea_pred = cal_season_band(band_df, sea_error)
+    sea_pred.columns = [int(round(1-per_cut,2)*100)]
+
+    return sea_pred 
+
+def reduc_effect(model, data_samples, features, sea_error, q, red_list= [0.90, 0.75, 0.5, 0.25, 0.10, 0] ):
     """Calculate effect of reduction for feature. 
 
     Args:
@@ -287,16 +354,181 @@ def reduc_effect(model, data_samples, x_cols, features, sea_error, q, red_list= 
         sea_pred_all 
 
     """
-    sea_pred_all = []
+    # sea_pred_all = []
    
-    for per_cut in  red_list:    
-        ypred_df = make_senario(model, data_samples, features, per_cut= per_cut, x_cols=x_cols)
-        band_df = make_band(ypred_df, q_list=[q])
-        sea_pred = cal_season_band(band_df, sea_error)
-        sea_pred.columns = [(1-per_cut)]
-        sea_pred_all.append(sea_pred)
+    # for per_cut in  red_list:    
+    #     ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)
+    #     band_df = make_band(ypred_df, q_list=[q])
+    #     sea_pred = cal_season_band(band_df, sea_error)
+    #     sea_pred.columns = [round(1-per_cut,2)]
+    #     sea_pred_all.append(sea_pred)
+
+    sea_pred_all = Parallel(n_jobs=2)(delayed(_reduct_effect_q)(model, data_samples, features, sea_error, q, per_cut) for per_cut in red_list)
+
 
     return  pd.concat(sea_pred_all,axis=1)
 
+
+class Inferer():
+    """Inferer object is in charge of predicting and infering from previous training data.
+
+    Required a trained model. 
+
+    Args:
+        city_name: lower case of city name
+        pollutant:str='PM2.5'
+        split_list(optional)
+
+    Attributes:
+        dataset 
+
+    Raises:
+        AssertionError: if the city_name is not in city_names list
+
+    """
+
+    def __init__(self, city_name: str, pollutant:str='PM2.5',  split_list=[0.7, 0.3]):
+
+        """Initialize 
+        
+        #. Check if the city name exist in the database
+        #. Setup main, data, and model folders. Add as attribute
+        #. Check if the folders exists, if not create the folders 
+        #. Load city information and add as atribute 
+
+        """
+
+        city_names = ['Chiang Mai', 'Bangkok', 'Hanoi', 'Jakarta']
+
+        if city_name not in city_names:
+            raise AssertionError(
+                'city name not in the city_names list. No data for this city')
+
+        else:
+            # load model and add as attribute
+            self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.rolling_win = load_model1(city=city_name, pollutant=pollutant, split_list=split_list)
+            self.cal_error()
+            self.report_folder = self.dataset.report_folder
+
+            levels = self.dataset.transition_dict[pollutant][1:4]
+            colors = ['orange','red', 'purple']
+            self.color_zip = [*zip(levels, colors)]
+            
+
+    def cal_error(self):
+        """Calculate the training and seasonal error. Add trn_error and seasonal_error as attribute
+
+        """
+
+        # calculate error of the train dataset and turn it into the seasonal error 
+        self.trn_error = cal_error(self.dataset, self.model, data_index=self.dataset.split_list[0])
+        self.sea_error = cal_season_error(self.trn_error, roll_win=14, agg='mean')
+        print('max error', np.max(self.sea_error.values))
+
+    def _get_data_sample(self, n_samples=100, step=1,day_err=10,hour_err=2):
+        """Sample the possible test data from train data. Add as data_samples attribute
+
+        Args:
+
+            Args:
+                n_samples: number of sample per hours 
+                step: if not 1, skip some data to make the draw faster 
+                day_err
+                hour_err
+
+        """
+        print('obtaining inference samples. This will take about 20 mins') 
+        self.data_samples = get_data_samples(dataset=self.dataset, n_samples=n_samples,step=step,day_err=day_err,hour_err=day_err)
+
+    def compare_inf_act(self, q_list=[ 0.5, 0.75,  0.95]):
+        """Compare inference and actual data. Save the results plot. 
+
+        Args:
+            q_list(optional): a list of inference quantile[defaul=[0.05, 0.25, 0.5, 0.75,  0.95]]
+
+        """
+
+        # get data sample
+        plot_sea_error(self.trn_error, self.sea_error, filename=self.report_folder+'season_error.png')
+
+        # compare inference with actual data 
+        # predict the data
+        ypred_df = make_senario(self.model, self.data_samples, ['fire_0_100'], per_cut= 0)
+        band_df = make_band(ypred_df, q_list=q_list)
+        # smooth the data
+        band_df = band_df.rolling(self.rolling_win, min_periods=0).mean()
+        #band_df = band_df.resample('d').mean()
+
+        ytest_pred_df = cal_error(self.dataset, self.model, data_index=self.dataset.split_list[1])
+        plt_infer_actual(ytest_pred_df.resample('d').mean().dropna(), band_df, filename=self.report_folder+'test_data_vs_inference.png')
+     
+        # plot seasonal predicton vs real data 
+        sea_pred = cal_season_band(band_df, self.sea_error)
+
+        # compare seasonal behavior with inference 
+        plot_infer_season(self.dataset.poll_df.loc['2015-01-01':], self.dataset.pollutant, sea_pred, self.color_zip, filename=self.report_folder+'test_data_vs_inference_season.png' )
+
+    
+    def features_effect_season(self, features:list, q, red_list=[0, 0.1, 0.25, 0.5, 0.75, 0.9], save=False):
+        """Show an effect of reducing feature or features on the seasonal patterns 
+
+        Args: 
+            features: a list of feature to observe
+            q: quantile for picking the inference distribution [default:0.75]
+            red_list: a list of reducting 
+
+        """
+
+        fea_effect = reduc_effect(self.model, self.data_samples, features, self.sea_error, q=q, red_list= red_list)
+
+        _, ax = plt.subplots(1, 1, figsize=(10, 4))
+        ax.plot(fea_effect) 
+        
+
+        title_str = '&'.join(features)
+        ax.set_title(f'Effect of Reducing (% reduction) \n'+fill(title_str,50))
+
+        for l, c in self.color_zip:
+            ax.axhline(l, color=c)
+
+        new_ticks = ['07-01', '08-20', '10-09', '11-28', '01-16', '03-06', '04-25', '06-14', '']         
+        
+        ax.set_xticklabels(new_ticks)
+        ax.set_xlim([fea_effect.index.min(), fea_effect.index.max()])
+        ax.legend(fea_effect.columns.to_list())
+        ax.set_xlabel('month-date')
+        ax.set_ylim([0,110])
+
+
+        
+        if save:
+            plt.savefig(self.report_folder + 'effect_of_' +title_str+'.png')
+
+        return fea_effect
+    
+
+    def features_effect_sum(self, features_list, q, red_list=[0, 0.1, 0.25, 0.5, 0.75, 0.9], time_range=[0,-1],agg='mean' ):
+        """Summarize effect of reduction in red_list of the features in the feature list. 
+
+        Calculate the summary value between time_range and use aggegration method specified by agg
+
+        Return: pd.DataFrame.
+            The average prediction pollution level if reduction of each feature occure
+            
+        """
+
+        fea_effect_df = []
+        columns_list = []
+        for feature in tqdm_notebook(features_list):
+            sea_pred_all = reduc_effect(self.model, self.data_samples, feature, self.sea_error, q=q, red_list= red_list )
+            sea_pred_all_mean = sea_pred_all.loc[time_range[0]:time_range[1]].agg(agg)
+            columns_list.append(' & '.join(feature))
+            fea_effect_df.append(sea_pred_all_mean)
+    
+    
+        fea_effect_df = pd.concat(fea_effect_df, axis=1)
+        fea_effect_df.columns = columns_list
+
+        return fea_effect_df
 
 

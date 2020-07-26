@@ -2,6 +2,7 @@
 from ..imports import *
 from ..gen_functions import *
 from ..models.predict_model import *
+from .vis_data import *
 
 def show_fea_imp(fea_imp,x_log=False, filename=None,title=''):
     """Display feature of importance in a bar plot 
@@ -98,3 +99,72 @@ def plot_model_perf(dataset, model, split_list=[0.7, 0.3],xlim=[], to_save=True)
         plt.savefig(dataset.report_folder + f'{poll_name}_model_perfomance.png')
 
     return ytrn_pred_df, ytest_pred_df
+
+def plot_sea_error(trn_error, sea_error, filename=None):
+    """Plase seasonal error the training data and the average value.
+
+    Args:
+        trn_error: raw training error 
+        sea_error: seasonal error used in the inference
+        filename: save filename
+    """
+
+    # plot seasonal error and save 
+    _, ax = plt.subplots(figsize=(10,4))
+    _ = plot_season_avg(trn_error, 'error', ax, plot_error=False, roll=True, agg='mean')
+    ax.plot(sea_error['error'], linewidth=3)
+    ax.set_title('error (by pollution season)')
+    ax.legend(['raw training error', 'average error'])
+    if filename:
+        plt.savefig(filename)
+
+def plt_infer_actual(ytest_pred_df_avg, band_df, filename=None):
+    """Compare the actual and inference predicted data in timeseries format. 
+    Args:
+        ytest_pred_df_avg: actual data to plot
+        band_df: inference data to plot with different quantiles 
+        filename: save filename
+    
+    """
+    plt.figure(figsize=(12,4))
+    
+    plt.plot(ytest_pred_df_avg['actual'],color='royalblue',label='avg data', marker='.', linewidth=1, alpha=0.8)
+    plt.plot(band_df, linewidth=2)
+    plt.xlabel('date')
+    legend_list = band_df.columns.to_list()
+    legend_list = ['samples '+ s for s in legend_list]
+    plt.legend(['actual']+ legend_list,frameon=True)
+    plt.title('Compare Actual Data and Inference Bands')
+
+    if filename:
+        plt.savefig(filename)
+
+
+def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None ):
+    """Compare the actual and inference predicted data in seasonal format 
+
+    Args:
+        poll_df: pollution data 
+        pollutant: pollutant to plot 
+        sea_pred: inference data 
+        color_zip: color and level indicating the AQI 
+        filename: save filename 
+        
+
+    """
+
+    _, ax = plt.subplots(1,1, figsize=(10,4),sharex=True)
+    ax.plot(sea_pred)
+    _ = plot_season_avg(poll_df, 'PM2.5', ax, plot_error=True, roll=False, agg='mean')
+    legend_list = sea_pred.columns.to_list()
+    legend_list = ['samples '+ s for s in legend_list]
+    ax.legend(legend_list + ['actual'] )
+    plt.title('Seasonal Pattern of Actual Data and Inference Bands')
+    #ax.set_ylim([0, 170])
+
+    for l, c in color_zip:
+        ax.axhline(l, color=c)
+
+    if filename:
+        plt.savefig(filename)
+

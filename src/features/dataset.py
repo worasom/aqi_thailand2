@@ -53,6 +53,13 @@ class Dataset():
                      'Bangkok': 'Bangkok',
                      'Hanoi': 'Soc Son'}
 
+    transition_dict = { 'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
+    'PM10': [0, 155, 254, 354, 1e3],
+    'O3':[0, 70 , 85, 105 ,1e3],
+    'SO2':[0, 75, 185, 304,1e3],
+    'NO2': [0, 100, 360, 649,1e3],
+    'CO': [0, 6.4, 12.5, 15.4,1e3]}
+
     def __init__(
             self,
             city_name: str,
@@ -440,7 +447,7 @@ class Dataset():
 
         self.save_()
 
-    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling=False):
+    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data 
@@ -449,6 +456,7 @@ class Dataset():
 
         Args:
             pollutant(optional): name of the pollutant [default:'PM2.5']
+            rolling_win(optional): rolling windows size [defaul:24]
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -484,8 +492,7 @@ class Dataset():
 
         # select data and drop null value
         data = data[cols]
-        if rolling:
-            data.rolling(24, min_periods=None).mean()
+        data.rolling(rolling_win, min_periods=None).mean()
         data = data.dropna()
 
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
