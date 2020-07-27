@@ -225,7 +225,7 @@ def sk_op_fire(dataset, model, trn_index, val_index, wind_range:list=[2,20],shif
     return best_fire_dict, gp_result
 
 
-def op_lag(dataset, model, split_ratio, lag_range=[2, 168], step_range=[1,25]):
+def op_lag(dataset, model, split_ratio, lag_range=[2, 120], step_range=[1,25]):
     """Search for the best lag parameters using skopt optimization 
     
     Args: 
@@ -309,7 +309,7 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
     return fea_imp.sort_values('importance', ascending=False).reset_index(drop=True)
 
 
-def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],rolling_win=24):
+def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, model=None, fire_dict=None, x_cols_org=[], lag_dict=None,x_cols=[],rolling_win=True):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
         #. If build True, build the raw data from files 
@@ -348,6 +348,11 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     
     # load raw data 
     data.load_()
+    if rolling_win:
+        rolling_win = data.roll_dict[pollutant]
+    else:
+        rolling_win = 1
+    print('rolling_win ', rolling_win)
     # build the first dataset 
     data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win)
     if fire_dict==None:
@@ -404,7 +409,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
         data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
         #data.lag_dict = {'n_max': 2, 'step': 5}
         data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
-        print('data.column with lag', data.data.columns)
+        #print('data.column with lag', data.data.columns)
         data.x_cols = data.data.columns.drop(data.monitor)
 
         print('x_cols', data.x_cols)
@@ -454,7 +459,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     print('================= optimization 8: optimize for the best rf again =================')
     data.split_data(split_ratio=[0.45, 0.25, 0.3])
      
-    print('x_cols in op7', data.x_cols)
+    #print('x_cols in op7', data.x_cols)
     xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=data.split_list[0],x_cols=data.x_cols)
     xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1],x_cols=data.x_cols)
     xtest, ytest, _ = data.get_data_matrix(use_index=data.split_list[2], x_cols=data.x_cols)

@@ -60,6 +60,13 @@ class Dataset():
     'NO2': [0, 100, 360, 649,1e3],
     'CO': [0, 6.4, 12.5, 15.4,1e3]}
 
+    roll_dict ={'PM2.5': 24,
+        'PM10': 24,
+        'O3':8,
+        'SO2':1,
+        'NO2': 1,
+        'CO': 8}
+
     def __init__(
             self,
             city_name: str,
@@ -456,7 +463,7 @@ class Dataset():
 
         Args:
             pollutant(optional): name of the pollutant [default:'PM2.5']
-            rolling_win(optional): rolling windows size [defaul:24]
+            rolling_win(optional): rolling windows size [defaul:24]. This does not do anything.
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -467,6 +474,11 @@ class Dataset():
 
         if not os.path.exists(self.data_folder + 'holiday.csv'):
             self.build_holiday()
+
+        if self.city_name == 'Chiang Mai':
+            # for Chiang Mai, delete all PM2.5 record before 2010
+            self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
+
 
         # check if pollutant data exist 
         if pollutant not in self.poll_df.columns:
@@ -492,7 +504,7 @@ class Dataset():
 
         # select data and drop null value
         data = data[cols]
-        data.rolling(rolling_win, min_periods=None).mean()
+        data[pollutant] = data[pollutant].rolling(rolling_win, min_periods=0).mean().round(1)
         data = data.dropna()
 
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':

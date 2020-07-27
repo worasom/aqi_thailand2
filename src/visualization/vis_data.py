@@ -84,7 +84,7 @@ def plot_corr(poll_df, avg='d',filename=None):
 
 
 
-def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max'):
+def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max',color='blue',linestyle='solid',linewidth=2):
     """Plot the average by date of year. Good for looking seasonal pattern.
 
     Args:
@@ -122,11 +122,11 @@ def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max
     df, winter_day_dict = season_avg(poll_df, cols=[pollutant], roll=roll, agg=agg, offset=182)
 
     if plot_error:
-        sns.lineplot(data=df,x='winter_day', y=pollutant, ax=ax, legend='brief',label=pollutant,color='blue')
+        sns.lineplot(data=df,x='winter_day', y=pollutant, ax=ax, legend='brief',label=pollutant,color=color)
     
     else:
         mean_day = df.groupby('winter_day').mean()[pollutant]
-        ax.plot(mean_day,label=pollutant,color='blue',linewidth=3)
+        ax.plot(mean_day,label=pollutant,color=color,linewidth=linewidth,linestyle=linestyle)
 
     ax.set_xlim([0, 366])
     new_ticks = ['07-01', '08-20', '10-09', '11-28', '01-16', '03-06', '04-25', '06-14', '']         
@@ -136,7 +136,7 @@ def plot_season_avg(poll_df, pollutant, ax, plot_error=True, roll=True, agg='max
     ax.legend()
     ax.set_xlabel('month-date')
     #plt.show()
-    return winter_day_dict
+    return winter_day_dict, df.groupby('winter_day').mean()[pollutant]
 
 
 
@@ -154,7 +154,7 @@ def plot_all_pollutions(poll_df, city_name='',filename=None,transition_dict=None
     """
     if transition_dict==None:
         transition_dict = { 'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
-            'PM10': [0, 155, 254, 354, 1e3],
+            'PM10': [0, 154, 254, 354, 424, 504],
             'O3':[0, 70 , 85, 105 ,1e3],
             'SO2':[0, 75, 185, 304,1e3],
             'NO2': [0, 100, 360, 649,1e3],
@@ -203,6 +203,116 @@ def plot_all_pollutions(poll_df, city_name='',filename=None,transition_dict=None
 
     if filename:
         plt.savefig(filename)
+
+def poll_to_aqi(poll_df, roll_dict):
+    """Convert concentration pollution dataframe to aqi dataframe
+
+    Args:
+        poll_df : pollution data 
+        rolling_dict: rolling information for each pollutant
+
+    Returns: aqi dataframe
+
+    """
+    for pollutant in poll_df.columns:
+        rolling_win = roll_dict[pollutant]
+        poll_df[pollutant] = poll_df[pollutant].rolling(rolling_win, min_periods=0).mean().round(1)
+        # convert to aqi 
+        poll_df[pollutant] = poll_df[pollutant].apply(to_aqi, pollutant=pollutant)
+
+    return poll_df
+
+def plot_polls_aqi(poll_df, roll_dict, city_name='',filename=None, color_labels=None, level_name=None):
+    """Plot all pollutant data over time. 
+
+    Args:
+        poll_df  
+        rolling_dict
+        city_name 
+        filename=None
+        transition_dict=None
+        color_labels=None 
+        level_name=None
+    
+    """
+    # convert to aqi 
+    poll_df = poll_to_aqi(poll_df, roll_dict)
+
+    # convert to daily average 
+    poll_df = poll_df.resample('d').mean()
+    new_cols = poll_df.mean(axis=0).sort_values(ascending=False).index.to_list()
+    poll_df = poll_df[new_cols]
+    length = int(len(new_cols)/2)
+
+    levels = [ 50, 100, 150, 200, 300]
+    color_labels = [ 'green', 'orange', 'red','purple']
+    level_names = [' satisfactory', ' moderate', ' unhealthy',' very unhealthy']
+    data_colors = get_color( color_length = len(new_cols), cmap=cm.brg)
+  
+    _, ax = plt.subplots(2, 1, figsize=(10, 8),sharex=True)
+    for i, a in enumerate(ax):
+        temp = poll_df[new_cols[length*i:length*(i+1)]]
+        colors = data_colors[length*i:length*(i+1)]
+        for col, color in zip(new_cols[length*i:length*(i+1)], colors):
+            a.plot(temp[col], marker='.', markersize=1, linewidth=2, alpha=0.6,color=color )
+        a.legend(temp.columns,loc='upper left')
+        if i ==0:
+            a.set_title(f'Daily Average AQI in {city_name} for different pollutant')
+
+        else:
+            a.set_xlabel('date')
+        
+        # select y max 
+        ymax = temp.max().max()
+        idx = np.where(levels < ymax)[0][-1]+1
+
+        for l, c, n in zip(levels[:idx], color_labels[:idx], level_names[:idx]):
+            a.axhline(l,color=c,label=n)
+            a.text(temp.index.max(), l, n,  horizontalalignment='left')
+
+        a.set_xlim([temp.index.min(), temp.index.max()])
+        a.set_ylim([0,ymax])
+        
+        a.set_ylabel('AQI')
+
+    plt.tight_layout()
+
+    if filename:
+        plt.savefig(filename)
+
+    
+def plot_season_aqi(poll_df, roll_dict, pollutant, filename=None,aqi_line=True):
+    """Plot average seasonal AQI value of a pollutant, and identify the high months. 
+
+    Args:
+        poll_df: raw pollution data 
+        roll_dict: rolling dictionary
+        pollutant: pollutant value
+        filename(optional): filename to save
+        aqi_line(optional): if True, show horizontal aqi line
+
+    """
+    _, ax = plt.subplots(1,1, figsize=(10,4),sharex=True)
+    poll_aqi = poll_to_aqi(poll_df, roll_dict)
+    winter_day_dict, mean_day = plot_season_avg(poll_aqi, pollutant, ax, plot_error=True, roll=False )
+
+    if aqi_line:    
+        # aqiline 
+        ax.axhline(100, color='orange')
+        ax.axhline(150, color='red')
+        ax.text(365, 100, ' moderate',  horizontalalignment='left')
+        ax.text(365, 150, ' unhealthy',  horizontalalignment='left')
+
+    temp = mean_day[mean_day> 100]
+    print('aqi 100 in ', winter_day_dict[str(temp.index.min())],'to' ,winter_day_dict[str(temp.index.max())])
+
+    temp = mean_day[mean_day> 150]
+    print('aqi 150 in ', winter_day_dict[str(temp.index.min())],'to' ,winter_day_dict[str(temp.index.max())])
+
+    if filename:
+        plt.savefig(filename)
+
+
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand AQI conversion.

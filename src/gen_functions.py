@@ -216,3 +216,39 @@ def season_avg(df, cols=[], roll=True, agg='max', offset=182):
 
     return df, winter_day_dict
 
+def to_aqi(value, pollutant):
+    """Convert pollution value to AQI 
+    
+    Args:
+        value: pollution reading
+        pollutant: type of pollutant 
+
+    Returns: int
+        AQI value of the pollutant 
+
+    """
+    try:
+        transition_dict = { 'PM2.5': [0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3],
+        'PM10': [0, 155, 254, 354, 424, 504, 604, 1e3],
+        'O3':[0, 54, 70 , 85, 105, 200, 1e3],
+        'SO2':[0, 75, 185, 304, 504, 604, 1e3],
+        'NO2': [0, 53,100, 360, 649, 1249, 2049, 1e3],
+        'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]}
+    
+        aqi_list = [0, 50, 100, 150, 200, 300, 400, 500, 999]
+        tran = np.array(transition_dict[pollutant])
+        idx = np.where(value>=tran)[0][-1]
+        if idx == len(tran):
+            aqi = aqi_list[-1]
+        else:
+            lower = tran[idx]
+            upper = tran[idx+1]
+            lower_aqi = aqi_list[idx]
+            upper_aqi = aqi_list[idx+1]
+            aqi = (upper_aqi - lower_aqi)/(upper-lower)*(value - lower) + lower_aqi
+            aqi = int(ceil(aqi))
+    except:
+        aqi=np.nan
+
+
+    return aqi

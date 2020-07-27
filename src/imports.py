@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from textwrap import fill
+from math import ceil
 import seaborn as sns
 from matplotlib import cm
 from matplotlib.ticker import MaxNLocator
@@ -72,21 +73,21 @@ from tpot import TPOTRegressor
 
 # NN model 
 
-from keras.callbacks import EarlyStopping
-from keras.models import Sequential
-from keras.layers import Dense, Conv1D, SeparableConv1D, Dropout,BatchNormalization
-import keras.backend as K
-import tensorflow as tf
-from keras.optimizers import Adam
-from keras.models import load_model
+# from keras.callbacks import EarlyStopping
+# from keras.models import Sequential
+# from keras.layers import Dense, Conv1D, SeparableConv1D, Dropout,BatchNormalization
+# import keras.backend as K
+# import tensorflow as tf
+# from keras.optimizers import Adam
+# from keras.models import load_model
 
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-import keras
-from keras import backend as K
-from keras import optimizers
+# from keras.models import Sequential
+# from keras.layers import Dense, Dropout, Flatten
+# import keras
+# from keras import backend as K
+# from keras import optimizers
 
-from sklearn.preprocessing import MinMaxScaler
+# from sklearn.preprocessing import MinMaxScaler
 
 # optimization 
 from skopt.plots import plot_objective
