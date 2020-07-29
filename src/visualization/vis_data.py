@@ -65,19 +65,20 @@ def display_time_split(index_list):
 
 
 
-def plot_corr(poll_df, avg='d',filename=None):
+def plot_corr(df,  cor_method='spearman', figsize=(8,6), filename=None):
     """Plot the correlation between different pollutants 
     
     Args:
         poll_df:
-        avg: 'd' or 'm' 
+        core_method
+        filename
 
     """
-    df = poll_df.resample(avg).max()
-    plt.figure(figsize=(10,8))
+    #df = poll_df.resample(avg).max()
+    plt.figure(figsize=figsize)
     mask = np.tril(df.corr())
     # use spearman rank correlation 
-    sns.heatmap(df.corr(method='spearman'), annot=True,mask=mask)
+    sns.heatmap(df.corr(method=cor_method), annot=True,mask=mask)
     
     if filename:
         plt.savefig(filename)
@@ -313,6 +314,52 @@ def plot_season_aqi(poll_df, roll_dict, pollutant, filename=None,aqi_line=True):
         plt.savefig(filename)
 
 
+def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30'):
+    """Calculate the season year average. 
+    
+    Args:
+        df: data to calculate the season average. Must have datetime index
+        agg: aggeration method (ex 'mean')
+        start_month: starting month of the season
+        end_month: ending month of the season 
+    
+    Returns: pd.DataFrame
+        season yearly average
+
+    """
+    df = add_season(df, start_month=start_month, end_month=end_month)
+    # remove other season
+    df = df[df['season']!='other'].drop('season',axis=1)
+    return df.groupby('year').agg('mean')
+    
+def add_ln_trend_line(series, ax, color='royalblue',linewidth=1,linestyle='dashed'):
+    """Fit linear line between the index of df and the data and add linear trend line to the plot. 
+    
+    Args:
+        series: series to lienar fit 
+        ax: plt axis object
+        color: color of the line
+        linewidth: width of the line
+        linestyle: linestyle 
+
+    Returns: np.array, np.array
+        numpy array of the linear trend line x and y
+
+    """
+    # linear fit the data
+    x = series.index.values
+    z = np.polyfit(x, series.values, 1)
+    p = np.poly1d(z)
+    # string for labeling 
+    z_str = z.round(2).astype(str) 
+    z_str[1] = z[1].astype(int).astype(str)
+    if z[1]>0:
+        z_str[1] = '+' + z_str[1] 
+    # create a trend line 
+    y = p(x)
+    ax.plot(x, y, color=color, linestyle=linestyle,linewidth=linewidth, label= f'({z_str[0]})x{z_str[1]}')
+
+    return x, y
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand AQI conversion.

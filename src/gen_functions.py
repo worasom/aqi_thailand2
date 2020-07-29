@@ -120,6 +120,9 @@ def add_season(df, start_month='-12-01', end_month='-04-30'):
 
         df.loc[start_date:end_date, 'season'] = label
 
+    # convert year to seasona year 
+    df['year'] = df['season'].str.split('_', expand=True)[1].fillna(df['year']).astype(int) 
+    
     return df
 
 def smooth(x,window_len=11,window='hanning'):
