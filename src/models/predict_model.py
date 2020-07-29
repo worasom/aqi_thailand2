@@ -4,6 +4,7 @@ from ..gen_functions import *
 from ..features.dataset import Dataset
 from ..features.build_features import *
 from .train_model import *
+from .train_model import load_model1
 from ..visualization.vis_data import *
 from ..visualization.vis_model import *
 
@@ -276,8 +277,8 @@ def make_senario(model, data_samples, features, per_cut):
         per_cut: percent reduction must be between 0 - 1
         x_cols: x_columns to use for the model
 
-    Returns: pd.DataFrame
-        predicted value for calculate band 
+    Returns: pd.DataFrame, pd.DataFrame
+        ypred_df: predicted value for calculate band
 
     """
     cols_to_cut = []
@@ -286,13 +287,12 @@ def make_senario(model, data_samples, features, per_cut):
     for feature in features:
         cols_to_cut = cols_to_cut + data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
     
-   
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut]*(1-per_cut)
     x = data_senario.values
     y = model.predict(x)
 
-    return pd.Series(y, index = data_samples.index) 
+    return pd.Series(y, index = data_samples.index)
 
 
 def cal_season_band(band_df, sea_error):
@@ -334,10 +334,15 @@ def _reduct_effect_q(model, data_samples, features, sea_error, q, per_cut):
     """
     ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)
     band_df = make_band(ypred_df, q_list=[q])
+    
     sea_pred = cal_season_band(band_df, sea_error)
     sea_pred.columns = [int(round(1-per_cut,2)*100)]
 
-    return sea_pred 
+    #data_senario = make_band(data_senario, q_list=[0.5])
+    #data_senario = cal_season_band(data_senario, pd.DataFrame(np.zeroes(len(data_senario)), index=data_senario.index))
+    #data_senario.columns = [int(round(1-per_cut,2)*100)]
+
+    return sea_pred
 
 def reduc_effect(model, data_samples, features, sea_error, q, red_list= [0.90, 0.75, 0.5, 0.25, 0.10, 0] ):
     """Calculate effect of reduction for feature. 
@@ -460,7 +465,7 @@ class Inferer():
         #band_df = band_df.resample('d').mean()
 
         ytest_pred_df = cal_error(self.dataset, self.model, data_index=self.dataset.split_list[1])
-        plt_infer_actual(ytest_pred_df.resample('d').mean().dropna(), band_df, filename=self.report_folder+'test_data_vs_inference.png')
+        plt_infer_actual(ytest_pred_df.resample('d').mean().dropna(), band_df.resample('d').mean(), filename=self.report_folder+'test_data_vs_inference.png')
      
         # plot seasonal predicton vs real data 
         sea_pred = cal_season_band(band_df, self.sea_error)
@@ -482,9 +487,9 @@ class Inferer():
         fea_effect = reduc_effect(self.model, self.data_samples, features, self.sea_error, q=q, red_list= red_list)
 
         _, ax = plt.subplots(1, 1, figsize=(10, 4))
+
         ax.plot(fea_effect) 
         
-
         title_str = '&'.join(features)
         ax.set_title(f'Effect of Reducing (% reduction) \n'+fill(title_str,50))
 
@@ -498,7 +503,6 @@ class Inferer():
         ax.legend(fea_effect.columns.to_list())
         ax.set_xlabel('month-date')
         ax.set_ylim([0,110])
-
 
         
         if save:
