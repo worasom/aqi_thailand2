@@ -154,7 +154,7 @@ class Dataset():
 
         return station_ids, station_info_list
 
-    def merge_new_old_pollution(self, station_ids:list, hist_folder:str='aqm_hourly2/', new_folder='air4thai_hourly/'):
+    def merge_new_old_pollution(self, station_ids:list, hist_folder:str='aqm_hourly2/', new_folder='air4thai_hourly/',parse=False):
         """Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.
         
         Save the data for each station as data_folder/station_id.csv 
@@ -163,7 +163,7 @@ class Dataset():
             station_ids: a list of pollution station for the city. 
             his_folder(optional): name of the historcal data folder[default:'aqm_hourly2/]
             new_folder(optional): name of the new data folder(which is update constantly)[default:'air4thai_hourly/'] 
-
+            parse(optional): if True, also parse the stations data from the excel files
         """
         for station_id in station_ids:
             # load old data if exist

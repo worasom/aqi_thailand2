@@ -29,7 +29,7 @@ import time
 from datetime import datetime, date, timedelta
 
 
-from bokeh.io import output_file, output_notebook, show, reset_output, export_png
+from bokeh.io import output_file, output_notebook, show, reset_output, export_png, export_png
 from bokeh.models import (
     GMapPlot,
     GMapOptions,
@@ -57,6 +57,7 @@ from bokeh.plotting import figure, show, output_file
 from bokeh.layouts import widgetbox, row, column, gridplot
 from mpl_toolkits.basemap import Basemap
 from bokeh.tile_providers import get_provider, Vendors
+#from causalgraphicalmodels import CausalGraphicalModel
 
 
 # machine learning
