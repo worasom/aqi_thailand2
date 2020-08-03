@@ -18,15 +18,16 @@ def show_fea_imp(fea_imp,x_log=False, filename=None,title=''):
 
 
     if 'imp_std' in fea_imp.columns:
-        fea_imp.plot('index','importance',kind='barh',xerr='imp_std',figsize=(5,8),linewidth=1,edgecolor='black',legend=False)
+        fea_imp.plot('index','importance',kind='bar',xerr='imp_std',figsize=(8,5),linewidth=1,edgecolor='black',legend=False)
     else:
-        fea_imp.plot('index','importance',kind='barh',figsize=(5,8),linewidth=1,edgecolor='black', legend=False)
+        fea_imp.plot('index','importance',kind='bar',figsize=(8,5),linewidth=1,edgecolor='black', legend=False)
 
     if x_log:
         plt.xscale('log')
 
     plt.title(title)
-    plt.xlabel('importance index')
+    plt.xlabel('columns')
+    plt.ylabel('importance unit')
     plt.tight_layout()
     if filename:
         plt.savefig(filename)
@@ -150,17 +151,24 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None ):
         color_zip: color and level indicating the AQI 
         filename: save filename 
         
-
     """
 
-    _, ax = plt.subplots(1,1, figsize=(10,4),sharex=True)
-    ax.plot(sea_pred)
-    _ = plot_season_avg(poll_df, 'PM2.5', ax, plot_error=True, roll=False, agg='mean')
+    _, ax = plt.subplots(1,1, figsize=(10,5),sharex=True)
+    _ = plot_season_avg(poll_df, 'PM2.5', ax, plot_error=True, roll=False, agg='mean',linewidth=2)
+    ax.plot(sea_pred, color='red', linewidth=2, linestyle='dashed' )
     legend_list = sea_pred.columns.to_list()
     legend_list = ['samples '+ s for s in legend_list]
-    ax.legend(legend_list + ['actual'] )
-    plt.title('Seasonal Pattern of Actual Data and Inference Bands')
-    #ax.set_ylim([0, 170])
+    ax.legend( ['actual'] + ['stat predict'], loc='upper left')
+    ax.set_ylabel('$\mu g/m^3$')
+    plt.title('Seasonal Pattern of Actual Data and Statistical Prediction')
+
+    ax.axhline(35.4, color='orange')
+    ax.axhline(55.4, color='red')
+    ax.text(365, 35.5, ' moderate',  horizontalalignment='left')
+    ax.text(365, 55.4, ' unhealthy',  horizontalalignment='left')
+    ax.text(365, 150.4, ' very unhealthy',  horizontalalignment='left')
+    ax.set_ylim([0, 155])
+    plt.tight_layout()
 
     for l, c in color_zip:
         ax.axhline(l, color=c)

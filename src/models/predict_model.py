@@ -4,6 +4,7 @@ from ..gen_functions import *
 from ..features.dataset import Dataset
 from ..features.build_features import *
 from .train_model import *
+from .train_model import load_meta
 from ..visualization.vis_data import *
 from ..visualization.vis_model import *
 
@@ -530,7 +531,7 @@ class Inferer():
         print('obtaining inference samples. This will take about 20 mins') 
         self.data_samples = get_data_samples(dataset=self.dataset, n_samples=n_samples,step=step,day_err=day_err,hour_err=day_err)
 
-    def compare_inf_act(self, q_list=[ 0.5, 0.75,  0.95]):
+    def compare_inf_act(self, q_list=[ 0.75]):
         """Compare inference and actual data. Save the results plot. 
 
         Args:
@@ -559,7 +560,7 @@ class Inferer():
         plot_infer_season(self.dataset.poll_df.loc['2015-01-01':], self.dataset.pollutant, sea_pred, self.color_zip, filename=self.report_folder+'test_data_vs_inference_season.png' )
 
     
-    def features_effect_season(self, features:list, q, red_list=[0, 0.1, 0.25, 0.5, 0.75, 0.9], save=False):
+    def features_effect_season(self, features:list, q, ax, red_list=[0, 0.1, 0.25, 0.5, 0.75, 0.9],save=False):
         """Show an effect of reducing feature or features on the seasonal patterns 
 
         Args: 
@@ -571,7 +572,7 @@ class Inferer():
 
         fea_effect = reduc_effect(self.model, self.data_samples, features, self.sea_error, q=q, red_list= red_list)
 
-        _, ax = plt.subplots(1, 1, figsize=(10, 4))
+        #_, ax = plt.subplots(1, 1, figsize=(10, 5))
 
         ax.plot(fea_effect) 
         
@@ -585,9 +586,15 @@ class Inferer():
         
         ax.set_xticklabels(new_ticks)
         ax.set_xlim([fea_effect.index.min(), fea_effect.index.max()])
-        ax.legend(fea_effect.columns.to_list())
+        ax.legend(fea_effect.columns.to_list(), loc='upper left')
         ax.set_xlabel('month-date')
+        ax.set_ylabel('$\mu g/m^3$')
         ax.set_ylim([0,110])
+
+        ax.axhline(35.4, color='orange')
+        ax.axhline(55.4, color='red')
+        ax.text(365, 35.5, ' moderate',  horizontalalignment='left')
+        ax.text(365, 55.4, ' unhealthy',  horizontalalignment='left')
 
         
         if save:

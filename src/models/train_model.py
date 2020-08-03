@@ -498,7 +498,7 @@ def train_city_s1(city:str='Chiang Mai', pollutant:str='PM2.5', build=False, mod
     feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
     feat_imp = feat_imp.groupby('index').sum()
     feat_imp = feat_imp.sort_values('importance',ascending=False).reset_index()
-    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance(final)')
+    show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2_nolag.png', title='')
 
     poll_meta =  { 'x_cols_org': data.x_cols_org,
                     'x_cols': data.x_cols,
