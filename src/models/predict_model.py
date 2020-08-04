@@ -557,7 +557,7 @@ class Inferer():
         sea_pred = cal_season_band(band_df, self.sea_error)
 
         # compare seasonal behavior with inference 
-        plot_infer_season(self.dataset.poll_df.loc['2015-01-01':], self.dataset.pollutant, sea_pred, self.color_zip, filename=self.report_folder+'test_data_vs_inference_season.png' )
+        plot_infer_season(self.dataset.poll_df.loc['2017-10-01':], self.dataset.pollutant, sea_pred, self.color_zip, filename=self.report_folder+'test_data_vs_inference_season.png' )
 
     
     def features_effect_season(self, features:list, q, ax, red_list=[0, 0.1, 0.25, 0.5, 0.75, 0.9],save=False):

@@ -130,12 +130,13 @@ def plt_infer_actual(ytest_pred_df_avg, band_df, filename=None):
     plt.figure(figsize=(12,4))
     
     plt.plot(ytest_pred_df_avg['actual'],color='royalblue',label='avg data', marker='.', linewidth=1, alpha=0.8)
-    plt.plot(band_df, linewidth=2)
-    plt.xlabel('date')
+    plt.plot(band_df, linewidth=2,color='red',linestyle='dashed')
+    plt.xlabel('datetime')
+    plt.ylabel('$\mu g/m^3$')
     legend_list = band_df.columns.to_list()
     legend_list = ['samples '+ s for s in legend_list]
-    plt.legend(['actual']+ legend_list,frameon=True)
-    plt.title('Compare Actual Data and Inference Bands')
+    plt.legend(['actual']+ ['stat predict'], loc='upper left',frameon=True)
+    plt.title('Actual Data and Statistical Prediction')
 
     if filename:
         plt.savefig(filename)
