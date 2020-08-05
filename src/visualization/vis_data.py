@@ -330,7 +330,7 @@ def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30'):
     df = add_season(df, start_month=start_month, end_month=end_month)
     # remove other season
     df = df[df['season']!='other'].drop('season',axis=1)
-    return df.groupby('year').agg('mean')
+    return df.groupby('year').agg(agg)
     
 def add_ln_trend_line(series, ax, color='royalblue',linewidth=1,linestyle='dashed'):
     """Fit linear line between the index of df and the data and add linear trend line to the plot. 
