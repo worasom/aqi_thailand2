@@ -57,6 +57,9 @@ from bokeh.plotting import figure, show, output_file
 from bokeh.layouts import widgetbox, row, column, gridplot
 from mpl_toolkits.basemap import Basemap
 from bokeh.tile_providers import get_provider, Vendors
+import geopandas as gpd
+import fiona
+from shapely.geometry import Polygon, MultiPoint, Point, MultiPolygon 
 #from causalgraphicalmodels import CausalGraphicalModel
 
 

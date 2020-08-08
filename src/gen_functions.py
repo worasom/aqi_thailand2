@@ -255,3 +255,18 @@ def to_aqi(value, pollutant):
 
 
     return aqi
+
+def get_circle(x_cen, y_cen, r, num_data=100 ):
+    """Create x,y coordinate to form a circle
+    
+    Args:
+        x_cen
+        y_cen
+        r
+        num_data
+    """
+    step = 2*np.pi/num_data
+    angle = np.arange(0,2*np.pi + step, step)
+    x_arr = x_cen+r*np.cos(angle)
+    y_arr = y_cen+r*np.sin(angle)
+    return np.array([x_arr, y_arr])
