@@ -224,9 +224,10 @@ def shift_fire(
         detection_time=fire_df.index,
         distance=fire_df['distance'],
         wind_speed=w_speed)
+    
     fire_df = fire_df.set_index('arrival_time')
     fire_df = fire_df.resample('h').sum()['damp_' + fire_col]
-    fire_df = fire_df.rolling(roll).sum()
+    fire_df = fire_df.rolling(roll, min_periods=0).sum()
     fire_df = fire_df.shift(shift)
     fire_df.index.name = 'datetime'
     return fire_df

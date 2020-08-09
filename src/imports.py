@@ -7,6 +7,7 @@ from tqdm import tqdm, tqdm_notebook
 import json
 import numpy as np
 import pandas as pd
+import swifter
 import matplotlib.pyplot as plt
 from textwrap import fill
 from math import ceil

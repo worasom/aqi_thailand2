@@ -339,6 +339,7 @@ class Dataset():
         # use joblib to speed up the file reading process over 2 cpus
         fire = Parallel(n_jobs=2)(delayed(read_fire)(file, lat_km, long_km, distance) for file in files)
         fire = pd.concat(fire, ignore_index=True)
+        fire = fire.drop_duplicates(ignore_index=True)
 
         fire = process_fire_data(filename=None, fire=fire, and_save=False)
 
@@ -358,17 +359,14 @@ class Dataset():
         fire['count'] = 1
 
         try:
-            fire = fire.drop(['latitude',
-                              'longitude',
-                              'brightness',
+            fire = fire.drop([ 'brightness',
                               'acq_time',
                               'track',
                               'scan',
                               'frp'],
                              axis=1)
         except BaseException:
-            fire = fire.drop(['latitude',
-                              'longitude',
+            fire = fire.drop([
                               'bright_ti4',
                               'acq_time',
                               'track',
