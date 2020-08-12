@@ -16,6 +16,13 @@ def merc_x(lon):
     return r_major * np.radians(lon)
 
 
+def merc_lon(x):
+    """Convert x in meter to longitude
+
+    """
+    return (x / 6378137.000) / np.pi * 180
+
+
 def merc_y(lat, shift=False):
     # convert latitude in degree to mercadian in meter
     try:
@@ -41,9 +48,33 @@ def merc_y(lat, shift=False):
     con = eccent * sinphi
     com = eccent / 2
     con = ((1.0 - con) / (1.0 + con))**com
-    ts = math.tan((math.pi / 2 - phi) / 2) / con
+    ts = np.tan((np.pi / 2 - phi) / 2) / con
     y = 0 - r_major * np.log(ts)
     return y
+
+
+def to_latlon(x, y):
+    """ Convert x and y mercator coordinate to latitude and longtitude
+    Args:
+        x
+        y
+
+    Return (float,float)
+
+    """
+    try:
+        y = float(y)
+    except BaseException:
+        pass
+
+    try:
+        x = float(x)
+    except BaseException:
+        pass
+
+    inProj = Proj('epsg:3395')
+    outProj = Proj('epsg:4326')
+    return transform(inProj, outProj, x, y)
 
 
 def get_color(
@@ -120,36 +151,39 @@ def add_season(df, start_month='-12-01', end_month='-04-30'):
 
         df.loc[start_date:end_date, 'season'] = label
 
-    # convert year to seasona year 
-    df['year'] = df['season'].str.split('_', expand=True)[1].fillna(df['year']).astype(int) 
-    
+    # convert year to seasona year
+    df['year'] = df['season'].str.split(
+        '_', expand=True)[1].fillna(
+        df['year']).astype(int)
+
     return df
 
-def smooth(x,window_len=11,window='hanning'):
+
+def smooth(x, window_len=11, window='hanning'):
     """smooth the data using a window with requested size.
-    
+
     This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal 
+    The signal is prepared by introducing reflected copies of the signal
     (with the window size) in both ends so that transient parts are minimized
     in the begining and end part of the output signal.
-    
+
     input:
-        x: the input signal 
+        x: the input signal
         window_len: the dimension of the smoothing window; should be an odd integer
         window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
             flat window will produce a moving average smoothing.
 
     output:
         the smoothed signal
-        
+
     example:
 
         t=linspace(-2,2,0.1)
         x=sin(t)+randn(len(t))*0.1
         y=smooth(x)
-    
-    see also: 
-    
+
+    see also:
+
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
     scipy.signal.lfilter
 
@@ -157,41 +191,41 @@ def smooth(x,window_len=11,window='hanning'):
 
     """
 
-    if window_len<3:
+    if window_len < 3:
         return x
 
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+    if window not in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError(
+            "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
-
-    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
+    s = np.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
+    # print(len(s))
+    if window == 'flat':  # moving average
+        w = np.ones(window_len, 'd')
     else:
-        w=eval('np.'+window+'(window_len)')
+        w = eval('np.' + window + '(window_len)')
 
-    y=np.convolve(w/w.sum(),s,mode='valid')
-    return y[int(window_len/2-1):-int(window_len/2)-1] 
+    y = np.convolve(w / w.sum(), s, mode='valid')
+    return y[int(window_len / 2 - 1):-int(window_len / 2) - 1]
 
 
 def season_avg(df, cols=[], roll=True, agg='max', offset=182):
     """Calculate thea seasonal average.
-    
+
     Args:
         df: dataframe to calculate the average of
         cols: columns to use for the means
-        roll: if True, calculate the rolling average or use daily average 
-        agg: either 'max' or 'mean' 
-        offset: date of year offset 
-    
+        roll: if True, calculate the rolling average or use daily average
+        agg: either 'max' or 'mean'
+        offset: date of year offset
+
     Returns: pd.DataFrame(), dict
-        df:  dataframe of the seasonal pattern 
-        winder_day_dict: dictionary that map dayof year to month-day 
+        df:  dataframe of the seasonal pattern
+        winder_day_dict: dictionary that map dayof year to month-day
 
     """
 
-    if len(cols) ==0:
+    if len(cols) == 0:
         cols = df.columns
 
     if roll:
@@ -208,10 +242,11 @@ def season_avg(df, cols=[], roll=True, agg='max', offset=182):
     winterday = df['dayofyear'] - offset
     # get rid of the negative number
     winter_day_max = winterday.max()
-    winterday[winterday < 0] = winterday[winterday < 0] + offset + winter_day_max  
+    winterday[winterday < 0] = winterday[winterday < 0] + \
+        offset + winter_day_max
     df['winter_day'] = winterday
 
-    # add month-day 
+    # add month-day
     df['month_day'] = df.index.strftime('%m-%d')
     temp = df[['winter_day', 'month_day']].set_index('winter_day')
     temp.index = temp.index.astype(str)
@@ -219,54 +254,58 @@ def season_avg(df, cols=[], roll=True, agg='max', offset=182):
 
     return df, winter_day_dict
 
+
 def to_aqi(value, pollutant):
-    """Convert pollution value to AQI 
-    
+    """Convert pollution value to AQI
+
     Args:
         value: pollution reading
-        pollutant: type of pollutant 
+        pollutant: type of pollutant
 
     Returns: int
-        AQI value of the pollutant 
+        AQI value of the pollutant
 
     """
     try:
-        transition_dict = { 'PM2.5': [0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3],
-        'PM10': [0, 155, 254, 354, 424, 504, 604, 1e3],
-        'O3':[0, 54, 70 , 85, 105, 200, 1e3],
-        'SO2':[0, 75, 185, 304, 504, 604, 1e3],
-        'NO2': [0, 53,100, 360, 649, 1249, 2049, 1e3],
-        'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]}
-    
+        transition_dict = {
+            'PM2.5': [
+                0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3], 'PM10': [
+                0, 155, 254, 354, 424, 504, 604, 1e3], 'O3': [
+                0, 54, 70, 85, 105, 200, 1e3], 'SO2': [
+                    0, 75, 185, 304, 504, 604, 1e3], 'NO2': [
+                        0, 53, 100, 360, 649, 1249, 2049, 1e3], 'CO': [
+                            0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]}
+
         aqi_list = [0, 50, 100, 150, 200, 300, 400, 500, 999]
         tran = np.array(transition_dict[pollutant])
-        idx = np.where(value>=tran)[0][-1]
+        idx = np.where(value >= tran)[0][-1]
         if idx == len(tran):
             aqi = aqi_list[-1]
         else:
             lower = tran[idx]
-            upper = tran[idx+1]
+            upper = tran[idx + 1]
             lower_aqi = aqi_list[idx]
-            upper_aqi = aqi_list[idx+1]
-            aqi = (upper_aqi - lower_aqi)/(upper-lower)*(value - lower) + lower_aqi
+            upper_aqi = aqi_list[idx + 1]
+            aqi = (upper_aqi - lower_aqi) / (upper - lower) * \
+                (value - lower) + lower_aqi
             aqi = int(ceil(aqi))
-    except:
-        aqi=np.nan
-
+    except BaseException:
+        aqi = np.nan
 
     return aqi
 
-def get_circle(x_cen, y_cen, r, num_data=100 ):
+
+def get_circle(x_cen, y_cen, r, num_data=100):
     """Create x,y coordinate to form a circle
-    
+
     Args:
         x_cen
         y_cen
         r
         num_data
     """
-    step = 2*np.pi/num_data
-    angle = np.arange(0,2*np.pi + step, step)
-    x_arr = x_cen+r*np.cos(angle)
-    y_arr = y_cen+r*np.sin(angle)
+    step = 2 * np.pi / num_data
+    angle = np.arange(0, 2 * np.pi + step, step)
+    x_arr = x_cen + r * np.cos(angle)
+    y_arr = y_cen + r * np.sin(angle)
     return np.array([x_arr, y_arr])

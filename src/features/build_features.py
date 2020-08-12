@@ -61,16 +61,16 @@ def wind_to_dummies(series):
     """One hot encode wind direction columns and group major wind direction
     Args:
         series: wind data series from weather['Wind']
-    
+
     Raises:
         AssertionError: if passed an empty series
     """
-    if len(series)==0:
+    if len(series) == 0:
         raise AssertionError('empty series')
 
     series = series.astype('category')
     dummies = pd.get_dummies(series)
-    
+
     # group the wind direction into major wind direction
     direction_to_collpse = dummies.columns.to_list()
     # remove 'CALM'
@@ -91,7 +91,7 @@ def wind_to_dummies(series):
     for direction in major_direction:
         try:
             dummies[direction] = dummies[direction] + dummies['VAR']
-        except:
+        except BaseException:
             pass
     dummies.drop('VAR', axis=1, inplace=True)
     dummies.columns = ['wind_' + s for s in dummies.columns]
@@ -126,9 +126,9 @@ def add_lags(data, pollutant, num_lags=None):
 
     """
     # calculate num lags
-    if num_lags==None:
+    if num_lags is None:
         num_lags = find_num_lag(data[pollutant])
-    
+
     for idx in num_lags:
         lag_name = f'{pollutant}_lag_{idx}'
         lag_series = data[pollutant].shift(idx)
@@ -224,7 +224,7 @@ def shift_fire(
         detection_time=fire_df.index,
         distance=fire_df['distance'],
         wind_speed=w_speed)
-    
+
     fire_df = fire_df.set_index('arrival_time')
     fire_df = fire_df.resample('h').sum()['damp_' + fire_col]
     fire_df = fire_df.rolling(roll, min_periods=0).sum()

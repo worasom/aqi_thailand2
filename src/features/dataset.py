@@ -6,14 +6,14 @@ from ..data.fire_data import *
 from ..data.weather_data import *
 from .build_features import *
 
-"""Pollution Dataset Object of a particular city. This object is contains the raw dataset 
+"""Pollution Dataset Object of a particular city. This object is contains the raw dataset
 and processed data, and is in charge of splitting data for training.
 
 """
 
 
 class Dataset():
-    """Dataset object contains pollution, weather and fire data for a city. 
+    """Dataset object contains pollution, weather and fire data for a city.
     It is also in charge of feature engineering and splitting data for ML hyperparameter tuning.
 
     Args:
@@ -28,16 +28,16 @@ class Dataset():
         gas_list: a list of pollutants existed in the data. Can be overide when loading the data
         main_folder: main data folder [default:'../data/']. This folder contains raw data.
         data_folder: data folder spcified for this city for keeping processed data
-        model_folder: model folder for this city for model meta and model files 
+        model_folder: model folder for this city for model meta and model files
         report_folder: report folder for saving figures
         city_info: dictionary contain city latitude and longtitude
-        poll_df: raw pollution data 
-        fire: raw fire data 
-        wea: raw weather data 
-        data_no_fire: processed pollution data, and weather data 
-        data: processed pollution, weather and fire data 
+        poll_df: raw pollution data
+        fire: raw fire data
+        wea: raw weather data
+        data_no_fire: processed pollution data, and weather data
+        data: processed pollution, weather and fire data
         x_cols:
-        fire_dict: 
+        fire_dict:
         pollutant
         monitor
 
@@ -53,31 +53,31 @@ class Dataset():
                      'Bangkok': 'Bangkok',
                      'Hanoi': 'Soc Son'}
 
-    transition_dict = { 'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
-    'PM10': [0, 155, 254, 354, 1e3],
-    'O3':[0, 70 , 85, 105 ,1e3],
-    'SO2':[0, 75, 185, 304,1e3],
-    'NO2': [0, 100, 360, 649,1e3],
-    'CO': [0, 6.4, 12.5, 15.4,1e3]}
+    transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
+                       'PM10': [0, 155, 254, 354, 1e3],
+                       'O3': [0, 70, 85, 105, 1e3],
+                       'SO2': [0, 75, 185, 304, 1e3],
+                       'NO2': [0, 100, 360, 649, 1e3],
+                       'CO': [0, 6.4, 12.5, 15.4, 1e3]}
 
-    roll_dict ={'PM2.5': 24,
-        'PM10': 24,
-        'O3':8,
-        'SO2':1,
-        'NO2': 1,
-        'CO': 8}
+    roll_dict = {'PM2.5': 24,
+                 'PM10': 24,
+                 'O3': 8,
+                 'SO2': 1,
+                 'NO2': 1,
+                 'CO': 8}
 
     def __init__(
             self,
             city_name: str,
             main_data_folder: str = '../data/',
-            model_folder='../models/',report_folder='../reports/'):
-        """Initialize 
-        
+            model_folder='../models/', report_folder='../reports/'):
+        """Initialize
+
         #. Check if the city name exist in the database
         #. Setup main, data, and model folders. Add as attribute
-        #. Check if the folders exists, if not create the folders 
-        #. Load city information and add as atribute 
+        #. Check if the folders exists, if not create the folders
+        #. Load city information and add as atribute
 
         """
 
@@ -108,10 +108,10 @@ class Dataset():
         self.load_city_info()
 
     def load_city_info(self):
-        """Load city information add as city_info dictionary. 
+        """Load city information add as city_info dictionary.
 
         Add latitude and longtitude information in mercadian coordinate (km). Add as 'lat_km' and 'long_km' keys
-        
+
         """
         with open(self.main_folder + 'pm25/cities_info.json', 'r') as f:
             city_info_list = json.load(f)
@@ -154,15 +154,20 @@ class Dataset():
 
         return station_ids, station_info_list
 
-    def merge_new_old_pollution(self, station_ids:list, hist_folder:str='aqm_hourly2/', new_folder='air4thai_hourly/',parse=False):
+    def merge_new_old_pollution(
+            self,
+            station_ids: list,
+            hist_folder: str = 'aqm_hourly2/',
+            new_folder='air4thai_hourly/',
+            parse=False):
         """Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.
-        
-        Save the data for each station as data_folder/station_id.csv 
 
-        Args: 
-            station_ids: a list of pollution station for the city. 
+        Save the data for each station as data_folder/station_id.csv
+
+        Args:
+            station_ids: a list of pollution station for the city.
             his_folder(optional): name of the historcal data folder[default:'aqm_hourly2/]
-            new_folder(optional): name of the new data folder(which is update constantly)[default:'air4thai_hourly/'] 
+            new_folder(optional): name of the new data folder(which is update constantly)[default:'air4thai_hourly/']
             parse(optional): if True, also parse the stations data from the excel files
         """
         for station_id in station_ids:
@@ -230,7 +235,17 @@ class Dataset():
 
         elif self.city_name == 'Bangkok':
             # List of Bangkok stations that has been processed
-            station_ids = ['02t','03t','05t','11t', '12t', '50t','52t','53t','59t','61t']
+            station_ids = [
+                '02t',
+                '03t',
+                '05t',
+                '11t',
+                '12t',
+                '50t',
+                '52t',
+                '53t',
+                '59t',
+                '61t']
             # update the file
             self.merge_new_old_pollution(station_ids)
             # load the file
@@ -281,10 +296,10 @@ class Dataset():
         """Extract hotspots satellite data within distance from the city location.
 
         #. Loop through the fire data in the folder to extract the hotspots within the distance from the city
-        #. Call process fire data to add datetime information 
-        #. Calculate the distance from the hotspot to the city location. 
+        #. Call process fire data to add datetime information
+        #. Calculate the distance from the hotspot to the city location.
         #. Add fire power column  = scan * track*frp. This account of the size and the temperature of the fire
-        #. Add the count column, which is 1 
+        #. Add the count column, which is 1
         #. Remove unncessary columns
         #. Save the data as data_folder/fire_m.csv if instr is "MODIS'. Use fire_v.csv if instr is 'VIIR'.
 
@@ -337,7 +352,13 @@ class Dataset():
         long_km = self.city_info['long_km']
 
         # use joblib to speed up the file reading process over 2 cpus
-        fire = Parallel(n_jobs=2)(delayed(read_fire)(file, lat_km, long_km, distance) for file in files)
+        fire = Parallel(
+            n_jobs=2)(
+            delayed(read_fire)(
+                file,
+                lat_km,
+                long_km,
+                distance) for file in files)
         fire = pd.concat(fire, ignore_index=True)
         fire = fire.drop_duplicates(ignore_index=True)
 
@@ -351,15 +372,15 @@ class Dataset():
 
         # add distance columns
         fire['distance'] = np.sqrt((fire['lat_km'] -
-                                    self.city_info['lat_km'] ) ** 2 +
+                                    self.city_info['lat_km']) ** 2 +
                                    ((fire['long_km'] -
-                                     self.city_info['long_km'] )**2))
+                                     self.city_info['long_km'])**2))
         # create power column and drop unncessary columns
         fire['power'] = fire['scan'] * fire['track'] * fire['frp']
         fire['count'] = 1
 
         try:
-            fire = fire.drop([ 'brightness',
+            fire = fire.drop(['brightness',
                               'acq_time',
                               'track',
                               'scan',
@@ -367,12 +388,12 @@ class Dataset():
                              axis=1)
         except BaseException:
             fire = fire.drop([
-                              'bright_ti4',
-                              'acq_time',
-                              'track',
-                              'scan',
-                              'frp'],
-                             axis=1)
+                'bright_ti4',
+                'acq_time',
+                'track',
+                'scan',
+                'frp'],
+                axis=1)
 
         # save fire data
         fire.to_csv(filename)
@@ -435,7 +456,7 @@ class Dataset():
 
         The function build pollution and weather data by default, but fire and holiday data are optionals
 
-        Args: 
+        Args:
             build_fire(optional): if True, also build the fire data[default:False]
             build_holiday(optional): if True, also build the holiday data[default:False]
 
@@ -455,9 +476,9 @@ class Dataset():
     def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
-        #. Call self.load_() to load processed data 
-        #. Build holiday data if not already exist 
-        #. Add pollutant as pollutant attribute 
+        #. Call self.load_() to load processed data
+        #. Build holiday data if not already exist
+        #. Add pollutant as pollutant attribute
 
         Args:
             pollutant(optional): name of the pollutant [default:'PM2.5']
@@ -477,8 +498,7 @@ class Dataset():
             # for Chiang Mai, delete all PM2.5 record before 2010
             self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
 
-
-        # check if pollutant data exist 
+        # check if pollutant data exist
         if pollutant not in self.poll_df.columns:
             raise AssertionError(f'No {pollutant} data')
         self.pollutant = pollutant
@@ -492,7 +512,7 @@ class Dataset():
         # merge pollution and wind data
 
         if 'datetime' in self.wea.columns:
-            self.wea.set_index('datetime',inplace=True)
+            self.wea.set_index('datetime', inplace=True)
 
         data = self.poll_df.merge(
             self.wea,
@@ -502,7 +522,8 @@ class Dataset():
 
         # select data and drop null value
         data = data[cols]
-        data[pollutant] = data[pollutant].rolling(rolling_win, min_periods=0).mean().round(1)
+        data[pollutant] = data[pollutant].rolling(
+            rolling_win, min_periods=0).mean().round(1)
         data = data.dropna()
 
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
@@ -536,7 +557,7 @@ class Dataset():
         """
 
         # use self.fire_dict attribute
-        if fire_dict==None:
+        if fire_dict is None:
             print('use default fire feature')
             fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
             self.fire_dict = fire_dict
@@ -546,10 +567,9 @@ class Dataset():
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 
-         
         fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=zone_list,
-                                        fire_col='power', damp_surface=damp_surface,
-                                        shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
+                                                fire_col='power', damp_surface=damp_surface,
+                                                shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
         # merge with fire data
         data = self.data_no_fire.merge(
@@ -563,10 +583,10 @@ class Dataset():
         return fire_cols, zone_list
 
     def make_diff_col(self):
-        """Add pollutant diff column for modeling the diff instead of the actual value. 
-        Drop all the columns with 'lag' name on it. 
+        """Add pollutant diff column for modeling the diff instead of the actual value.
+        Drop all the columns with 'lag' name on it.
 
-        The function update self.data_no_fire attribute, x_cols attribute, and monitor attribute. 
+        The function update self.data_no_fire attribute, x_cols attribute, and monitor attribute.
 
         """
         # create diff columns
@@ -575,16 +595,24 @@ class Dataset():
         # add monitor col
         self.monitor = new_col
 
-        # the first row of diff is nan. Add that value as attribute before deleting the row. 
+        # the first row of diff is nan. Add that value as attribute before
+        # deleting the row.
         self.start_value = self.data_no_fire.iloc[0][self.pollutant]
         self.data_no_fire = self.data_no_fire.dropna()
 
-        # find the columns to drop 
-        to_drop = self.data_no_fire.columns[self.data_no_fire.columns.str.contains('lag_')]
+        # find the columns to drop
+        to_drop = self.data_no_fire.columns[self.data_no_fire.columns.str.contains(
+            'lag_')]
         self.data_no_fire.drop(to_drop, axis=1, inplace=True)
 
-
-    def split_data(self, split_ratio:list=[0.4, 0.2, 0.2, 0.2], shuffle:bool=False):
+    def split_data(
+            self,
+            split_ratio: list = [
+                0.4,
+                0.2,
+                0.2,
+                0.2],
+            shuffle: bool = False):
         """Split the data datetime index into train, valiadation and test sets
 
         Add a list of the index in each set as atttibutes
@@ -607,26 +635,27 @@ class Dataset():
         split_ratio = split_ratio.cumsum()
         self.split_list = np.split(idxs, split_ratio[:-1])
 
-    def get_data_matrix(self, use_index:list, x_cols:list=[]):
+    def get_data_matrix(self, use_index: list, x_cols: list = []):
         """Extract data in data dataframe into x,y matricies using input index list.
-        
-        y is specified by self.monitor attribute. Use the data specified by x_cols.
-        If x_cols is an empty list, use entire columns in self.data 
-        
-        Args: 
-            use_index: a list of datetime index for the dataset 
-            x_cols(optional): a list of columns for x data [default:[]] 
 
-        Returns: 
-            x: x data matrix 
-            y: y data matrix 
+        y is specified by self.monitor attribute. Use the data specified by x_cols.
+        If x_cols is an empty list, use entire columns in self.data
+
+        Args:
+            use_index: a list of datetime index for the dataset
+            x_cols(optional): a list of columns for x data [default:[]]
+
+        Returns:
+            x: x data matrix
+            y: y data matrix
             x_cols: data columns
 
         """
-        try: 
+        try:
             temp = self.data.loc[use_index]
-        except:
-            raise AssertionError('no self.data attribute. Call self.merge_fire() first')
+        except BaseException:
+            raise AssertionError(
+                'no self.data attribute. Call self.merge_fire() first')
 
         y = temp[self.monitor].values
 
@@ -638,43 +667,41 @@ class Dataset():
         x_cols = x.columns.to_list()
         return x.values, y, x_cols
 
-
-    def build_lag(self, lag_range:list, roll=True):
-        """Build the lag data using number in lag_range. 
-        Add the new data as self.data attribute. 
+    def build_lag(self, lag_range: list, roll=True):
+        """Build the lag data using number in lag_range.
+        Add the new data as self.data attribute.
 
         Args:
             lag_range: list of lag value to add. Can be from np.arange(1,5) or [1,3, 10]
             roll(optional): if True, use the calculate the rolling average of previous values and shift 1
 
         """
-        
+
         lag_list = [self.data_org]
         for n in lag_range:
             lag_df = self.data_org[self.x_cols_org].copy()
-            lag_df.columns = [ s+ f'_lag_{n}' for s in lag_df.columns] 
+            lag_df.columns = [s + f'_lag_{n}' for s in lag_df.columns]
             if roll:
                 # calculate the rolling average
-                lag_df = lag_df.rolling(n,min_periods=None).mean()
+                lag_df = lag_df.rolling(n, min_periods=None).mean()
                 lag_df = lag_df.shift(1)
             else:
                 lag_df = lag_df.shift(n)
 
             lag_list.append(lag_df)
-        
+
         self.data = pd.concat(lag_list, axis=1, ignore_index=False)
         self.data = self.data.dropna()
 
-
     def save_(self):
         """Save the process data for fast loading without build.
-        
+
         Save if the attribute exist.
-        - save pollution data 
-        - save weather data 
-        - save data no fire 
+        - save pollution data
+        - save weather data
+        - save data no fire
         - save data_org
-        - save data 
+        - save data
 
         """
 
@@ -733,13 +760,13 @@ class Dataset():
 
     def load_(self, fire='MODIS'):
         """Load the process pollution data from the disk without the build
-        
+
         Load if the file exist for.
-        - pollution data 
-        - weather data 
-        - data no fire 
+        - pollution data
+        - weather data
+        - data no fire
         - data_org
-        - data 
+        - data
         """
 
         if os.path.exists(self.data_folder + 'poll.csv'):
@@ -767,13 +794,13 @@ class Dataset():
             self.wea = pd.read_csv(self.data_folder + 'weather.csv')
             try:
                 self.wea.drop(['Time',
-                           'Dew Point(C)',
-                           'Wind Gust(kmph)',
-                           'Pressure(in)',
-                           'Precip.(in)'],
-                          axis=1,
-                          inplace=True)
-            except:
+                               'Dew Point(C)',
+                               'Wind Gust(kmph)',
+                               'Pressure(in)',
+                               'Precip.(in)'],
+                              axis=1,
+                              inplace=True)
+            except BaseException:
                 pass
             self.wea['datetime'] = pd.to_datetime(self.wea['datetime'])
             self.wea.set_index('datetime', inplace=True)
@@ -788,7 +815,7 @@ class Dataset():
             self.data_no_fire.set_index('datetime', inplace=True)
 
         if os.path.exists(self.data_folder + 'data_org.csv'):
-            self.data = pd.read_csv( self.data_folder + 'data_org.csv')
+            self.data = pd.read_csv(self.data_folder + 'data_org.csv')
             self.data['datetime'] = pd.to_datetime(
                 self.data['datetime'])
             self.data.set_index('datetime', inplace=True)

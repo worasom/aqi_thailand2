@@ -98,7 +98,8 @@ def update_last_air4Thai(
     # print(para_selector_list)
     assert os.path.exists(data_folder), f'no data folder {data_folder}'
 
-    for sta_id, sta_name in tqdm_notebook(zip(sta_selector_list, station_name_list)):
+    for sta_id, sta_name in tqdm_notebook(
+            zip(sta_selector_list, station_name_list)):
         get_station_data_save(
             url,
             browser,

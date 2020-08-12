@@ -258,7 +258,7 @@ def update_weather(
         # obtain new  data
         new_weather, _ = scrape_weather(city_json, date_range=missing_date)
 
-        if len(new_weather)> 0:
+        if len(new_weather) > 0:
             # fix bad temperature data and missing timestamp
             new_weather = fix_temperature(new_weather)
             new_weather = fill_missing_weather(new_weather)
