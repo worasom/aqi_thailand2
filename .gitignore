@@ -1,4 +1,5 @@
-/reports/*.ppt
+*.gitkeep
+/reports/*.pptx
 /reports/*.docx
 /reports/figures
 /reports/chiang_mai
