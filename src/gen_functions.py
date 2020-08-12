@@ -16,13 +16,6 @@ def merc_x(lon):
     return r_major * np.radians(lon)
 
 
-def merc_lon(x):
-    """Convert x in meter to longitude
-
-    """
-    return (x / 6378137.000) / np.pi * 180
-
-
 def merc_y(lat, shift=False):
     # convert latitude in degree to mercadian in meter
     try:
@@ -75,6 +68,13 @@ def to_latlon(x, y):
     inProj = Proj('epsg:3395')
     outProj = Proj('epsg:4326')
     return transform(inProj, outProj, x, y)
+
+
+def merc_lon(x):
+    """Convert x in meter to longitude
+
+    """
+    return (x / 6378137.000) / np.pi * 180
 
 
 def get_color(
