@@ -4,10 +4,27 @@ from ..gen_functions import *
 from ..features.dataset import Dataset
 from ..features.build_features import *
 from .train_model import *
-#from .train_model import load_meta
 from ..visualization.vis_data import *
 from ..visualization.vis_model import *
 
+def load_meta(meta_filename: str):
+    """Read model_meta dictionary and return model_meta dicitonary
+
+    Args:
+        meta_filename: model meta filename
+
+
+    Return: dict
+        pollutant_meta dictionary for that pollutant
+
+    """
+    if os.path.exists(meta_filename):
+        with open(meta_filename) as f:
+            model_meta = json.load(f)
+    else:
+        model_meta = {}
+
+    return model_meta
 
 def load_model1(
         city: str = 'Chiang Mai',
