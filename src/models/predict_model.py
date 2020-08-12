@@ -808,10 +808,16 @@ class Inferer():
     def features_effect_sum(
         self, features_list, q, red_list=[
             0, 0.1, 0.25, 0.5, 0.75, 0.9], time_range=[
-            0, -1], agg='mean'):
+            0, -1], agg='mean',raw_filename=None):
         """Summarize effect of reduction in red_list of the features in the feature list.
 
         Calculate the summary value between time_range and use aggegration method specified by agg
+        Args:
+            features_list:
+            q
+            red_list
+            agg
+            raw_filename: use when wannting to export the raw plot to csv
 
         Return: pd.DataFrame.
             The average prediction pollution level if reduction of each feature occure
@@ -820,7 +826,7 @@ class Inferer():
 
         fea_effect_df = []
         columns_list = []
-        for feature in tqdm_notebook(features_list):
+        for i, feature in tqdm_notebook(enumerate(features_list)):
             sea_pred_all = reduc_effect(
                 self.model,
                 self.data_samples,
@@ -828,6 +834,8 @@ class Inferer():
                 self.sea_error,
                 q=q,
                 red_list=red_list)
+            if raw_filename:
+                sea_pred_all.to_csv('{raw_filename}_i.csv',index=True)
             sea_pred_all_mean = sea_pred_all.loc[time_range[0]:time_range[1]].agg(
                 agg)
             columns_list.append(' & '.join(feature))
