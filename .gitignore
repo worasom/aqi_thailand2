@@ -1,4 +1,9 @@
-/reports/*
+/reports/*.ppt
+/reports/*.docx
+/reports/figures
+/reports/chiang_mai
+/reports/*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
