@@ -421,7 +421,7 @@ def get_data_samples(
                                                           year_list,
                                                           year_sam,
                                                           day_err,
-                                                          hour_err) for test_datetime in time_range[::step])
+                                                          hour_err) for test_datetime in tqdm(time_range[::step]))
     #data_samples = pd.concat(fire, ignore_index=True)
 
     data_samples = pd.concat(data_samples, ignore_index=True)
@@ -492,6 +492,7 @@ def make_senario(model, data_samples, features, per_cut):
         cols_to_cut = cols_to_cut + \
             data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
 
+    print(cols_to_cut)
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut] * (1 - per_cut)
     x = data_senario.values
@@ -678,6 +679,7 @@ class Inferer():
                 hour_err
 
         """
+
         print('obtaining inference samples. This will take about 20 mins')
         self.data_samples = get_data_samples(
             dataset=self.dataset,
@@ -685,6 +687,7 @@ class Inferer():
             step=step,
             day_err=day_err,
             hour_err=day_err)
+        print('datasample has shape', self.data_samples.shape)
 
     def compare_inf_act(self, q_list=[0.75]):
         """Compare inference and actual data. Save the results plot.
@@ -834,6 +837,7 @@ class Inferer():
                 self.sea_error,
                 q=q,
                 red_list=red_list)
+                
             if raw_filename:
                 sea_pred_all.to_csv('{raw_filename}_i.csv',index=True)
             sea_pred_all_mean = sea_pred_all.loc[time_range[0]:time_range[1]].agg(
