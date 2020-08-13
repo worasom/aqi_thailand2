@@ -837,9 +837,12 @@ class Inferer():
                 self.sea_error,
                 q=q,
                 red_list=red_list)
-                
+
             if raw_filename:
-                sea_pred_all.to_csv('{raw_filename}_i.csv',index=True)
+                
+                sea_pred_all.to_csv(f'{raw_filename}_{i}.csv',index=True)
+            
+            # calculate the mean 
             sea_pred_all_mean = sea_pred_all.loc[time_range[0]:time_range[1]].agg(
                 agg)
             columns_list.append(' & '.join(feature))
