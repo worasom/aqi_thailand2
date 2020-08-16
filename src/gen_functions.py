@@ -46,11 +46,10 @@ def merc_y(lat, shift=False):
     return y
 
 
-def to_latlon(x, y):
+def to_latlon(xy):
     """ Convert x and y mercator coordinate to latitude and longtitude
     Args:
-        x
-        y
+        xy
 
     Return (float,float)
 
@@ -67,7 +66,7 @@ def to_latlon(x, y):
 
     inProj = Proj('epsg:3395')
     outProj = Proj('epsg:4326')
-    return transform(inProj, outProj, x, y)
+    return np.array(transform(inProj, outProj, *xy))
 
 
 def merc_lon(x):
