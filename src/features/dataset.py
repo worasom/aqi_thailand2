@@ -153,7 +153,49 @@ class Dataset():
                 station_info_list.append(stations)
 
         return station_ids, station_info_list
-
+    
+    @staticmethod 
+    def parse_th_station(folder, station_id):
+        """Parse raw station data into .csv file in the form, which is ready to merge with the newly parse data. 
+        
+        Look for all the files containing station_id in the filename. 
+        Create the folder to save the file if doesn't exist. 
+        
+        Args:
+            folder: folder where the raw data file is saved
+            station_id: station_id  
+            save_filename: filename to save the data as 
+        
+        """
+        # look for all files containing station_id in the filename 
+        p = Path(folder)
+        filenames = []
+        for i in p.glob('**/*.xlsx'):
+            if station_id in i.name:
+                filenames.append(str(i))
+            
+        # if filename exist load that file
+        if len(filenames) >0:
+        
+            save_filename = folder + 'process/' + station_id + '.csv'
+        
+            if ~os.path.exists(folder + 'process/'):
+                os.mkdir(folder + 'process/')
+            print('save data as', save_filename)
+        
+            station_data = []
+            for f in filenames: 
+                try:
+                    station_data.append(read_his_xl(f))
+                except:
+                    pass
+            
+            station_data = pd.concat(station_data).drop_duplicates()
+        
+            # save the data if the dataframe is not empty
+            if len(station_data)> 0:
+                station_data.to_csv(save_filename,index=True)                                
+    
     def merge_new_old_pollution(
             self,
             station_ids: list,
@@ -172,12 +214,13 @@ class Dataset():
         """
         for station_id in station_ids:
             # load old data if exist
+            old_filename = f'{self.main_folder}{hist_folder}' + 'process/' + station_id + '.csv'
+            if ~os.path.exists(old_filename):
+                # data not exists parse data from raw excel file 
+                self.parse_th_station(f'{self.main_folder}{hist_folder}', station_id)
+            
             try:
-                old_data = pd.read_csv(
-                    f'{self.main_folder}{hist_folder}' +
-                    'process/' +
-                    station_id +
-                    '.csv')
+                old_data = pd.read_csv(old_filename)
             except BaseException:
                 old_data = pd.DataFrame()
             else:
@@ -191,6 +234,8 @@ class Dataset():
                 station_id +
                 '.csv',
                 na_values='-')
+
+                
             new_data = new_data.set_index('datetime')
             new_data.columns = [s.split(' (')[0] for s in new_data.columns]
             # keep only the gass columns
