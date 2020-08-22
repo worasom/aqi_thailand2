@@ -179,7 +179,7 @@ class Dataset():
         
             save_filename = folder + 'process/' + station_id + '.csv'
         
-            if ~os.path.exists(folder + 'process/'):
+            if not os.path.exists(folder + 'process/'):
                 os.mkdir(folder + 'process/')
             print('save data as', save_filename)
         
@@ -199,7 +199,7 @@ class Dataset():
     def merge_new_old_pollution(
             self,
             station_ids: list,
-            hist_folder: str = 'aqm_hourly2/',
+            hist_folders: str = ['aqm_hourly2/', 'aqm_hourly3/'],
             new_folder='air4thai_hourly/',
             parse=False):
         """Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.
@@ -208,43 +208,58 @@ class Dataset():
 
         Args:
             station_ids: a list of pollution station for the city.
-            his_folder(optional): name of the historcal data folder[default:'aqm_hourly2/]
+            his_folders(optional): a list of folder containg the historcal data folder default:['aqm_hourly2/', 'aqm_hourly3/']
             new_folder(optional): name of the new data folder(which is update constantly)[default:'air4thai_hourly/']
             parse(optional): if True, also parse the stations data from the excel files
         """
         for station_id in station_ids:
-            # load old data if exist
-            old_filename = f'{self.main_folder}{hist_folder}' + 'process/' + station_id + '.csv'
-            if ~os.path.exists(old_filename):
-                # data not exists parse data from raw excel file 
-                self.parse_th_station(f'{self.main_folder}{hist_folder}', station_id)
             
-            try:
-                old_data = pd.read_csv(old_filename)
-            except BaseException:
-                old_data = pd.DataFrame()
-            else:
-                old_data['datetime'] = pd.to_datetime(old_data['datetime'])
-                old_data = old_data.set_index('datetime')
-                # keep only the gass columns
-                old_data = old_data[self.gas_list]
+            old_data_list = []
+            # extract data from both folder 
+            for hist_folder in hist_folders:
+                # load old data if exist
+                old_filename = f'{self.main_folder}{hist_folder}' + 'process/' + station_id + '.csv'
+                if not os.path.exists(old_filename):
+                    # data not exists parse data from raw excel file 
+                    self.parse_th_station(f'{self.main_folder}{hist_folder}', station_id)
+            
+                try:
+                    old_data = pd.read_csv(old_filename)
+                except BaseException:
+                    old_data = pd.DataFrame()
+                else:
+                    old_data['datetime'] = pd.to_datetime(old_data['datetime'])
+                    old_data = old_data.set_index('datetime')
+                    # keep only the gass columns
+                    gas_list = [s for s in self.gas_list if s in old_data.columns]
+                    old_data = old_data[gas_list]
+                    old_data_list.append(old_data)
 
+            old_data = pd.concat(old_data_list)
+            old_data.index = pd.to_datetime(old_data.index)
+            old_data = old_data.sort_index()
+            old_data = old_data[~old_data.index.duplicated(keep='first')] 
+            
+            # read data parse from the website
             new_data = pd.read_csv(
                 f'{self.main_folder}{new_folder}' +
                 station_id +
                 '.csv',
                 na_values='-')
+            new_data['datetime'] = pd.to_datetime(new_data['datetime'])
 
-                
             new_data = new_data.set_index('datetime')
             new_data.columns = [s.split(' (')[0] for s in new_data.columns]
             # keep only the gass columns
             new_data = new_data[self.gas_list]
             # concatinate data and save
             data = pd.concat([old_data, new_data])
+            data = data.sort_index()
+            data = data[~data.index.duplicated(keep='first')]
             filename = self.data_folder + station_id + '.csv'
             print('save file', filename)
             data.to_csv(filename)
+
 
     def collect_stations_data(self):
         """Collect all Pollution data from a different sources and take the average.
