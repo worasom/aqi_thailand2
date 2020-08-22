@@ -351,7 +351,7 @@ def main(
         data_folder=f'{main_folder}pm25/',
         url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
 
-    print('\n Download Data for Hanoi, Ha dong and Jarkata')
+    print('\n Download Data for Hanoi, Ha dong and Jakarta')
     download_province_data(
         grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/',
         data_folder=f'{main_folder}pm25/')
@@ -393,7 +393,7 @@ def main(
         'Tada-U',
         'Sikhottabong',
         'Luang Prabang District',
-        'Kunming']
+        'Kunming', 'East Jakarta']
     w_folder = f'{main_folder}weather_cities/'
     weather_station_info = find_weather_stations(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
@@ -401,7 +401,7 @@ def main(
 
     for city_json in tqdm_notebook(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020, 1, 1)
+        start_date = datetime(2020, 8, 22)
         end_date = datetime.now()
         update_weather(
             city_json,

@@ -51,7 +51,8 @@ class Dataset():
     # mapping city name to weather city name
     city_wea_dict = {'Chiang Mai': 'Mueang Chiang Mai',
                      'Bangkok': 'Bangkok',
-                     'Hanoi': 'Soc Son'}
+                     'Hanoi': 'Soc Son',
+                     'Jakarta':'East Jakarta'}
 
     transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
                        'PM10': [0, 155, 254, 354, 1e3],
@@ -463,6 +464,7 @@ class Dataset():
 
         Args:
             wea_data_folder(optional): weather data folder[default:'weather_cities/']
+        
         """
 
         filename = self.city_wea_dict[self.city_name]

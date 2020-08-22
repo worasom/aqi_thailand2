@@ -335,3 +335,86 @@ def proc_open_weather(wea_df):
         1).astype(int).replace(degree_to_direction)
 
     return wea_df
+
+
+def get_city_info_from_url(url,waittime=30):
+    """Extract weather station information for a city  from weather url
+    
+    Args: 
+        url: example of weather url to parse 
+        waittime: time in second to wait for the browser response
+
+    Returns: dict
+        dictionary of city info
+    """
+
+    browser = webdriver.Firefox() 
+    browser.get(url)
+    time.sleep(waittime)
+    innerhtml= browser.execute_script("return document.body.innerHTML")
+    soup = BeautifulSoup(innerhtml)
+
+    city_header = soup.find_all('lib-city-header')[0]
+    lat_long = city_header.find_all('span')[0].text
+    city_info = city_header.find_all('span')[1].text 
+
+    # extract text 
+    city_info = city_info.split(', ')
+    if len(city_info)==3:
+
+        city_name, province, country = city_info
+    elif len(city_info) ==2:
+        city_name, country = city_info 
+        province = ''
+
+    country = country.replace(' Weather History','')
+    station_name = city_header.find_all('a',attrs={'class':'station-name'})[0].text
+    station_name = station_name.split('F ')[-1]
+
+    # extract latlong
+    lat_long = city_header.find_all('span')[0].text
+    lat, long = lat_long.split(', ')
+    long = long.rstrip()
+
+    # extract spcific url
+
+    specific_url = url.replace('https://www.wunderground.com/history/daily/','')
+    specific_url = specific_url.split('V')[0]
+    specific_url
+
+    city_dict = {'city_name': city_name,
+             'province': province,
+             'country': country,
+             'station_name': station_name,
+             'specific_url':specific_url,
+             'latitude': lat,
+             'longitude':long }
+
+    browser.close()
+
+    return city_dict
+
+def add_weather_station(station_list, w_folder='../data/weather_cities/'):
+    """Add new weather station into weather_station_info.json file 
+    
+    Args: 
+        station_list: a new of station_url 
+        w_folder(optional): weather station folder 
+    
+    """
+    
+    filename = w_folder + 'weather_station_info.json'
+    with open(filename) as f:
+        station_info = json.load(f)
+    
+    for url in station_list: 
+        try:
+            new_station = get_city_info_from_url(url)
+        except:
+            pass
+        else:
+            station_info.append(new_station)
+            print('add ', new_station['city_name'])
+            
+    with open(filename, 'w') as f:
+         json.dump(station_info, f)
