@@ -523,8 +523,15 @@ def add_ln_trend_line(
 
     """
     # linear fit the data
+    #x = series.index.values.reshape(-1,1)
+
     x = series.index.values
-    z = np.polyfit(x, series.values, 1)
+    y = series.values 
+    
+    #lnreg = LinearRegression()
+    #lnreg.fit(x,y)
+    #z = np.array([lnreg.coef_[0], lnreg.intercept_])
+    z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
     # string for labeling
     z_str = z.round(2).astype(str)
@@ -565,6 +572,58 @@ def plot_chem_print(sum_df, city_name, color_list=None,filename=None):
     plt.title(f'AQI Fingerprint for {city_name}')
     plt.xlabel('pollutant')
     plt.ylabel('aqi')
+
+def plot_yearly_ln(dataset, min_year=None, filename=None):
+    """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends. 
+    
+    Args:
+        dataset: dataset object with all data 
+        filename(optional): filename to save data
+    
+    """
+    year_fire = cal_sea_yr(dataset.fire.resample('d').sum()[['count']].copy(), agg='mean')
+    year_fire.columns = ['number of hotspots']
+     
+    year_temp = cal_sea_yr(dataset.wea[['Temperature(C)']].resample('d').mean().copy())
+    
+    if 'PM10' in dataset.poll_df.columns:
+        poll_col = ['PM2.5','PM10']
+        y_labels = ['$\mu g/m^3$', '$\mu g/m^3$', 'counts/day', '($^o$C)' ]
+        colors = ['royalblue', 'green', 'red' ,'orange']
+    else:
+        poll_col = ['PM2.5']
+        y_labels = ['$\mu g/m^3$', 'counts/day', '($^o$C)' ]
+        colors = ['royalblue', 'red' ,'orange']
+
+    year_poll = cal_sea_yr(dataset.poll_df.resample('d').mean().copy())[poll_col]
+    if min_year==None:
+        min_year = year_fire.index.min()
+
+    year_avg = pd.concat([ year_poll.loc[min_year:], year_fire, year_temp.loc[min_year:]],axis=1)
+    
+    _, ax = plt.subplots(len(y_labels), 1, figsize=(10,3*len(y_labels)),sharex=True)
+
+    for i, (a, col,y_label,color) in enumerate(zip(ax, year_avg.columns, y_labels,colors)):
+        a.plot(year_avg[col],marker='*',label=col,color=color)
+        a.set_ylabel(y_label)
+        
+        try:
+            # add linear trend line an display equation 
+            x, _ = add_ln_trend_line(year_avg[col].dropna(), a, color=color )
+        except:
+            pass
+        a.legend(loc='upper left')
+    
+        if i==0:
+            a.set_title('Trend of Pollutions, Fire Activities, and Tempearatures')
+            
+    a.set_xlabel('year(pollution season)')
+    a.xaxis.set_major_locator(MaxNLocator(integer=True))
+    
+    if filename:
+        plt.savefig(filename)
+
+    return year_avg
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand aqi conversion.

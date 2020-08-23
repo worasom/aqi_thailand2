@@ -555,10 +555,6 @@ class Dataset():
         if not os.path.exists(self.data_folder + 'holiday.csv'):
             self.build_holiday()
 
-        if self.city_name == 'Chiang Mai':
-            # for Chiang Mai, delete all PM2.5 record before 2010
-            self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
-
         # check if pollutant data exist
         if pollutant not in self.poll_df.columns:
             raise AssertionError(f'No {pollutant} data')
@@ -836,6 +832,11 @@ class Dataset():
             self.poll_df.set_index('datetime', inplace=True)
             # add pollution list
             self.gas_list = self.poll_df.columns.to_list()
+
+            if (self.city_name == 'Chiang Mai') or (self.city_name == 'Bangkok') :
+                # for Chiang Mai, delete all PM2.5 record before 2010
+                self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
+            
         else:
             print('no pollution data. Call self.build_pollution first')
 

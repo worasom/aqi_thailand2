@@ -6,6 +6,7 @@ import os
 from tqdm import tqdm, tqdm_notebook
 import json
 import numpy as np
+import scipy
 import pandas as pd
 import swifter
 import matplotlib.pyplot as plt
@@ -73,7 +74,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split, KFold, TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
-from sklearn.linear_model import ElasticNet, Ridge, Lasso, LinearRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor
