@@ -194,7 +194,7 @@ def plot_all_pollutions(
     """
     if transition_dict is None:
         transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
-                           'PM10': [0, 154, 254, 354, 424, 504],
+                           'PM10': [0, 154, 254, 354, 504],
                            'O3': [0, 70, 85, 105, 1e3],
                            'SO2': [0, 75, 185, 304, 1e3],
                            'NO2': [0, 100, 360, 649, 1e3],
@@ -211,21 +211,80 @@ def plot_all_pollutions(
             'very unhealthy']
 
     gas_list = poll_df.columns
+    print(gas_list)
     len_gas = len(gas_list)
+
+     
     _, ax = plt.subplots(len_gas, 1, figsize=(10, 3 * len_gas), sharex=True)
 
-    for i, _ in enumerate(ax):
-        col = gas_list[i]
+    if len_gas >1:
+        # obtain daily avg to plot 
+        d_avg = poll_df.resample('d').mean()
+
+        for i, a in enumerate(ax):
+            col = gas_list[i]
+            poll_data = poll_df[[col]].dropna()
+            poll_data['color'] = pd.cut(
+                poll_data[col],
+                bins=transition_dict[col],
+                labels=color_labels)
+
+            for color, legend in zip(color_labels, level_names):
+                temp = poll_data[poll_data['color'] == color]
+                # plot the data for each pollution level
+                a.scatter(
+                    temp.index,
+                    temp[col],
+                    c=temp['color'],
+                    marker='.',
+                    label=legend,
+                    alpha=0.7)
+
+            if col in ['PM2.5']: 
+                a.set_ylabel(col + r'($\mu g/m^3$)')         
+                a.axhline(transition_dict[col][2], color='red')
+                a.axhline(transition_dict[col][3], color='purple')
+
+            elif col in ['PM10']:
+                a.set_ylabel(col + r'($\mu g/m^3$)')         
+                a.axhline(transition_dict[col][2], color='red')
+            elif col in ['O3']:
+                a.set_ylabel(col + '(ppb)')
+                a.axhline(transition_dict[col][2], color='red')
+
+            elif col in ['NO2', 'SO2']:
+                a.set_ylabel(col + '(ppb)')
+            elif col == 'CO':
+                a.set_ylabel(col + '(ppm)')
+
+            a.axhline(transition_dict[col][1], color='orange')
+
+            a.plot(d_avg[col],label='avg'+col,color='black', alpha=0.7)
+            a.legend(loc='upper left')
+                #if i in [0, 1, 2]:
+                #    a.axhline(transition_dict[col][2], color='red')
+                #if i in [0, 1, 2]:
+                #    a.axhline(transition_dict[col][3], color='purple')
+
+        #ax[0].legend(loc='upper left')
+        ax[0].set_xlim([poll_df.index.min(), poll_df.index.max()])
+        ax[0].set_title(
+        f'Pollutants Data for {city_name} Averaged from All Staions')
+        ax[-1].set_xlabel('date')
+    
+    else:
+        col = gas_list[0]
+        a = ax
+
         poll_data = poll_df[[col]].dropna()
-        poll_data['color'] = pd.cut(
-            poll_data[col],
+        poll_data['color'] = pd.cut(poll_data[col],
             bins=transition_dict[col],
             labels=color_labels)
 
         for color, legend in zip(color_labels, level_names):
             temp = poll_data[poll_data['color'] == color]
             # plot the data for each pollution level
-            ax[i].scatter(
+            a.scatter(
                 temp.index,
                 temp[col],
                 c=temp['color'],
@@ -233,24 +292,26 @@ def plot_all_pollutions(
                 label=legend,
                 alpha=0.7)
 
-            if col in ['PM10', 'PM2.5']:
-                ax[i].set_ylabel(col + r'($\mu g/m^3$)')
-            elif col in ['O3', 'NO2', 'SO2']:
-                ax[i].set_ylabel(col + '(ppb)')
-            elif col == 'CO':
-                ax[i].set_ylabel(col + '(ppm)')
+        temp = poll_df.resample('d').mean()
+        a.plot(temp.index, temp[col], label='avg'+col,color='black',alpha=0.7)
+        a.legend(loc='upper left')
 
-            ax[i].axhline(transition_dict[col][1], color='orange')
-            if i in [0, 1, 2]:
-                ax[i].axhline(transition_dict[col][2], color='red')
-            if i in [0, 1, 2]:
-                ax[i].axhline(transition_dict[col][3], color='purple')
+        if col in ['PM2.5']: 
+            a.set_ylabel(col + r'($\mu g/m^3$)')            
+            a.axhline(transition_dict[col][2], color='red')
+            a.axhline(transition_dict[col][3], color='purple')
+        elif col in ['PM10']:
+            a.set_ylabel(col + r'($\mu g/m^3$)')         
+            a.axhline(transition_dict[col][2], color='red')
+        elif col in ['O3']:
+            a.set_ylabel(col + '(ppb)')
+            a.axhline(transition_dict[col][2], color='red')
+        elif col in ['NO2', 'SO2']:
+            a.set_ylabel(col + '(ppb)')
+        elif col == 'CO':
+            a.set_ylabel(col + '(ppm)')
 
-    ax[0].legend(loc='upper left')
-    ax[0].set_xlim([poll_df.index.min(), poll_df.index.max()])
-    ax[0].set_title(
-        f'Pollutants Data for {city_name} Averaged from All Staions')
-    ax[-1].set_xlabel('date')
+        a.axhline(transition_dict[col][1], color='orange') 
 
     plt.tight_layout()
 
@@ -303,11 +364,13 @@ def plot_polls_aqi(
 
     # convert to daily average
     poll_df = poll_df.resample('d').mean()
+    # reorder the data according to average AQI
     new_cols = poll_df.mean(
         axis=0).sort_values(
         ascending=False).index.to_list()
     poll_df = poll_df[new_cols]
-    length = int(len(new_cols) / 2)
+    if len(new_cols)>1:
+        length = int(len(new_cols) / 2)
 
     levels = [50, 100, 150, 200, 300]
     color_labels = ['green', 'orange', 'red', 'purple']
@@ -316,41 +379,60 @@ def plot_polls_aqi(
         ' moderate',
         ' unhealthy',
         ' very unhealthy']
-    data_colors = get_color(color_length=len(new_cols), cmap=cm.brg)
+    #data_colors = get_color(color_length=len(new_cols), cmap=cm.brg)
+    data_colors = get_gas_color_list(new_cols)
+    
+    if len(new_cols)>1:
+        # more than one data, plot in two subplots
+        _, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+        for i, a in enumerate(ax):
+            temp = poll_df[new_cols[length * i:length * (i + 1)]]
+            colors = data_colors[length * i:length * (i + 1)]
+            for col, color in zip(new_cols[length * i:length * (i + 1)], colors):
+                a.plot(
+                    temp[col],
+                    marker='.',
+                    markersize=1,
+                    linewidth=2,
+                    alpha=0.6,
+                    color=color)
+            a.legend(temp.columns, loc='upper left')
+            if i == 0:
+                a.set_title(
+                    f'Daily Average AQI in {city_name} for different pollutants')
+            else:
+                a.set_xlabel('date')
 
-    _, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
-    for i, a in enumerate(ax):
-        temp = poll_df[new_cols[length * i:length * (i + 1)]]
-        colors = data_colors[length * i:length * (i + 1)]
-        for col, color in zip(new_cols[length * i:length * (i + 1)], colors):
-            a.plot(
-                temp[col],
-                marker='.',
-                markersize=1,
-                linewidth=2,
-                alpha=0.6,
-                color=color)
-        a.legend(temp.columns, loc='upper left')
-        if i == 0:
-            a.set_title(
-                f'Daily Average AQI in {city_name} for different pollutant')
+            # select ymax to select level
+            ymax = temp.max().max()
+            idx = np.where(levels < ymax)[0][-1] + 1
+            # make horizontal line
+            for l, c, n in zip(levels[:idx], color_labels[:idx], level_names[:idx]):
+                a.axhline(l, color=c, label=n)
+                a.text(temp.index.max(), l, n, horizontalalignment='left')
 
-        else:
-            a.set_xlabel('date')
-
-        # select y max
-        ymax = temp.max().max()
+            a.set_xlim([temp.index.min(), temp.index.max()])
+            a.set_ylim([0, ymax])
+            a.set_ylabel('AQI')
+    else:
+        # only one data only one subplots 
+        # more than one data, plot in two subplots
+        _, a = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
+        a.plot(poll_df, color=data_colors[0])
+        a.legend(poll_df.columns, loc='upper left')
+        a.set_title(f'Daily Average AQI in {city_name} for different pollutants')
+        a.set_xlabel('date')
+        # make horizontal line
+        ymax = poll_df.max().values[0]
         idx = np.where(levels < ymax)[0][-1] + 1
-
-        for l, c, n in zip(
-                levels[:idx], color_labels[:idx], level_names[:idx]):
+        for l, c, n in zip(levels[:idx], color_labels[:idx], level_names[:idx]):
             a.axhline(l, color=c, label=n)
-            a.text(temp.index.max(), l, n, horizontalalignment='left')
-
-        a.set_xlim([temp.index.min(), temp.index.max()])
+            a.text(poll_df.index.max(), l, n, horizontalalignment='left')
+        a.set_xlim([poll_df.index.min(), poll_df.index.max()])
         a.set_ylim([0, ymax])
-
         a.set_ylabel('AQI')
+        a.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
+
 
     plt.tight_layout()
 
@@ -461,9 +543,31 @@ def add_ln_trend_line(
 
     return x, y
 
+def plot_chem_print(sum_df, city_name, color_list=None,filename=None):
+    """Bar plot the average (or max) AQI of each gas to show the AQI Fingerprint of that city. 
+    
+    Args:
+        sum_df: a series of satistical summary. For example poll_df.mean(axis=0)
+        city_name: city name for title 
+        color_list:a list of color to use. If None, use the 
+        filename(optional): filename to save data
+        
+    """
+    gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
+    gast_list = [g for g in gas_list if g in sum_df.index]
+    
+    if color_list==None:
+        color_list = get_gas_color_list(gas_list)
+  
+    plt.figure(figsize=(7,4))
+    
+    plt.bar(sum_df.index, sum_df, edgecolor='black',color=color_list, width=0.6)
+    plt.title(f'AQI Fingerprint for {city_name}')
+    plt.xlabel('pollutant')
+    plt.ylabel('aqi')
 
 def compare_us_thai_aqi():
-    """Plot the different between US and Thailand AQI conversion.
+    """Plot the different between US and Thailand aqi conversion.
 
     """
     plt.rcParams.update({'font.size': 14})

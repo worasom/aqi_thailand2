@@ -402,7 +402,7 @@ def main(
     for city_json in tqdm_notebook(weather_station_info):
         print('update weather data for ', city_json['city_name'])
         start_date = datetime(2020, 8, 22)
-        end_date = datetime.now()
+        end_date = datetime.now() - timedelta(days=1)
         update_weather(
             city_json,
             data_folder=w_folder,

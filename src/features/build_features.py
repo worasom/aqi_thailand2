@@ -93,7 +93,10 @@ def wind_to_dummies(series):
             dummies[direction] = dummies[direction] + dummies['VAR']
         except BaseException:
             pass
-    dummies.drop('VAR', axis=1, inplace=True)
+    try:
+        dummies.drop('VAR', axis=1, inplace=True)
+    except:
+        pass
     dummies.columns = ['wind_' + s for s in dummies.columns]
     return dummies
 

@@ -261,7 +261,6 @@ class Dataset():
             print('save file', filename)
             data.to_csv(filename)
 
-
     def collect_stations_data(self):
         """Collect all Pollution data from a different sources and take the average.
 
