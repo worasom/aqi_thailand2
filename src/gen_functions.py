@@ -317,6 +317,20 @@ def to_aqi(value, pollutant):
 
     return aqi
 
+def get_unit(pollutant):
+    """Obtain the unit of the pollutant for plot label.
+
+    """
+    
+    unit_dict = {'PM2.5': '$\mu g/m^3$',
+                 'PM10': '$\mu g/m^3$',
+                 'O3': 'ppb',
+                 'NO2': 'ppb',
+                 'SO2': 'ppb',
+                 'CO': 'ppm'}
+
+    return unit_dict[pollutant]
+
 
 def get_circle(x_cen, y_cen, r, num_data=100):
     """Create x,y coordinate to form a circle

@@ -624,6 +624,50 @@ def plot_yearly_ln(dataset, min_year=None, filename=None):
 
     return ax, year_avg
 
+def compare_seson_avg(dataset, poll='PM2.5', wea_col=['Temperature(C)', 'Wind Speed(kmph)'], agg='mean',filename=None):
+    """Compare seasonal pattern of pollution data, fire and weather pattern.
+
+    Args:
+        dataset: dataset object
+        poll(optional): pollutant name
+        wea_col(optional): a list of weather columns For example 
+        agg(optional): aggegration method for pollution 
+        filename(optional): filename to save data
+
+    """
+    plot_length =  len(wea_col) + 2
+
+    _, ax = plt.subplots(plot_length,1, figsize=(10,3*plot_length),sharex=True)
+
+    winter_day_dict, mean_day = plot_season_avg(dataset.poll_df.copy(), poll, ax[0], plot_error=True, roll=True, agg=agg,linewidth=2 )
+    ax[0].set_ylabel(get_unit(poll))
+    # aqiline 
+    ax[0].axhline(35.4, color='orange')
+    ax[0].axhline(55.4, color='red')
+    ax[0].text(365, 35.5, ' moderate',  horizontalalignment='left')
+    ax[0].text(365, 55.4, ' unhealthy',  horizontalalignment='left')
+
+    fire_hour = dataset.fire[['count']].resample('d').sum()
+    fire_hour.columns = ['number of hotspots']
+    winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.copy(), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean',color='red',linestyle='solid',linewidth=2)
+    ax[1].set_ylabel('number of hotspot')
+
+    t_hour = dataset.wea[wea_col].resample('d').mean().copy()
+
+    for i, col in enumerate(wea_col):
+
+        winter_day_dict, temperature = plot_season_avg(t_hour.copy(), col, ax[i+2], plot_error=True, roll=False, agg='mean', color='orange',linestyle='solid',linewidth=2)
+        ax[i+2].set_ylabel('($^o$C)')
+
+    for a in ax:
+        a.legend(loc='upper left')
+    
+    plt.tight_layout()
+
+    if filename:
+        plt.savefig(filename)
+
+
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand aqi conversion.
 
