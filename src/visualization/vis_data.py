@@ -469,16 +469,18 @@ def plot_season_aqi(
         ax.text(365, 150, ' unhealthy', horizontalalignment='left')
 
     temp = mean_day[mean_day > 100]
-    print('aqi 100 in ',
-          winter_day_dict[str(temp.index.min())],
-          'to',
-          winter_day_dict[str(temp.index.max())])
+    if len(temp)>0:
+        print('aqi 100 in ',
+            winter_day_dict[str(temp.index.min())],
+            'to',
+            winter_day_dict[str(temp.index.max())])
 
     temp = mean_day[mean_day > 150]
-    print('aqi 150 in ',
-          winter_day_dict[str(temp.index.min())],
-          'to',
-          winter_day_dict[str(temp.index.max())])
+    if len(temp)>0:
+        print('aqi 150 in ',
+            winter_day_dict[str(temp.index.min())],
+            'to',
+            winter_day_dict[str(temp.index.max())])
 
     if filename:
         plt.savefig(filename)
@@ -523,15 +525,12 @@ def add_ln_trend_line(
 
     """
     # linear fit the data
-    #x = series.index.values.reshape(-1,1)
-
     x = series.index.values
     y = series.values 
-    
-    #lnreg = LinearRegression()
-    #lnreg.fit(x,y)
-    #z = np.array([lnreg.coef_[0], lnreg.intercept_])
-    z = np.polyfit(x, y, 1)
+
+    slope, intercept, *args = linregress(x,y)
+    z = np.array([slope, intercept])
+    #z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
     # string for labeling
     z_str = z.round(2).astype(str)
@@ -623,7 +622,7 @@ def plot_yearly_ln(dataset, min_year=None, filename=None):
     if filename:
         plt.savefig(filename)
 
-    return year_avg
+    return ax, year_avg
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand aqi conversion.

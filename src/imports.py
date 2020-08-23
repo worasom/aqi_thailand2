@@ -75,6 +75,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split, KFold, TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
+from scipy.stats import linregress  
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor
