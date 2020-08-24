@@ -68,7 +68,7 @@ def build_us_em_data(city_name: str, data_folder: str = '../data/us_emb/'):
         data = pd.DataFrame()
         # concatenate all data
         for file in files:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file, na_values=[-999])
             data = pd.concat([data, df])
         # format the data
         data['Parameter'] = data['Parameter'].str.split(' - ', expand=True)[0]
