@@ -26,7 +26,7 @@ def load_meta(meta_filename: str):
 
     return model_meta
 
-def load_model1(
+def load_model(
         city: str = 'Chiang Mai',
         pollutant: str = 'PM2.5',
         build=False,
@@ -58,6 +58,9 @@ def load_model1(
     # load model_meta
     model_meta = load_meta(data.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
+    rolling_win = poll_meta['rolling_win']
+    cat_hour = poll_meta['cat_hour']
+    fill_missing = poll_meta['fill_missing']
 
     # load model
     model = pickle.load(
@@ -72,8 +75,8 @@ def load_model1(
     # load raw data
     data.load_()
     # build the first dataset
-    print('rolling_win', poll_meta['rolling_win'])
-    data.feature_no_fire(rolling_win=poll_meta['rolling_win'])
+    #print('rolling_win', poll_meta['rolling_win'])
+    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win, fill_missing=fill_missing, cat_hour=cat_hour)
     data.fire_dict = poll_meta['fire_dict']
     fire_cols, zone_list = data.merge_fire(data.fire_dict)
 
@@ -643,7 +646,7 @@ class Inferer():
 
         else:
             # load model and add as attribute
-            self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.rolling_win = load_model1(
+            self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.rolling_win = load_model(
                 city=city_name, pollutant=pollutant, split_list=split_list)
             self.cal_error()
             self.report_folder = self.dataset.report_folder

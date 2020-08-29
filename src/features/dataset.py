@@ -374,6 +374,9 @@ class Dataset():
         """
         print('Loading all hotspots data. This might take sometimes')
 
+        if self.city_name=='Hanoi':
+            distance = 1200
+        
         # the instrument is either MODIS or VIIRS
         if instr == 'MODIS':
             folder = self.main_folder + fire_data_folder + 'M6/*.csv'
@@ -534,7 +537,7 @@ class Dataset():
 
         self.save_()
 
-    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24):
+    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24, fill_missing=False, cat_hour=False):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data
@@ -544,6 +547,8 @@ class Dataset():
         Args:
             pollutant(optional): name of the pollutant [default:'PM2.5']
             rolling_win(optional): rolling windows size [defaul:24]. This does not do anything.
+            fill_missing(optional): if True, fill the missing pollution data 
+            cat_hour(optional): if true, one hot encode the time_of_day column
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -559,6 +564,10 @@ class Dataset():
         if pollutant not in self.poll_df.columns:
             raise AssertionError(f'No {pollutant} data')
         self.pollutant = pollutant
+
+        if fill_missing:
+            self.poll_df = fill_missing_poll(self.poll_df, limit=6)
+
         cols = [
             pollutant,
             'Temperature(C)',
@@ -594,6 +603,11 @@ class Dataset():
         data = add_is_rain(data)
         data = add_calendar_info(
             data, holiday_file=self.data_folder + 'holiday.csv')
+
+        if cat_hour:
+            # one hot encode the time of day columns 
+            data = dummy_time_of_day(data, col='time_of_day', group_hour=3)
+        
         try:
             data = data.astype(float)
         except BaseException:
@@ -621,6 +635,8 @@ class Dataset():
 
         if self.city_name == 'Chiang Mai':
             zone_list = [0, 100, 200, 400, 700, 1000]
+        elif self.city_name =='Hanoi':
+            zone_list = [0, 120, 400, 700, 1200]
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 

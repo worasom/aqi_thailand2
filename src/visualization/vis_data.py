@@ -667,6 +667,26 @@ def compare_seson_avg(dataset, poll='PM2.5', wea_col=['Temperature(C)', 'Wind Sp
     if filename:
         plt.savefig(filename)
 
+def plot_hour_avg(df, col, ax,  color='blue'):
+    """Plot average hourly behavior. Must have datetime index. 
+    
+    Args: 
+        df: dataframe containing the column to plot
+        col: name of the columns to plot
+        ax: axis to plot the data on 
+        color(optional): color of the plot
+         
+    """
+    df = df.resample('h').mean()
+    # add hour of day from the index.
+    df['time_of_day'] = df.index.hour
+    
+    sns.lineplot(data=df,x='time_of_day',y=col,color=color,ax=ax,legend='brief', label=col)
+    ax.set_ylabel(col)
+    ax.set_xlabel('hour')
+    #ax[2].set_title('hourly fire activities')
+    ax.legend(loc='upper left')
+    
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand aqi conversion.

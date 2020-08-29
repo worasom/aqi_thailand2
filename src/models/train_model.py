@@ -390,13 +390,12 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
 def train_city_s1(
         city: str = 'Chiang Mai',
         pollutant: str = 'PM2.5',
-        build=False,
+        build=False, 
         model=None,
         fire_dict=None,
         x_cols_org=[],
         lag_dict=None,
-        x_cols=[],
-        rolling_win=True):
+        x_cols=[]):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
         #. If build True, build the raw data from files
@@ -433,15 +432,22 @@ def train_city_s1(
         # build data from scratch
         data.build_all_data(build_fire=True, build_holiday=False)
 
+    # load model meta to setup parameters 
+    model_meta = load_meta(data.model_folder + 'model_meta.json')
+    poll_meta = model_meta[pollutant]
+    rolling_win = poll_meta['rolling_win']
+    cat_hour = poll_meta['cat_hour']
+    fill_missing = poll_meta['fill_missing']
+
     # load raw data
     data.load_()
-    if rolling_win:
-        rolling_win = data.roll_dict[pollutant]
-    else:
-        rolling_win = 1
-    print('rolling_win ', rolling_win)
+    #if rolling_win:
+    #    rolling_win = data.roll_dict[pollutant]
+    #else:
+    #rolling_win = 1
+
     # build the first dataset
-    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win)
+    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win, fill_missing=fill_missing, cat_hour=cat_hour)
     if fire_dict is None:
         # use default fire feature
         fire_cols, *args = data.merge_fire()
@@ -453,7 +459,7 @@ def train_city_s1(
     # . Optimization 1: optimize for the best randomforest model
 
     if (model is None) or (len(x_cols_org) == 0):
-        # split the data into 4 set
+        # split the data into 3 set
         print('=================optimize 1: find the best RF model=================')
         data.split_data(split_ratio=[0.40, 0.3, 0.3])
         xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0])
@@ -576,7 +582,7 @@ def train_city_s1(
     # data.data_org = data.data[ [data.monitor] + data.x_cols_org]
     # data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
 
-    print('================= optimization 8: optimize for the best rf again =================')
+    print('================= optimization 6: optimize for the best rf again =================')
     data.split_data(split_ratio=[0.45, 0.25, 0.3])
 
     #print('x_cols in op7', data.x_cols)
@@ -645,16 +651,20 @@ def train_city_s1(
     show_fea_imp(feat_imp, filename=data.report_folder +
                  f'{poll_name}_rf_fea_op2_nolag.png', title='')
 
-    poll_meta = {'x_cols_org': data.x_cols_org,
+    poll_meta = {'rolling_win': rolling_win,
+                 'cat_hour': cat_hour, 
+                 'fill_missing': fill_missing,
+                 'x_cols_org': data.x_cols_org,
                  'x_cols': data.x_cols,
+                 'cat_hour': cat_hour, 
                  'fire_cols': fire_cols,
                  'fire_dict': data.fire_dict,
                  'lag_dict': data.lag_dict,
                  'rf_score': score_dict,
                  'rf_params': model.get_params(),
-                 'rolling_win': rolling_win}
+                 }
 
-    model_meta = load_meta(data.model_folder + 'model_meta.json')
+     
     model_meta[pollutant] = poll_meta
     save_meta(data.model_folder + 'model_meta.json', model_meta)
 
