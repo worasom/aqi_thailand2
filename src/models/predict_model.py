@@ -51,7 +51,7 @@ def load_model(
 
     """
 
-    data = Dataset(city)
+    dataset = Dataset(city)
     dataset.monitor = dataset.pollutant = pollutant
     # remove . from pollutant name for saving file
     poll_name = pollutant.replace('.', '')

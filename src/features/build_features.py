@@ -350,6 +350,7 @@ def fill_missing_poll(df, limit:int=6):
     max_date = df.index.max()
     new_index = pd.date_range(start=min_date, end=max_date, freq='h')
     new_poll_df = df.merge(pd.DataFrame(index=new_index), right_index=True, left_index=True, how='right')
+    new_poll_df.index.name = 'datetime'
     
     new_poll_df_f = new_poll_df.fillna(method='ffill', limit=limit).copy()
     new_poll_df_b = new_poll_df.fillna(method='bfill', limit=limit).copy()

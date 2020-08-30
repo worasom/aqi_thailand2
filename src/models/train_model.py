@@ -484,10 +484,10 @@ def train_city_s1(
             title='rf feature of importance(raw)')
 
         # columns to consider droping are columns with low importance
-        to_drop = feat_imp['index']
-        to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
-            to_drop.remove(s)
+        to_drop = feat_imp['index'].to_list()
+        #to_drop = [a for a in to_drop if 'fire' not in a]
+        #for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
+        #    to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
             dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
@@ -548,10 +548,10 @@ def train_city_s1(
 
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
-        no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + \
-            [a for a in dataset.x_cols_org if 'fire' in a]
-        for s in no_drop:
-            to_drop.remove(s)
+        #no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + \
+        #    [a for a in dataset.x_cols_org if 'fire' in a]
+        #for s in no_drop:
+        #    to_drop.remove(s)
         to_drop.reverse()
         model, dataset.x_cols = reduce_cols(
             dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
@@ -652,7 +652,6 @@ def train_city_s1(
 
     poll_meta.update( {'x_cols_org': dataset.x_cols_org,
                  'x_cols': dataset.x_cols,
-                 'cat_hour': cat_hour, 
                  'fire_cols': fire_cols,
                  'fire_dict': dataset.fire_dict,
                  'lag_dict': dataset.lag_dict,
