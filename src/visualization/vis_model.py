@@ -165,7 +165,7 @@ def plot_model_perf(
 
     # add label
     for a in ax:
-        a.legend()
+        a.legend(loc='upper left')
         a.set_xlabel('date')
         a.set_ylabel(dataset.monitor)
         if len(xlim) > 0:

@@ -53,7 +53,7 @@ def do_rf_search(
     Args:
         x_trn: 2D array of x data
         y_trn: 2D np.array of y data
-        cv_split(optional): if "time". Use TimeSeriesSplit, which don't shuffle the data.
+        cv_split(optional): if "time". Use TimeSeriesSplit, which don't shuffle the dataset.
         n_splits(optional): number of cross validation split [default:5]
         params_dict(optional): search parameter dictionary [default:None]
         x_tree(optional): if True, use ExtraTreesRegressor instead of RandomForestRegressor
@@ -425,46 +425,45 @@ def train_city_s1(
 
     """
 
-    data = Dataset(city)
+    dataset = Dataset(city)
     # remove . from pollutant name for saving file
     poll_name = pollutant.replace('.', '')
     if build:
         # build data from scratch
-        data.build_all_data(build_fire=True, build_holiday=False)
+        dataset.build_all_data(build_fire=True, build_holiday=False)
 
     # load model meta to setup parameters 
-    model_meta = load_meta(data.model_folder + 'model_meta.json')
+    model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
-    rolling_win = poll_meta['rolling_win']
-    cat_hour = poll_meta['cat_hour']
-    fill_missing = poll_meta['fill_missing']
+    split_lists = poll_meta['split_lists']
+    
 
     # load raw data
-    data.load_()
+    dataset.load_()
     #if rolling_win:
-    #    rolling_win = data.roll_dict[pollutant]
+    #    rolling_win = dataset.roll_dict[pollutant]
     #else:
     #rolling_win = 1
 
     # build the first dataset
-    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win, fill_missing=fill_missing, cat_hour=cat_hour)
+    dataset.feature_no_fire(pollutant=pollutant, rolling_win=poll_meta['rolling_win'], fill_missing=poll_meta['fill_missing'], cat_hour=poll_meta['cat_hour'],group_hour=poll_meta['group_hour'])
     if fire_dict is None:
         # use default fire feature
-        fire_cols, *args = data.merge_fire()
+        fire_cols, *args = dataset.merge_fire()
     else:
-        data.fire_dict = fire_dict
-        fire_cols, *args = data.merge_fire(data.fire_dict)
-    data.monitor = data.pollutant = pollutant
+        dataset.fire_dict = fire_dict
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
+    dataset.monitor = dataset.pollutant = pollutant
 
     # . Optimization 1: optimize for the best randomforest model
 
     if (model is None) or (len(x_cols_org) == 0):
         # split the data into 3 set
         print('=================optimize 1: find the best RF model=================')
-        data.split_data(split_ratio=[0.40, 0.3, 0.3])
-        xtrn, ytrn, x_cols = data.get_data_matrix(use_index=data.split_list[0])
-        xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1])
-        data.x_cols = x_cols
+        dataset.split_data(split_ratio=split_lists[0])
+        xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0])
+        xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1])
+        dataset.x_cols = x_cols
 
         model = do_rf_search(xtrn, ytrn, cv_split='other')
         score_dict = cal_scores(yval, model.predict(xval), header_str='val_')
@@ -480,7 +479,7 @@ def train_city_s1(
             'importance', ascending=False).reset_index()
         show_fea_imp(
             feat_imp,
-            filename=data.report_folder +
+            filename=dataset.report_folder +
             f'{poll_name}_fea_imp_op1.png',
             title='rf feature of importance(raw)')
 
@@ -491,42 +490,42 @@ def train_city_s1(
             to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
-            dataset=data, x_cols=data.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
+            dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
 
     if fire_dict is None:
         print('================= optimization 3: find the best fire feature ===================')
-        data.fire_dict, gp_result = sk_op_fire(
-            data, model, trn_index=data.split_list[0], val_index=data.split_list[1])
-        fire_cols, *args = data.merge_fire(data.fire_dict)
+        dataset.fire_dict, gp_result = sk_op_fire(
+            dataset, model, trn_index=dataset.split_list[0], val_index=dataset.split_list[1])
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
 
     if lag_dict is None:
         print('================= optimization 4: improve model performance by adding lag columns =================')
         # prepare no-lag columns
-        data.x_cols_org = x_cols_org
-        data.data_org = data.data[[data.monitor] + data.x_cols_org]
+        dataset.x_cols_org = x_cols_org
+        dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
         print('model parameters', model.get_params())
         # look for the best lag
-        #data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
-        data.lag_dict, gp_result = op_lag(
-            data, model, split_ratio=[0.45, 0.25, 0.3])
-        #data.lag_dict = {'n_max': 2, 'step': 5}
-        data.build_lag(
+        #dataset.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
+        dataset.lag_dict, gp_result = op_lag(
+            dataset, model, split_ratio=[0.45, 0.25, 0.3])
+        #dataset.lag_dict = {'n_max': 2, 'step': 5}
+        dataset.build_lag(
             lag_range=np.arange(
                 1,
-                data.lag_dict['n_max'],
-                data.lag_dict['step']),
-            roll=data.lag_dict['roll'])
-        #print('data.column with lag', data.data.columns)
-        data.x_cols = data.data.columns.drop(data.monitor)
+                dataset.lag_dict['n_max'],
+                dataset.lag_dict['step']),
+            roll=dataset.lag_dict['roll'])
+        #print('data.column with lag', dataset.data.columns)
+        dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
 
-        print('x_cols', data.x_cols)
-        data.split_data(split_ratio=[0.45, 0.25, 0.3])
-        xtrn, ytrn, data.x_cols = data.get_data_matrix(
-            use_index=data.split_list[0], x_cols=data.x_cols)
-        xval, yval, _ = data.get_data_matrix(
-            use_index=data.split_list[1], x_cols=data.x_cols)
-        xtest, ytest, _ = data.get_data_matrix(
-            use_index=data.split_list[2], x_cols=data.x_cols)
+        print('x_cols', dataset.x_cols)
+        dataset.split_data(split_ratio=[0.45, 0.25, 0.3])
+        xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
+            use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+        xval, yval, _ = dataset.get_data_matrix(
+            use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+        xtest, ytest, _ = dataset.get_data_matrix(
+            use_index=dataset.split_list[2], x_cols=dataset.x_cols)
         print('xtrn has shape', xtrn.shape)
         model.fit(xtrn, ytrn)
         score_dict = cal_scores(yval, model.predict(xval), header_str='val_')
@@ -542,7 +541,7 @@ def train_city_s1(
         importances = model.feature_importances_
         feat_imp = pd.DataFrame(
             importances,
-            index=data.x_cols,
+            index=dataset.x_cols,
             columns=['importance'])
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
@@ -550,48 +549,48 @@ def train_city_s1(
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
         no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + \
-            [a for a in data.x_cols_org if 'fire' in a]
+            [a for a in dataset.x_cols_org if 'fire' in a]
         for s in no_drop:
             to_drop.remove(s)
         to_drop.reverse()
-        model, data.x_cols = reduce_cols(
-            dataset=data, x_cols=data.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
+        model, dataset.x_cols = reduce_cols(
+            dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
 
     else:
-        data.lag_dict = lag_dict
-        data.x_cols_org = x_cols_org
-        data.data_org = data.data[[data.monitor] + data.x_cols_org]
-        data.build_lag(
+        dataset.lag_dict = lag_dict
+        dataset.x_cols_org = x_cols_org
+        dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
+        dataset.build_lag(
             lag_range=np.arange(
                 1,
-                data.lag_dict['n_max'],
-                data.lag_dict['step']),
+                dataset.lag_dict['n_max'],
+                dataset.lag_dict['step']),
             roll=True)
-        data.x_cols = x_cols
+        dataset.x_cols = x_cols
 
     # print('================= optimization 7: optimize for the best fire dict again =================')
 
-    # xtrn, ytrn, data.x_cols = data.get_data_matrix(use_index=data.split_list[0],x_cols=data.x_cols)
-    # xval, yval, _ = data.get_data_matrix(use_index=data.split_list[1],x_cols=data.x_cols)
-    # xtest, ytest, _ = data.get_data_matrix(use_index=data.split_list[2], x_cols=data.x_cols)
+    # xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0],x_cols=dataset.x_cols)
+    # xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1],x_cols=dataset.x_cols)
+    # xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[2], x_cols=dataset.x_cols)
     # print('val score before op7', cal_scores(yval, model.predict(xval), header_str='val_'))
     # print('test score before op7', cal_scores(ytest, model.predict(xtest), header_str='test_'))
 
-    # data.fire_dict, gp_result  = sk_op_fire(data, model, trn_index=data.split_list[0], val_index=data.split_list[1], with_lag=True)
-    # _, *args = data.merge_fire(data.fire_dict)
-    # data.data_org = data.data[ [data.monitor] + data.x_cols_org]
-    # data.build_lag(lag_range=np.arange(1, data.lag_dict['n_max'], data.lag_dict['step']), roll=data.lag_dict['roll'])
+    # dataset.fire_dict, gp_result  = sk_op_fire(data, model, trn_index=dataset.split_list[0], val_index=dataset.split_list[1], with_lag=True)
+    # _, *args = dataset.merge_fire(dataset.fire_dict)
+    # dataset.data_org = dataset.data[ [dataset.monitor] + dataset.x_cols_org]
+    # dataset.build_lag(lag_range=np.arange(1, dataset.lag_dict['n_max'], dataset.lag_dict['step']), roll=dataset.lag_dict['roll'])
 
     print('================= optimization 6: optimize for the best rf again =================')
-    data.split_data(split_ratio=[0.45, 0.25, 0.3])
+    dataset.split_data(split_ratio=[0.45, 0.25, 0.3])
 
-    #print('x_cols in op7', data.x_cols)
-    xtrn, ytrn, data.x_cols = data.get_data_matrix(
-        use_index=data.split_list[0], x_cols=data.x_cols)
-    xval, yval, _ = data.get_data_matrix(
-        use_index=data.split_list[1], x_cols=data.x_cols)
-    xtest, ytest, _ = data.get_data_matrix(
-        use_index=data.split_list[2], x_cols=data.x_cols)
+    #print('x_cols in op7', dataset.x_cols)
+    xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
+        use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+    xval, yval, _ = dataset.get_data_matrix(
+        use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+    xtest, ytest, _ = dataset.get_data_matrix(
+        use_index=dataset.split_list[2], x_cols=dataset.x_cols)
     print(
         'val score before refit',
         cal_scores(
@@ -612,11 +611,11 @@ def train_city_s1(
     #print('test score after op8', cal_scores(ytest, model.predict(xtest), header_str='test_'))
 
     # final split
-    data.split_data(split_ratio=[0.7, 0.3])
-    xtrn, ytrn, data.x_cols = data.get_data_matrix(
-        use_index=data.split_list[0], x_cols=data.x_cols)
-    xtest, ytest, _ = data.get_data_matrix(
-        use_index=data.split_list[1], x_cols=data.x_cols)
+    dataset.split_data(split_ratio=[0.7, 0.3])
+    xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
+        use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+    xtest, ytest, _ = dataset.get_data_matrix(
+        use_index=dataset.split_list[1], x_cols=dataset.x_cols)
     model.fit(xtrn, ytrn)
     score_dict = cal_scores(ytest, model.predict(xtest), header_str='test_')
     print('final score for test set', score_dict)
@@ -624,7 +623,7 @@ def train_city_s1(
     pickle.dump(
         model,
         open(
-            data.model_folder +
+            dataset.model_folder +
             f'{poll_name}_rf_model.pkl',
             'wb'))
 
@@ -633,41 +632,38 @@ def train_city_s1(
         importances = model.feature_importances_
         feat_imp = pd.DataFrame(
             importances,
-            index=data.x_cols,
+            index=dataset.x_cols,
             columns=['importance'])
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
-        #show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
+        #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
     except BaseException:
         # custom feature of importance
-        feat_imp = feat_importance(model, xtrn, ytrn, data.x_cols, n_iter=50)
-        #show_fea_imp(feat_imp,filename=data.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(shuffle)')
+        feat_imp = feat_importance(model, xtrn, ytrn, dataset.x_cols, n_iter=50)
+        #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(shuffle)')
 
     # obtain feature of importance without lag
     feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
     feat_imp = feat_imp.groupby('index').sum()
     feat_imp = feat_imp.sort_values(
         'importance', ascending=False).reset_index()
-    show_fea_imp(feat_imp, filename=data.report_folder +
+    show_fea_imp(feat_imp, filename=dataset.report_folder +
                  f'{poll_name}_rf_fea_op2_nolag.png', title='')
 
-    poll_meta = {'rolling_win': rolling_win,
-                 'cat_hour': cat_hour, 
-                 'fill_missing': fill_missing,
-                 'x_cols_org': data.x_cols_org,
-                 'x_cols': data.x_cols,
+    poll_meta.update( {'x_cols_org': dataset.x_cols_org,
+                 'x_cols': dataset.x_cols,
                  'cat_hour': cat_hour, 
                  'fire_cols': fire_cols,
-                 'fire_dict': data.fire_dict,
-                 'lag_dict': data.lag_dict,
+                 'fire_dict': dataset.fire_dict,
+                 'lag_dict': dataset.lag_dict,
                  'rf_score': score_dict,
                  'rf_params': model.get_params(),
-                 }
+                 })
 
      
     model_meta[pollutant] = poll_meta
-    save_meta(data.model_folder + 'model_meta.json', model_meta)
+    save_meta(dataset.model_folder + 'model_meta.json', model_meta)
 
-    data.save_()
+    dataset.save_()
 
-    return data, model, poll_meta
+    return dataset, model, poll_meta

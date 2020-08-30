@@ -52,58 +52,55 @@ def load_model(
     """
 
     data = Dataset(city)
-    data.monitor = data.pollutant = pollutant
+    dataset.monitor = dataset.pollutant = pollutant
     # remove . from pollutant name for saving file
     poll_name = pollutant.replace('.', '')
     # load model_meta
-    model_meta = load_meta(data.model_folder + 'model_meta.json')
+    model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
-    rolling_win = poll_meta['rolling_win']
-    cat_hour = poll_meta['cat_hour']
-    fill_missing = poll_meta['fill_missing']
 
     # load model
     model = pickle.load(
         open(
-            data.model_folder +
+            dataset.model_folder +
             f'{poll_name}_rf_model.pkl',
             'rb'))
 
     if build:
         # build data from scratch
-        data.build_all_data(build_fire=True, build_holiday=False)
+        dataset.build_all_data(build_fire=True, build_holiday=False)
     # load raw data
-    data.load_()
+    dataset.load_()
     # build the first dataset
     #print('rolling_win', poll_meta['rolling_win'])
-    data.feature_no_fire(pollutant=pollutant, rolling_win=rolling_win, fill_missing=fill_missing, cat_hour=cat_hour)
-    data.fire_dict = poll_meta['fire_dict']
-    fire_cols, zone_list = data.merge_fire(data.fire_dict)
+    dataset.feature_no_fire(pollutant=pollutant, rolling_win=poll_meta['rolling_win'], fill_missing=poll_meta['fill_missing'], cat_hour=poll_meta['cat_hour'],group_hour=poll_meta['group_hour'])
+    dataset.fire_dict = poll_meta['fire_dict']
+    fire_cols, zone_list = dataset.merge_fire(dataset.fire_dict)
 
     #print('\n fire_columns', fire_cols)
     # build lag_data
-    data.lag_dict = poll_meta['lag_dict']
-    data.x_cols_org = poll_meta['x_cols_org']
-    #print('\n x_cols_org', data.x_cols_org)
-    data.data_org = data.data[[data.monitor] + data.x_cols_org]
-    data.build_lag(
+    dataset.lag_dict = poll_meta['lag_dict']
+    dataset.x_cols_org = poll_meta['x_cols_org']
+    #print('\n x_cols_org', dataset.x_cols_org)
+    dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
+    dataset.build_lag(
         lag_range=np.arange(
             1,
-            data.lag_dict['n_max'],
-            data.lag_dict['step']),
-        roll=data.lag_dict['roll'])
-    data.x_cols = poll_meta['x_cols']
-    #print('\n x_cols', data.x_cols)
+            dataset.lag_dict['n_max'],
+            dataset.lag_dict['step']),
+        roll=dataset.lag_dict['roll'])
+    dataset.x_cols = poll_meta['x_cols']
+    #print('\n x_cols', dataset.x_cols)
 
     # split data
-    data.split_data(split_ratio=split_list)
-    trn_index = data.split_list[0]
-    test_index = data.split_list[1]
+    dataset.split_data(split_ratio=split_list)
+    trn_index = dataset.split_list[0]
+    test_index = dataset.split_list[1]
 
-    xtrn, ytrn, data.x_cols = data.get_data_matrix(
-        use_index=trn_index, x_cols=data.x_cols)
-    xtest, ytest, _ = data.get_data_matrix(
-        use_index=test_index, x_cols=data.x_cols)
+    xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
+        use_index=trn_index, x_cols=dataset.x_cols)
+    xtest, ytest, _ = dataset.get_data_matrix(
+        use_index=test_index, x_cols=dataset.x_cols)
 
     if update:
         model.fit(xtrn, ytrn)
@@ -141,7 +138,7 @@ def load_model(
     importances = model.feature_importances_
     feat_imp = pd.DataFrame(
         importances,
-        index=data.x_cols,
+        index=dataset.x_cols,
         columns=['importance'])
     feat_imp = feat_imp.sort_values(
         'importance', ascending=False).reset_index()
@@ -154,7 +151,7 @@ def load_model(
 
 
 def cal_error(dataset, model, data_index):
-    """Calculate model performance over training and test data.
+    """Calculate model performance over training and test dataset.
 
     - take the daily average and plot actual vs prediction for training and test set
     return xtrn, ytrn, xtest, ytext in dataframe format
@@ -218,7 +215,7 @@ def get_year_sample(year_list, n_samples=100):
     """Calculate the number of sample from each year.
 
     Args:
-        year_list: a list of year to sample the data. Ex from trn_data.index.year.unique()
+        year_list: a list of year to sample the dataset. Ex from trn_data.index.year.unique()
         n_samples(optional): number of total samples [default:100]
 
     Return: list
@@ -343,7 +340,7 @@ def get_data_samples(
         step=1,
         day_err=10,
         hour_err=2):
-    """Sample the possible test data from train data. The dataset must alredy has the lag columns built
+    """Sample the possible test data from train dataset. The dataset must alredy has the lag columns built
 
     Args:
         dataset: load data using load_model1 function

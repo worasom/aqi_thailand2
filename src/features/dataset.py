@@ -537,7 +537,7 @@ class Dataset():
 
         self.save_()
 
-    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24, fill_missing=False, cat_hour=False):
+    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24, fill_missing=False, cat_hour=False, group_hour=2):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data
@@ -549,6 +549,7 @@ class Dataset():
             rolling_win(optional): rolling windows size [defaul:24]. This does not do anything.
             fill_missing(optional): if True, fill the missing pollution data 
             cat_hour(optional): if true, one hot encode the time_of_day column
+            group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True 
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -594,6 +595,9 @@ class Dataset():
 
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
             data = data.loc['2010':]
+        elif self.city_name=='Hanoi':
+            data = data.loc['2016-03-21':] 
+
         # add lag information
         # data = add_lags(data, pollutant)
         # one hot encode wind data
@@ -606,7 +610,7 @@ class Dataset():
 
         if cat_hour:
             # one hot encode the time of day columns 
-            data = dummy_time_of_day(data, col='time_of_day', group_hour=3)
+            data = dummy_time_of_day(data, col='time_of_day', group_hour=group_hour)
         
         try:
             data = data.astype(float)

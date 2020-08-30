@@ -321,8 +321,12 @@ def dummy_time_of_day(df, col='time_of_day', group_hour=3):
     """
     # add time of day column
     df[col] = df.index.hour 
-    # turn the columns into catergory. Use group_hour to reduce the number 
-    df[col] = pd.cut(df[col], bins=np.arange(0,24+group_hour, group_hour),right=False) 
+
+    if group_hour == 1:
+        df[col] = df[col].astype("category")
+    else:
+        # turn the columns into catergory. Use group_hour to reduce the number 
+        df[col] = pd.cut(df[col], bins=np.arange(0,24+group_hour, group_hour),right=False) 
     
     
     temp = pd.get_dummies(df[col], prefix=col)
