@@ -113,7 +113,7 @@ def load_model(
             header_str='test_'))
 
     # calculate the average error
-    trn_error = cal_error(data, model, data_index=trn_index)
+    trn_error = cal_error(dataset, model, data_index=trn_index)
     # resample
     ytrn_pred_df_avg = trn_error.resample('d').mean().dropna()
     print(
@@ -124,7 +124,7 @@ def load_model(
             header_str='avg_trn_'))
 
     # calculate the average error
-    ytest_pred_df = cal_error(data, model, data_index=test_index)
+    ytest_pred_df = cal_error(dataset, model, data_index=test_index)
     # resample
     ytest_pred_df_avg = ytest_pred_df.resample('d').mean().dropna()
     print(
@@ -147,7 +147,7 @@ def load_model(
     feat_imp = feat_imp.sort_values(
         'importance', ascending=False).reset_index()
 
-    return data, model, fire_cols, zone_list, feat_imp, poll_meta['rolling_win']
+    return dataset, model, fire_cols, zone_list, feat_imp, poll_meta['rolling_win']
 
 
 def cal_error(dataset, model, data_index):

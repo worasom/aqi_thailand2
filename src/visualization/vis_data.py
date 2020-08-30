@@ -330,12 +330,13 @@ def poll_to_aqi(poll_df, roll_dict):
 
     """
     for pollutant in poll_df.columns:
-        rolling_win = roll_dict[pollutant]
-        poll_df[pollutant] = poll_df[pollutant].rolling(
-            rolling_win, min_periods=0).mean().round(1)
-        # convert to aqi
-        poll_df[pollutant] = poll_df[pollutant].apply(
-            to_aqi, pollutant=pollutant)
+        if pollutant in roll_dict.keys():
+            rolling_win = roll_dict[pollutant]
+            poll_df[pollutant] = poll_df[pollutant].rolling(
+                rolling_win, min_periods=0).mean().round(1)
+            # convert to aqi
+            poll_df[pollutant] = poll_df[pollutant].apply(
+                to_aqi, pollutant=pollutant)
 
     return poll_df
 
@@ -549,28 +550,33 @@ def add_ln_trend_line(
 
     return x, y
 
-def plot_chem_print(sum_df, city_name, color_list=None,filename=None):
+def plot_chem_print(sum_df, city_name, color_list=None,ylim=[0,90],filename=None):
     """Bar plot the average (or max) AQI of each gas to show the AQI Fingerprint of that city. 
     
     Args:
         sum_df: a series of satistical summary. For example poll_df.mean(axis=0)
         city_name: city name for title 
         color_list:a list of color to use. If None, use the 
+        ylim: yaxis range 
         filename(optional): filename to save data
         
     """
     gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
-    gast_list = [g for g in gas_list if g in sum_df.index]
+    gas_list = [g for g in gas_list if g in sum_df.index]
+    sum_df = sum_df.loc[gas_list]
     
     if color_list==None:
         color_list = get_gas_color_list(gas_list)
   
     plt.figure(figsize=(7,4))
-    
     plt.bar(sum_df.index, sum_df, edgecolor='black',color=color_list, width=0.6)
+    plt.ylim(ylim)
     plt.title(f'AQI Fingerprint for {city_name}')
     plt.xlabel('pollutant')
     plt.ylabel('aqi')
+
+    if filename:
+        plt.savefig(filename)
 
 def plot_yearly_ln(dataset, min_year=None, filename=None):
     """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends. 
