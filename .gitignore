@@ -3,6 +3,9 @@
 /reports/*.docx
 /reports/figures
 /reports/chiang_mai
+/reports/bangkok
+/reports/jakarta
+/reports/hanoi
 /reports/*.png
 
 # Byte-compiled / optimized / DLL files
