@@ -15,24 +15,26 @@ def extract_vn_data(browser, wait_time=10):
     """
     
     df = []
-    
-    for i in range(3):
-    
+    xpath_list = ['//*[@id="custom_datatable_1_paginate"]/ul/li[3]/a',
+                 '//*[@id="custom_datatable_1_paginate"]/ul/li[4]/a']
+    for xpath in xpath_list:
+        browser.find_elements_by_xpath(xpath)[0].click()
+        time.sleep(wait_time)
         # find number of pages to click
         page = browser.page_source
         soup = BeautifulSoup(page, features="lxml")
         # read the first table 
         df.append(pd.read_html(str(soup))[3])
-        # click the next page
-        browser.find_elements_by_xpath('//*[@id="custom_datatable_1_next"]/a')[0].click()
-        time.sleep(wait_time)
-        
+         
     # reset the page to the original 
     back_button = browser.find_elements_by_xpath('//*[@id="custom_datatable_1_previous"]/a')[0]
-    back_button.click()
-    time.sleep(5)
-    back_button.click()
-    time.sleep(5)
+    try:
+        back_button.click()
+        time.sleep(5)
+    #    back_button.click()
+    #    time.sleep(5)
+    except:
+        pass
     df = pd.concat(df, ignore_index=True)
     
     # convert the data columns and datetime format
@@ -43,6 +45,7 @@ def extract_vn_data(browser, wait_time=10):
     col = col.replace(replace_dict).iloc[:,0].to_list()
     df.columns = col
     df['datetime'] = pd.to_datetime(df['datetime'])
+    df = df.replace('-', np.nan)
     
     return df.drop_duplicates()
 
@@ -69,7 +72,7 @@ def extract_vn_stations(browser, url= 'http://enviinfo.cem.gov.vn/', wait_time=1
     
     return station_list[1:]
 
-def select_vn_station(browser, station,wait_time=20):
+def select_vn_station(browser, station,wait_time=10):
     """Select the name of the station and wait. 
 
     """
@@ -115,7 +118,7 @@ def download_vn_data(url='http://enviinfo.cem.gov.vn/',save_folder='../data/vn_e
     # prepare filename and turn to absolute path 
     date = datetime.now().strftime('%Y-%m-%d_%H-%M')
     filename = os.path.abspath(f'{save_folder}/{date}.csv')
-    print('save file as ', filename)
+    meta_filename = os.path.abspath(f'{save_folder}/stations_info.json')
 
     # extract stations name 
     station_list =  extract_vn_stations(browser)
@@ -133,8 +136,7 @@ def download_vn_data(url='http://enviinfo.cem.gov.vn/',save_folder='../data/vn_e
     data = []
     station_info_list = []
 
-    for station in station_list:
-        print('working on station', station)
+    for station in tqdm_notebook(station_list):
         # select station 
         select_vn_station(browser, station, wait_time=20)
         city_name = station.split(':')[0]
@@ -150,16 +152,27 @@ def download_vn_data(url='http://enviinfo.cem.gov.vn/',save_folder='../data/vn_e
         df = extract_vn_data(browser, wait_time=10)
         df['city'] = city_name
         df['station'] = station
-        print('station len ', len(df))
+        #print(station, 'has data len ', len(df))
         data.append(df)
 
     station_len = len(df)
-
-    print('the last station has len', station_len )
-
+    #print('the last station has len', station_len )
+    data = pd.concat(data, ignore_index=True)
+    print('the total data has len', len(data) )
+    print('save file as ', filename)
+    data.to_csv(filename, index=False)
     browser.close()
 
+    with open(meta_filename, 'w') as f:
+        json.dump(station_info_list, f)
+
     return data, station_info_list 
+    
+
+if __name__ == '__main__':
+
+    download_vn_data()
+
 
 
 
