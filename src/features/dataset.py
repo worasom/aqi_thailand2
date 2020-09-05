@@ -376,6 +376,9 @@ class Dataset():
 
         if self.city_name=='Hanoi':
             distance = 1200
+
+        #else self.city_name == 'Bangkok':
+        #    distance = 600
         
         # the instrument is either MODIS or VIIRS
         if instr == 'MODIS':
@@ -641,6 +644,8 @@ class Dataset():
             zone_list = [0, 100, 200, 400, 700, 1000]
         elif self.city_name =='Hanoi':
             zone_list = [0, 120, 400, 700, 1200]
+        elif self.city_name == 'Bangkok':
+            zone_list = [0, 100, 200, 400, 600, 800, 1000]
         else:
             zone_list = [0, 100, 200, 400, 800, 1000]
 

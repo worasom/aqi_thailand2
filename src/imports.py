@@ -29,13 +29,12 @@ import wget
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-
 import time
 from datetime import datetime, date, timedelta
 
 
 from bokeh.io import output_file, output_notebook, show, reset_output, export_png, export_png
-from bokeh.models import (
+from bokeh.models import (Span, Div, Label,
     GMapPlot,
     GMapOptions,
     ColumnDataSource,
@@ -55,7 +54,7 @@ from bokeh.models import (
     LinearAxis,
     Legend,
     LegendItem,
-    GeoJSONDataSource)
+    GeoJSONDataSource, FuncTickFormatter)
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.palettes import Viridis5
 from bokeh.plotting import figure, show, output_file

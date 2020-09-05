@@ -1,0 +1,13 @@
+*.gitkeep
+/reports/*.pptx
+/reports/*.docx
+/reports/figures
+/chiang_mai
+/bangkok
+/jakarta
+/hanoi
+*.png
+/ani_plot
+
+*Untitled*
+

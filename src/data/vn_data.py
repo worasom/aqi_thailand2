@@ -141,7 +141,12 @@ def download_vn_data(url='http://enviinfo.cem.gov.vn/', save_folder='../data/vn_
     meta_filename = os.path.abspath(f'{save_folder}stations_info.json')
 
     # extract stations name 
-    station_list =  extract_vn_stations(browser)
+    try:
+        station_list =  extract_vn_stations(browser)
+    except:
+        time.sleep(60)
+        station_list =  extract_vn_stations(browser)
+
     print(f'number of station {len(station_list)}. Takes about 1 mins per station')
 
     city_dict = {'Hà Nội': 'Hanoi',
