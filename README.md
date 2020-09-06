@@ -80,43 +80,50 @@ Sphinx>=1.6.0<br>
 # Data Sources
 
 ## Pollution Data
- - [Thailand Pollution Department](http://air4thai.pcd.go.th/webV2/) Data only go back 2 months! so need to run scapper once a month. Once can also writes a letter to ask for historical data directly. The request took about a month to process. The data has to be parsed from their excel files.  
- - [Vietnamese Pollution Department](http://enviinfo.cem.gov.vn/) Pollution data for major cities such as Hanoi. Data only go back 24 hours, so need to run scapper once a day.
+ - [Thailand Pollution Department](http://air4thai.pcd.go.th/webV2/) Data only go back 2 months! so need to run scapper once a month using `src.data.download_data.update_last_air4Thai()` . Once can also writes a letter to ask for historical data directly. The request took about a month to process. The data has to be parsed from their excel files.  
+ - [Vietnamese Pollution Department](http://enviinfo.cem.gov.vn/) Pollution data for major cities such as Hanoi. Data only go back 24 hours, so need to run scapper once a day. This is done using using `src.data.vn_data.download_vn_data()`
  - [Berkeley project](http://berkeleyearth.org/) provides historical PM2.5 data back until late 2016 
- - [US Embassy](http://dosairnowdata.org/dos/historical/) US embassy in some cities collect PM2.5 data. 
+ - [US Embassy](http://dosairnowdata.org/dos/historical/) US embassy in some cities collect PM2.5 data. Use `src.data.download_data.download_us_emb_data()` to download data. 
+ - [Chiang Mai University Monitoring Stations](https://www.cmuccdc.org/) provides data from the University monitoring stations in the northern part of Thailand. Use `src.data.download_data..download_cdc_data()` to download this data.  
  - [The World Air
 Quality Project](https://aqicn.org/) has pollutions data from many cities, but only provide daily average data  
 
 ## Weather Data 
 
+Weather data is from two sources. 
+
+- [OpenWeathermap](https://openweathermap.org/history) provides a bulk historial data to purchase 
+- Additional weather data is constantly scraped from [Weather Underground)(https://www.wunderground.com/)
+
+
 ## Hotspot Data 
+
+Satellite data showing location of burning activities(hotspots) from NASA https://firms.modaps.eosdis.nasa.gov/download/. There are three data product. This study uses MODIS Collection 6 data because of the data available for a longer period that other products.
 
 # AQI Convention
 
-Countries have different AQI standards. The figure belows compare US and Thailand AQI. The standards are comparable except for SO$_2$, where the US has stricker standard. 
+Countries have different standards, which convert the raw polution readings into air quality index(AQI) and interpret the harmful levels. The maximum AQIs for each pollutants (PM2.5, Pm10, SO2 etc) is reported at a single AQI. The figure belows compare US and Thailand AQI. The standards are comparable except for SO$_2$, where the US has a stricker standard. This study use US AQI conversion standard for calculating AQI for different pollutants. For example, in the PM2.5 case 
+- 0 - 50 AQI is in a healthy range. This corresponds to PM2.5 level between 0 - 12 $\mu g/m^3$ (green). 
+- 50 - 100 AQI is a moderate range, corresponding to PM2.5 12- 35.4  $\mu g/m^3$ (orange)
+- 100 - 150 AQI is a unhealthy for sensitive group, corresponding to PM2.5 35.5- 55.4  $\mu g/m^3$ (red)
+- 150 - 200 AQI is a unhealthy range, corresponding to PM2.5 55.5- 150.4  $\mu g/m^3$ (red)
+
+For simplicity, the color code in this study groups the  100 - 150 and 150 - 200 as unhealthy range(red). 
 
 
 ```python
 #  Load the "autoreload" extension so that code can change
-%load_ext autoreload
 %reload_ext autoreload
 %autoreload 2
 import src
 ```
-
-    The autoreload extension is already loaded. To reload it, use:
-      %reload_ext autoreload
-    
 
 
 ```python
 src.visualization.vis_data.compare_aqis(filename='../reports/chiang_mai/aqi.png')
 ```
 
-
 ![png](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/aqi.png)
-
-
 
 
 ```python
