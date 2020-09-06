@@ -1001,10 +1001,142 @@ def compare_us_thai_aqi():
     labels = [item.get_text() for item in ax[0].get_yticklabels()]
     labels[1] = 'Thai AQI'
     labels[2] = 'US AQI'
-    #labels[3] = 'My Level'
+    
 
     for a in ax:
         a.set_ylim([-1, 2])
         a.set_yticklabels(labels)
 
     plt.tight_layout()
+
+
+
+def compare_aqis(filename=None):
+    """Plot the different between US and Thailand aqi conversion and convention in this project.
+
+    """
+    plt.rcParams.update({'font.size': 14})
+    _, ax = plt.subplots(2, 1, figsize=(12, 7))
+
+    ax[0].set_title('PM2.5(24hr avg) AQI converstion')
+    # Thailand
+    ax[0].plot(np.arange(0, 25), np.zeros(len(np.arange(0, 25))),
+               c='royalblue', marker='_', lw=18, label='very good')
+
+    # us
+    ax[0].plot(np.arange(0, 12), np.ones(len(np.arange(0, 12))),
+               c='green', marker='_', lw=18, label='good/satisfactory')
+    ax[0].plot(np.arange(12, 35.5), np.ones(len(np.arange(12, 35.5))),
+               c='yellow', marker='_', lw=18, label='moderate')
+    ax[0].plot(np.arange(35.5, 55.5), np.ones(len(np.arange(35.5, 55.5))),
+               c='orange', marker='_', lw=18, label='unhealthy for \n sensitive group')
+    ax[0].plot(np.arange(55.5, 180.5), np.ones(len(np.arange(55.5, 180.5))),
+               c='red', marker='_', lw=18, label='unhealthy')
+    ax[0].plot(np.arange(180.5, 200.0), np.ones(len(np.arange(180.5, 200))),
+               c='purple', marker='_', lw=18, label='very unhealthy')
+
+    # the rest of Thailand
+    ax[0].plot(np.arange(25, 37), np.zeros(
+        len(np.arange(25, 37))), c='green', marker='_', lw=18)
+    ax[0].plot(np.arange(37, 50), np.zeros(len(np.arange(37, 50))),
+               c='yellow', marker='_', lw=18)
+    ax[0].plot(np.arange(50, 91), np.zeros(len(np.arange(50, 91))),
+               c='orange', marker='_', lw=18)
+    ax[0].plot(np.arange(91, 200), np.zeros(
+        len(np.arange(91, 200))), c='red', marker='_', lw=18)
+    ax[0].set_xlabel(r'$\mu$g/m$^3$')
+
+    # simplified system
+    ax[0].plot(np.arange(0, 12), np.ones(len(np.arange(0, 12)))+1,
+               c='green', marker='_', lw=18 )
+    ax[0].plot(np.arange(12, 35.5), np.ones(len(np.arange(12, 35.5)))+1,
+               c='orange', marker='_', lw=18 )
+    ax[0].plot(np.arange(35.5, 55.5), np.ones(len(np.arange(35.5, 55.5)))+1,
+               c='red', marker='_', lw=18)
+    ax[0].plot(np.arange(55.5, 180.5), np.ones(len(np.arange(55.5, 180.5)))+1,
+               c='red', marker='_', lw=18 )
+    ax[0].plot(np.arange(180.5, 200.0), np.ones(len(np.arange(180.5, 200)))+1,
+               c='purple', marker='_', lw=18)
+
+    # --AQI label--(TH)
+    ax[0].text(13, -0.2, '25')
+    ax[0].text(26, -0.2, '50')
+    ax[0].text(35, -0.2, '100')
+    ax[0].text(75, -0.2, '200')
+    # ax[0].text(190,-0.2,'310')
+
+    # --AQI label--(US)
+    ax[0].text(0, 0.8, '50')
+    ax[0].text(22, 0.8, '100')
+    ax[0].text(40, 0.8, '150')
+    ax[0].text(165, 0.8, '200')
+    # ax[0].text(192,0.8,'300')
+
+    #  -----------------------SO2---------------------------
+
+    ax[1].set_title('SO$_2$(1hr avg) AQI converstion')
+
+    ax[1].plot(np.arange(0, 35), np.ones(len(np.arange(0, 35))),
+               c='green', marker='_', lw=18, label='good/satisfactory')
+    ax[1].plot(np.arange(35, 75), np.ones(len(np.arange(35, 75))),
+               c='yellow', marker='_', lw=18, label='moderate')
+    ax[1].plot(np.arange(75, 185), np.ones(len(np.arange(75, 185))),
+               c='orange', marker='_', lw=18, label='unhealthy for \n sensitive group')
+    ax[1].plot(np.arange(185, 304), np.ones(len(np.arange(185, 304))),
+               c='red', marker='_', lw=18, label='unhealthy')
+    ax[1].plot(np.arange(304, 604), np.ones(len(np.arange(304, 604))),
+               c='purple', marker='_', lw=18, label='very unhealthy')
+
+    ax[1].plot(np.arange(0, 100), np.zeros(len(np.arange(0, 100))),
+               c='royalblue', marker='_', lw=18, label='very good')
+    ax[1].plot(np.arange(100, 200), np.zeros(
+        len(np.arange(100, 200))), c='green', marker='_', lw=18)
+    ax[1].plot(np.arange(200, 300), np.zeros(len(np.arange(200, 300))),
+               c='yellow', marker='_', lw=18)
+    ax[1].plot(np.arange(300, 400), np.zeros(len(np.arange(300, 400))),
+               c='orange', marker='_', lw=18)
+    ax[1].plot(np.arange(400, 604), np.zeros(
+        len(np.arange(400, 604))), c='red', marker='_', lw=18)
+    ax[1].set_xlabel('ppb')
+
+
+
+    ax[1].plot(np.arange(0, 35), np.ones(len(np.arange(0, 35)))+1,
+               c='green', marker='_', lw=18 )
+    ax[1].plot(np.arange(35, 75), np.ones(len(np.arange(35, 75)))+1,
+               c='orange', marker='_', lw=18 )
+    ax[1].plot(np.arange(75, 185), np.ones(len(np.arange(75, 185)))+1,
+               c='red', marker='_', lw=18 )
+    ax[1].plot(np.arange(185, 304), np.ones(len(np.arange(185, 304)))+1,
+               c='red', marker='_', lw=18 )
+    ax[1].plot(np.arange(304, 604), np.ones(len(np.arange(304, 604)))+1,
+               c='purple', marker='_', lw=18 )
+
+    # --AQI label--(TH)
+    ax[1].text(65, -0.2, '25')
+    ax[1].text(165, -0.2, '50')
+    ax[1].text(255, -0.2, '100')
+    ax[1].text(352, -0.2, '200')
+    # ax[0].text(400,-0.2,'323')
+
+    # --AQI label--(US)
+    ax[1].text(5, 0.8, '50')
+    ax[1].text(29, 0.8, '100')
+    ax[1].text(142, 0.8, '150')
+    ax[1].text(257, 0.8, '200')
+
+    ax[0].legend(bbox_to_anchor=(1.05, 1.05), frameon=False)
+
+    labels = [item.get_text() for item in ax[0].get_yticklabels()]
+    labels[1] = 'Thai AQI'
+    labels[2] = 'US AQI'
+    labels[3] = 'Simplified'
+
+    for a in ax:
+        a.set_ylim([-1, 3])
+        a.set_yticklabels(labels)
+
+    plt.tight_layout()
+
+    if filename:
+        plt.savefig(filename)
