@@ -33,7 +33,7 @@ import time
 from datetime import datetime, date, timedelta
 
 
-from bokeh.io import output_file, output_notebook, show, reset_output, export_png, export_png
+from bokeh.io import output_file, output_notebook, show, reset_output, export_png 
 from bokeh.models import (Span, Div, Label,
     GMapPlot,
     GMapOptions,
@@ -56,6 +56,7 @@ from bokeh.models import (Span, Div, Label,
     LegendItem,
     GeoJSONDataSource, FuncTickFormatter)
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
+from bokeh.models.tickers import FixedTicker
 from bokeh.palettes import Viridis5
 from bokeh.plotting import figure, show, output_file
 from bokeh.layouts import widgetbox, row, column, gridplot
