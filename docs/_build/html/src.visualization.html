@@ -1,0 +1,464 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.visualization package &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="src.models package" href="src.models.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="src-visualization-package">
+<h1>src.visualization package<a class="headerlink" href="#src-visualization-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src.visualization.vis_data">
+<span id="src-visualization-vis-data-module"></span><h2>src.visualization.vis_data module<a class="headerlink" href="#module-src.visualization.vis_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.visualization.vis_data.add_ln_trend_line">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">add_ln_trend_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">series</span></em>, <em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'royalblue'</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">linestyle</span><span class="o">=</span><span class="default_value">'dashed'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#add_ln_trend_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.add_ln_trend_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit linear line between the index of df and the data and add linear trend line to the plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> – series to lienar fit</p></li>
+<li><p><strong>ax</strong> – plt axis object</p></li>
+<li><p><strong>color</strong> – color of the line</p></li>
+<li><p><strong>linewidth</strong> – width of the line</p></li>
+<li><p><strong>linestyle</strong> – linestyle</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: np.array, np.array</dt><dd><p>numpy array of the linear trend line x and y</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.cal_sea_yr">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">cal_sea_yr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">start_month</span><span class="o">=</span><span class="default_value">'-12-01'</span></em>, <em class="sig-param"><span class="n">end_month</span><span class="o">=</span><span class="default_value">'-04-30'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#cal_sea_yr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.cal_sea_yr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the season year average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – data to calculate the season average. Must have datetime index</p></li>
+<li><p><strong>agg</strong> – aggeration method (ex ‘mean’)</p></li>
+<li><p><strong>start_month</strong> – starting month of the season</p></li>
+<li><p><strong>end_month</strong> – ending month of the season</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: pd.DataFrame</dt><dd><p>season yearly average</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.compare_seson_avg">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">compare_seson_avg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">poll</span><span class="o">=</span><span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">wea_col</span><span class="o">=</span><span class="default_value">['Temperature(C)', 'Wind Speed(kmph)']</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#compare_seson_avg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.compare_seson_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare seasonal pattern of pollution data, fire and weather pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>poll</strong> (<em>optional</em>) – pollutant name</p></li>
+<li><p><strong>wea_col</strong> (<em>optional</em>) – a list of weather columns For example</p></li>
+<li><p><strong>agg</strong> (<em>optional</em>) – aggegration method for pollution</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – filename to save data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.compare_us_thai_aqi">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">compare_us_thai_aqi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#compare_us_thai_aqi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.compare_us_thai_aqi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the different between US and Thailand aqi conversion.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.display_time_split">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">display_time_split</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#display_time_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.display_time_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display how the time series data is split.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>index_list</strong> – a list of index in each split</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_all_pollutions">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_all_pollutions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">city_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">transition_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color_labels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">level_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_all_pollutions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_all_pollutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all pollutant data over time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – </p></li>
+<li><p><strong>city_name</strong> – </p></li>
+<li><p><strong>filename=None</strong> – </p></li>
+<li><p><strong>transition_dict=None</strong> – </p></li>
+<li><p><strong>color_labels=None</strong> – </p></li>
+<li><p><strong>level_name=None</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_chem_print">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_chem_print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sum_df</span></em>, <em class="sig-param"><span class="n">city_name</span></em>, <em class="sig-param"><span class="n">color_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ylim</span><span class="o">=</span><span class="default_value">[0, 90]</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_chem_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_chem_print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bar plot the average (or max) AQI of each gas to show the AQI Fingerprint of that city.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sum_df</strong> – a series of satistical summary. For example poll_df.mean(axis=0)</p></li>
+<li><p><strong>city_name</strong> – city name for title</p></li>
+<li><p><strong>color_list</strong> – a list of color to use. If None, use the</p></li>
+<li><p><strong>ylim</strong> – yaxis range</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – filename to save data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_corr">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_corr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">cor_method</span><span class="o">=</span><span class="default_value">'spearman'</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="o">=</span><span class="default_value">8, 6</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_corr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_corr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the correlation between different pollutants</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – </p></li>
+<li><p><strong>core_method</strong> – </p></li>
+<li><p><strong>filename</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_dendogram">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_dendogram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em>, <em class="sig-param"><span class="n">cols</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">front_size</span><span class="o">=</span><span class="default_value">16</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_dendogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_dendogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot hierarchical relationship between features in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – dataframe from dataset.data</p></li>
+<li><p><strong>cols</strong> (<em>optional</em>) – columns to use for making the dendogram. If None, use the columns of the data dataFrame</p></li>
+<li><p><strong>front_size</strong> (<em>optional</em>) – plot front size [default:None]</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – if not None, save plot as filename[default:None]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_hour_avg">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_hour_avg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">col</span></em>, <em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_hour_avg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_hour_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot average hourly behavior. Must have datetime index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – dataframe containing the column to plot</p></li>
+<li><p><strong>col</strong> – name of the columns to plot</p></li>
+<li><p><strong>ax</strong> – axis to plot the data on</p></li>
+<li><p><strong>color</strong> (<em>optional</em>) – color of the plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_polls_aqi">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_polls_aqi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">roll_dict</span></em>, <em class="sig-param"><span class="n">city_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color_labels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">level_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_polls_aqi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_polls_aqi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all pollutant data over time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – </p></li>
+<li><p><strong>rolling_dict</strong> – </p></li>
+<li><p><strong>city_name</strong> – </p></li>
+<li><p><strong>filename=None</strong> – </p></li>
+<li><p><strong>transition_dict=None</strong> – </p></li>
+<li><p><strong>color_labels=None</strong> – </p></li>
+<li><p><strong>level_name=None</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_season_aqi">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_season_aqi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">roll_dict</span></em>, <em class="sig-param"><span class="n">pollutant</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">aqi_line</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_season_aqi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_season_aqi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot average seasonal AQI value of a pollutant, and identify the high months.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – raw pollution data</p></li>
+<li><p><strong>roll_dict</strong> – rolling dictionary</p></li>
+<li><p><strong>pollutant</strong> – pollutant value</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – filename to save</p></li>
+<li><p><strong>aqi_line</strong> (<em>optional</em>) – if True, show horizontal aqi line</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_season_avg">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_season_avg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">pollutant</span></em>, <em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">plot_error</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">roll</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'max'</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'blue'</span></em>, <em class="sig-param"><span class="n">linestyle</span><span class="o">=</span><span class="default_value">'solid'</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_season_avg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_season_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the average by date of year. Good for looking seasonal pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – dataframe for plotting the data. Must have datetime index</p></li>
+<li><p><strong>pollutant</strong> – columns to plot</p></li>
+<li><p><strong>ax</strong> – axis object to plot</p></li>
+<li><p><strong>plot_error</strong> – if True, use sns.lineplot to show the error</p></li>
+<li><p><strong>roll</strong> – if True, calculate the rolling average or use daily average</p></li>
+<li><p><strong>agg</strong> – either ‘max’ or ‘mean’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.plot_yearly_ln">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">plot_yearly_ln</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">min_year</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#plot_yearly_ln"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.plot_yearly_ln" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object with all data</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – filename to save data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_data.poll_to_aqi">
+<code class="sig-prename descclassname">src.visualization.vis_data.</code><code class="sig-name descname">poll_to_aqi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">roll_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_data.html#poll_to_aqi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_data.poll_to_aqi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert concentration pollution dataframe to aqi dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – pollution data</p></li>
+<li><p><strong>rolling_dict</strong> – rolling information for each pollutant</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: aqi dataframe</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.visualization.vis_model">
+<span id="src-visualization-vis-model-module"></span><h2>src.visualization.vis_model module<a class="headerlink" href="#module-src.visualization.vis_model" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.visualization.vis_model.plot_infer_season">
+<code class="sig-prename descclassname">src.visualization.vis_model.</code><code class="sig-name descname">plot_infer_season</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_df</span></em>, <em class="sig-param"><span class="n">pollutant</span></em>, <em class="sig-param"><span class="n">sea_pred</span></em>, <em class="sig-param"><span class="n">color_zip</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_model.html#plot_infer_season"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_model.plot_infer_season" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the actual and inference predicted data in seasonal format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poll_df</strong> – pollution data</p></li>
+<li><p><strong>pollutant</strong> – pollutant to plot</p></li>
+<li><p><strong>sea_pred</strong> – inference data</p></li>
+<li><p><strong>color_zip</strong> – color and level indicating the AQI</p></li>
+<li><p><strong>filename</strong> – save filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_model.plot_model_perf">
+<code class="sig-prename descclassname">src.visualization.vis_model.</code><code class="sig-name descname">plot_model_perf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">split_list</span><span class="o">=</span><span class="default_value">[0.7, 0.3]</span></em>, <em class="sig-param"><span class="n">xlim</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">to_save</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_model.html#plot_model_perf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_model.plot_model_perf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot model performance over training and test data.
+- plot actual againt prediction for train and test set
+- take the daily average and plot actual again prediction for training and test set
+- return error of the training and test set as dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>model</strong> – fitted model</p></li>
+<li><p><strong>split_list</strong> (<em>optional</em>) – train/test spliting ratio[default:[0.7,0.3]]</p></li>
+<li><p><strong>xlim</strong> (<em>optional</em>) – if passed, use these value for xlim</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – if not None, save the figure using the filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>actual, prediction of the training set (no averaging)
+test_pred_df: actual, prediction of the test set (no averaging)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>trn_pred_df</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_model.plot_sea_error">
+<code class="sig-prename descclassname">src.visualization.vis_model.</code><code class="sig-name descname">plot_sea_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trn_error</span></em>, <em class="sig-param"><span class="n">sea_error</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_model.html#plot_sea_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_model.plot_sea_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plase seasonal error the training data and the average value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trn_error</strong> – raw training error</p></li>
+<li><p><strong>sea_error</strong> – seasonal error used in the inference</p></li>
+<li><p><strong>filename</strong> – save filename</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_model.plt_infer_actual">
+<code class="sig-prename descclassname">src.visualization.vis_model.</code><code class="sig-name descname">plt_infer_actual</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ytest_pred_df_avg</span></em>, <em class="sig-param"><span class="n">band_df</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_model.html#plt_infer_actual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_model.plt_infer_actual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the actual and inference predicted data in timeseries format.
+:param ytest_pred_df_avg: actual data to plot
+:param band_df: inference data to plot with different quantiles
+:param filename: save filename</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.visualization.vis_model.show_fea_imp">
+<code class="sig-prename descclassname">src.visualization.vis_model.</code><code class="sig-name descname">show_fea_imp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fea_imp</span></em>, <em class="sig-param"><span class="n">x_log</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/visualization/vis_model.html#show_fea_imp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.visualization.vis_model.show_fea_imp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display feature of importance in a bar plot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imp_df</strong> – important dataframe</p></li>
+<li><p><strong>x_log</strong> – if True, plot x axis in a long scale</p></li>
+<li><p><strong>filename</strong> – filename to save figure as</p></li>
+<li><p><strong>title</strong> – figure title</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.visualization">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.visualization" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="src.html">src package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="src.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="src.data.html">src.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.features.html">src.features package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html">src.models package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">src.visualization package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.visualization.vis_data">src.visualization.vis_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.visualization.vis_model">src.visualization.vis_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.visualization">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.gen_functions">src.gen_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.imports">src.imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="src.html">src package</a><ul>
+      <li>Previous: <a href="src.models.html" title="previous chapter">src.models package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/src.visualization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

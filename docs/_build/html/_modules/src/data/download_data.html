@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.data.download_data &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.data.download_data</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.weather_data</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.support.select</span> <span class="kn">import</span> <span class="n">Select</span>
+
+
+<span class="sd">&quot;&quot;&quot;Functions for downloading Berkeley Data, air4thai data.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="download_b_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.download_b_data">[docs]</a><span class="k">def</span> <span class="nf">download_b_data</span><span class="p">(</span>
+        <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/pm25/&#39;</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download all files from the Berkeley Earth directory in url to data_folder.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;download Berkeley PM2.5 data for all files in&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="c1"># create a soup object of Berkeley earth website</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+    <span class="c1"># find all provinces in this database</span>
+    <span class="n">provinces</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">href</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_folder</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;no data folder </span><span class="si">{data_folder}</span><span class="s1">&#39;</span>
+    <span class="k">for</span> <span class="n">province</span> <span class="ow">in</span> <span class="n">provinces</span><span class="p">:</span>
+        <span class="n">grab_url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="n">province</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+        <span class="n">download_province_data</span><span class="p">(</span><span class="n">grab_url</span><span class="p">,</span> <span class="n">data_folder</span><span class="o">=</span><span class="n">data_folder</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_province_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.download_province_data">[docs]</a><span class="k">def</span> <span class="nf">download_province_data</span><span class="p">(</span><span class="n">grab_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download a province data.</span>
+
+<span class="sd">    Remove existing file before download.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prov_r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">grab_url</span><span class="p">)</span>
+    <span class="n">prov_s</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">prov_r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">prov_s</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">href</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">)):</span>
+        <span class="c1"># build province url</span>
+        <span class="n">data_url</span> <span class="o">=</span> <span class="n">grab_url</span> <span class="o">+</span> <span class="n">tag</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">data_folder</span> <span class="o">+</span> <span class="n">tag</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+        <span class="c1"># remove existing file if exist</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c1"># download the data</span>
+        <span class="n">wget</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">data_url</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_city_info"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.get_city_info">[docs]</a><span class="k">def</span> <span class="nf">get_city_info</span><span class="p">(</span><span class="n">data_folder</span><span class="o">=</span><span class="s1">&#39;../data/pm25/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtain city information from .txt files in Berkeley data, and save as json.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># find all .txt file</span>
+    <span class="n">txt_files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;*.txt&#39;</span><span class="p">)</span>
+    <span class="n">cities_info</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">txt_files</span><span class="p">:</span>
+        <span class="c1"># inspecting the top of the files</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">city_info</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="c1"># remove %</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;% &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+                <span class="n">city_info</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+        <span class="n">cities_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">city_info</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;cities_info.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">cities_info</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_last_air4Thai"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.update_last_air4Thai">[docs]</a><span class="k">def</span> <span class="nf">update_last_air4Thai</span><span class="p">(</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;http://air4thai.pcd.go.th/webV2/history/&#39;</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/air4thai_hourly/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Scrape new air4Thai data.</span>
+
+<span class="sd">    Append new data to an exsiting file. Create a new file if the file does not exist.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;download more pollution data from Thailand PCD&#39;</span><span class="p">)</span>
+    <span class="c1"># use Firefox to open the website</span>
+    <span class="n">browser</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Firefox</span><span class="p">()</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># find all station names and parameters from the webpage</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">page_source</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+
+    <span class="c1"># extract statopm name and selector</span>
+    <span class="n">sta_selector_list</span><span class="p">,</span> <span class="n">station_name_list</span> <span class="o">=</span> <span class="n">extract_stations</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+    <span class="c1"># extract pollution parameters</span>
+    <span class="n">para_selector_list</span><span class="p">,</span> <span class="n">para_name_list</span> <span class="o">=</span> <span class="n">extract_parameters</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sta_selector_list</span><span class="p">)</span>
+    <span class="c1"># print(para_selector_list)</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_folder</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;no data folder </span><span class="si">{data_folder}</span><span class="s1">&#39;</span>
+
+    <span class="k">for</span> <span class="n">sta_id</span><span class="p">,</span> <span class="n">sta_name</span> <span class="ow">in</span> <span class="n">tqdm_notebook</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">sta_selector_list</span><span class="p">,</span> <span class="n">station_name_list</span><span class="p">)):</span>
+        <span class="n">get_station_data_save</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span>
+            <span class="n">browser</span><span class="p">,</span>
+            <span class="n">sta_id</span><span class="p">,</span>
+            <span class="n">sta_name</span><span class="p">,</span>
+            <span class="n">para_selector_list</span><span class="p">,</span>
+            <span class="n">data_folder</span><span class="p">)</span>
+
+    <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_station_data_save"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.get_station_data_save">[docs]</a><span class="k">def</span> <span class="nf">get_station_data_save</span><span class="p">(</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">browser</span><span class="p">,</span>
+        <span class="n">sta_id</span><span class="p">,</span>
+        <span class="n">sta_name</span><span class="p">,</span>
+        <span class="n">para_selector_list</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Display the data in para_selector_list for the corresponding station id (sta_id).</span>
+<span class="sd">    #. Parse the data into the dataframe and save in the data_folder</span>
+<span class="sd">    #. add datetime columns</span>
+<span class="sd">    #. load existing file and get the last time stamp</span>
+<span class="sd">    #. keep the data from the last timestamp</span>
+<span class="sd">    #. save by appending to the old file</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># display the data on the webpage</span>
+    <span class="n">select_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">sta_id</span><span class="p">,</span> <span class="n">para_selector_list</span><span class="p">,</span> <span class="n">wait_time</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="c1"># parse data into dataframe</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">extract_data</span><span class="p">(</span><span class="n">browser</span><span class="p">)</span>
+    <span class="c1"># add station id and station name</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;station_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sta_id</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;station_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sta_name</span>
+
+    <span class="c1"># add datetime columns</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">make_datetime</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">data_folder</span> <span class="o">+</span> <span class="n">sta_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+    <span class="c1"># check the last time from exisiting file if exists</span>
+    <span class="n">last_time</span> <span class="o">=</span> <span class="n">get_last_datetime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="c1"># keep only the data after the timestamp</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">last_time</span><span class="p">]</span>
+
+    <span class="c1"># save the data</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="c1"># file already exists, append the data</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># file does not exist, create the file</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;create new&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_stations"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.extract_stations">[docs]</a><span class="k">def</span> <span class="nf">extract_stations</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Extract station selector and station name</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">station_list_html</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;station_name&#39;</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">station_children</span> <span class="o">=</span> <span class="n">station_list_html</span><span class="o">.</span><span class="n">findChildren</span><span class="p">(</span>
+        <span class="s1">&#39;option&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">station_selector_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">station_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">station_child</span> <span class="ow">in</span> <span class="n">station_children</span><span class="p">:</span>
+        <span class="n">station_selector_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station_child</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="n">station_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">station_child</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">station_selector_list</span><span class="p">,</span> <span class="n">station_name_list</span></div>
+
+
+<div class="viewcode-block" id="extract_parameters"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.extract_parameters">[docs]</a><span class="k">def</span> <span class="nf">extract_parameters</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find all pollutant choices and their selectors</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">para_list_html</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;parameter_name&#39;</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">para_children</span> <span class="o">=</span> <span class="n">para_list_html</span><span class="o">.</span><span class="n">findChildren</span><span class="p">(</span><span class="s1">&#39;option&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">para_selector_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">para_name_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">para_children</span><span class="p">:</span>
+        <span class="n">para_selector_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="n">para_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">para_selector_list</span><span class="p">,</span> <span class="n">para_name_list</span></div>
+
+
+<div class="viewcode-block" id="select_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.select_data">[docs]</a><span class="k">def</span> <span class="nf">select_data</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">sta_id</span><span class="p">,</span> <span class="n">para_selector_list</span><span class="p">,</span> <span class="n">wait_time</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Select station_name (sta_id) and all parameters in para_selector_list on the webpage and display it. And wait for wait_time.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># select station id</span>
+    <span class="n">browser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
+    <span class="n">station</span> <span class="o">=</span> <span class="n">Select</span><span class="p">(</span><span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_css_selector</span><span class="p">(</span>
+        <span class="s1">&#39;select[id=&quot;station_name&quot;]&#39;</span><span class="p">))</span>
+    <span class="n">station</span><span class="o">.</span><span class="n">select_by_value</span><span class="p">(</span><span class="n">sta_id</span><span class="p">)</span>
+    <span class="c1"># select station id</span>
+
+    <span class="n">parameter</span> <span class="o">=</span> <span class="n">Select</span><span class="p">(</span><span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_css_selector</span><span class="p">(</span>
+        <span class="s1">&#39;select[id=&quot;parameter_name&quot;]&#39;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">para_name</span> <span class="ow">in</span> <span class="n">para_selector_list</span><span class="p">:</span>
+        <span class="n">parameter</span><span class="o">.</span><span class="n">select_by_value</span><span class="p">(</span><span class="n">para_name</span><span class="p">)</span>
+
+    <span class="c1"># click to display data</span>
+    <span class="n">button</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s1">&#39;table_bt&#39;</span><span class="p">)</span>
+    <span class="n">button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.extract_data">[docs]</a><span class="k">def</span> <span class="nf">extract_data</span><span class="p">(</span><span class="n">browser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Click all the link on the selenium browser object.</span>
+<span class="sd">    Parse the html table to panda dataframe. concatentate all the dataframe in each page.</span>
+<span class="sd">    Return dataframe of all the data for that station</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># find number of pages to click</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">page_source</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+    <span class="n">num_click_nodes</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;aria-controls&#39;</span><span class="p">:</span> <span class="s2">&quot;table1&quot;</span><span class="p">})[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">num_click</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_click_nodes</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+
+    <span class="n">data_all</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_click</span><span class="p">):</span>
+        <span class="c1"># extract table from page</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">page_source</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">soup</span><span class="p">))[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;No.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># append to the data</span>
+        <span class="n">data_all</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data_all</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+        <span class="c1"># click the next page except for the last page</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_click</span><span class="p">:</span>
+            <span class="n">next_button_head</span> <span class="o">=</span> <span class="n">browser</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s1">&#39;table1_next&#39;</span><span class="p">)</span>
+            <span class="n">next_button</span> <span class="o">=</span> <span class="n">next_button_head</span><span class="o">.</span><span class="n">find_elements_by_css_selector</span><span class="p">(</span>
+                <span class="s2">&quot;*&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">next_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">data_all</span></div>
+
+
+<div class="viewcode-block" id="make_datetime"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.make_datetime">[docs]</a><span class="k">def</span> <span class="nf">make_datetime</span><span class="p">(</span><span class="n">stat_df</span><span class="p">):</span>
+    <span class="c1"># create datetime columns from df scraped from website</span>
+
+    <span class="c1"># replace thai date time name with english</span>
+    <span class="n">stat_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">stat_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;วันที่&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">)</span>
+    <span class="n">stat_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">stat_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;ช่วงเวลา&#39;</span><span class="p">,</span> <span class="s1">&#39;time_range&#39;</span><span class="p">)</span>
+
+    <span class="c1"># split data</span>
+    <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;startTime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;time_range&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;startTime&#39;</span><span class="p">]</span>
+    <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="n">stat_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M &#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stat_df</span></div>
+
+
+<div class="viewcode-block" id="get_last_datetime"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.get_last_datetime">[docs]</a><span class="k">def</span> <span class="nf">get_last_datetime</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
+    <span class="c1"># load file in chunk of chunksize, retrun the last datetime value in datetime format</span>
+    <span class="c1"># if the filename does not exist return old time</span>
+    <span class="c1"># load file in chunk to minimize memory use</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+
+        <span class="n">last_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">):</span>
+            <span class="n">last_time</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">last_time</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">last_time</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">last_time</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s1">&#39;1800-01-01 00:00:00&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">last_time</span></div>
+
+
+<div class="viewcode-block" id="download_cdc_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.download_cdc_data">[docs]</a><span class="k">def</span> <span class="nf">download_cdc_data</span><span class="p">(</span>
+        <span class="n">station_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://www.cmuccdc.org/api/ccdc/stations&#39;</span><span class="p">,</span>
+        <span class="n">dl_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;https://www.cmuccdc.org/download_json/&#39;</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/cdc_data/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download cdc data and stations info.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;download data from Chiang Mai University Project (CDC)&#39;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># obtain station info from the API, if possible</span>
+        <span class="n">station_info_list</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">station_url</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;number of stations&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_info_list</span><span class="p">))</span>
+        <span class="c1"># save station info json</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;station_info.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">station_info_list</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;station_info.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">station_info_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># download data for all station</span>
+    <span class="k">for</span> <span class="n">station_dict</span> <span class="ow">in</span> <span class="n">tqdm_notebook</span><span class="p">(</span><span class="n">station_info_list</span><span class="p">):</span>
+
+        <span class="n">station_id</span> <span class="o">=</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;dustboy_id&#39;</span><span class="p">]</span>
+        <span class="c1"># download the data</span>
+        <span class="n">download_url</span> <span class="o">=</span> <span class="n">dl_url</span> <span class="o">+</span> <span class="n">station_id</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data_json</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">)</span>
+            <span class="c1"># extract the json part</span>
+            <span class="n">data_dict</span> <span class="o">=</span> <span class="n">data_json</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># print(station_id)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># parse to panda dataframe</span>
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">data_folder</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+            <span class="n">data_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="download_us_emb_data"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.download_us_emb_data">[docs]</a><span class="k">def</span> <span class="nf">download_us_emb_data</span><span class="p">(</span>
+        <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/us_emb/&#39;</span><span class="p">,</span>
+        <span class="n">year</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Download pollution data taken at the US Embabby in Hanoi and Jakata</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">year</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
+
+    <span class="n">city_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Hanoi&#39;</span><span class="p">,</span> <span class="s1">&#39;JakartaSouth&#39;</span><span class="p">,</span> <span class="s1">&#39;JakartaCentral&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Download us embassy data for Hanoi and Jakata for </span><span class="si">{year}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">city</span> <span class="ow">in</span> <span class="n">city_list</span><span class="p">:</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{data_folder}{city}</span><span class="s1">_PM2.5_</span><span class="si">{year}</span><span class="s1">_YTD.csv&#39;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;http://dosairnowdata.org/dos/historical/</span><span class="si">{city}</span><span class="s1">/</span><span class="si">{year}</span><span class="s1">/</span><span class="si">{city}</span><span class="s1">_PM2.5_</span><span class="si">{year}</span><span class="s1">_YTD.csv&#39;</span>
+        <span class="n">wget</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../src.data.html#src.data.download_data.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span>
+        <span class="n">main_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/&#39;</span><span class="p">,</span>
+        <span class="n">cdc_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">build_json</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        main_folder: main data_folder</span>
+<span class="sd">        build_json: if True also build city information</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># gather all data for Thailand</span>
+    <span class="n">download_b_data</span><span class="p">(</span>
+        <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">pm25/&#39;</span><span class="p">,</span>
+        <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Download Data for Hanoi, Ha dong and Jakarta&#39;</span><span class="p">)</span>
+    <span class="n">download_province_data</span><span class="p">(</span>
+        <span class="n">grab_url</span><span class="o">=</span><span class="s1">&#39;http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/&#39;</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">pm25/&#39;</span><span class="p">)</span>
+    <span class="n">download_province_data</span><span class="p">(</span>
+        <span class="n">grab_url</span><span class="o">=</span><span class="s1">&#39;http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/&#39;</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">pm25/&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">build_json</span><span class="p">:</span>
+        <span class="c1"># Build City info json for Berkeley Data</span>
+        <span class="n">get_city_info</span><span class="p">(</span><span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">pm25/&#39;</span><span class="p">)</span>
+        <span class="c1"># Load Air4 Thai station info</span>
+        <span class="n">station_info</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s1">&#39;http://air4thai.pcd.go.th/services/getNewAQI_JSON.php&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">station_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">station_info</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">/aqm_hourly2/stations_locations.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">station_info</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="n">download_us_emb_data</span><span class="p">(</span><span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">us_emb/&#39;</span><span class="p">)</span>
+
+    <span class="n">update_last_air4Thai</span><span class="p">(</span>
+        <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://air4thai.pcd.go.th/webV2/history/&#39;</span><span class="p">,</span>
+        <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">air4thai_hourly/&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cdc_data</span><span class="p">:</span>
+        <span class="n">download_cdc_data</span><span class="p">(</span>
+            <span class="n">station_url</span><span class="o">=</span><span class="s1">&#39;https://www.cmuccdc.org/api/ccdc/stations&#39;</span><span class="p">,</span>
+            <span class="n">dl_url</span><span class="o">=</span><span class="s1">&#39;https://www.cmuccdc.org/download_json/&#39;</span><span class="p">,</span>
+            <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">cdc_data/&#39;</span><span class="p">)</span>
+
+    <span class="c1"># extract station information</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Update weather data for all cities&#39;</span><span class="p">)</span>
+    <span class="n">city_names</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Mueang Chiang Mai&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Soc Son&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Bangkok&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Mueang Chiang Rai&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Mueang Tak&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Yangon&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Tada-U&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Sikhottabong&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Luang Prabang District&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Kunming&#39;</span><span class="p">,</span> <span class="s1">&#39;East Jakarta&#39;</span><span class="p">]</span>
+    <span class="n">w_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{main_folder}</span><span class="s1">weather_cities/&#39;</span>
+    <span class="n">weather_station_info</span> <span class="o">=</span> <span class="n">find_weather_stations</span><span class="p">(</span>
+        <span class="n">city_names</span><span class="p">,</span> <span class="n">weather_json_file</span><span class="o">=</span><span class="n">w_folder</span> <span class="o">+</span> <span class="s1">&#39;weather_station_info.json&#39;</span><span class="p">)</span>
+    <span class="nb">len</span><span class="p">(</span><span class="n">weather_station_info</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">city_json</span> <span class="ow">in</span> <span class="n">tqdm_notebook</span><span class="p">(</span><span class="n">weather_station_info</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;update weather data for &#39;</span><span class="p">,</span> <span class="n">city_json</span><span class="p">[</span><span class="s1">&#39;city_name&#39;</span><span class="p">])</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2020</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">22</span><span class="p">)</span>
+        <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">update_weather</span><span class="p">(</span>
+            <span class="n">city_json</span><span class="p">,</span>
+            <span class="n">data_folder</span><span class="o">=</span><span class="n">w_folder</span><span class="p">,</span>
+            <span class="n">start_date</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span>
+            <span class="n">end_date</span><span class="o">=</span><span class="n">end_date</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

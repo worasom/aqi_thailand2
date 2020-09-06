@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.data package &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src.features package" href="src.features.html" />
+    <link rel="prev" title="src package" href="src.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="src-data-package">
+<h1>src.data package<a class="headerlink" href="#src-data-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src.data.download_data">
+<span id="src-data-download-data-module"></span><h2>src.data.download_data module<a class="headerlink" href="#module-src.data.download_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.data.download_data.download_b_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">download_b_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/pm25/'</span></em>, <em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#download_b_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.download_b_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download all files from the Berkeley Earth directory in url to data_folder.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.download_cdc_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">download_cdc_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_url</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'https://www.cmuccdc.org/api/ccdc/stations'</span></em>, <em class="sig-param"><span class="n">dl_url</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'https://www.cmuccdc.org/download_json/'</span></em>, <em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/cdc_data/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#download_cdc_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.download_cdc_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download cdc data and stations info.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.download_province_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">download_province_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grab_url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#download_province_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.download_province_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a province data.</p>
+<p>Remove existing file before download.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.download_us_emb_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">download_us_emb_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/us_emb/'</span></em>, <em class="sig-param"><span class="n">year</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#download_us_emb_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.download_us_emb_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download pollution data taken at the US Embabby in Hanoi and Jakata</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.extract_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">extract_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#extract_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.extract_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Click all the link on the selenium browser object.
+Parse the html table to panda dataframe. concatentate all the dataframe in each page.
+Return dataframe of all the data for that station</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.extract_parameters">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">extract_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">soup</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#extract_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.extract_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all pollutant choices and their selectors</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.extract_stations">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">extract_stations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">soup</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#extract_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.extract_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract station selector and station name</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.get_city_info">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">get_city_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_folder</span><span class="o">=</span><span class="default_value">'../data/pm25/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#get_city_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.get_city_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain city information from .txt files in Berkeley data, and save as json.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.get_last_datetime">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">get_last_datetime</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">chunksize</span><span class="o">=</span><span class="default_value">500</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#get_last_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.get_last_datetime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.get_station_data_save">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">get_station_data_save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">sta_id</span></em>, <em class="sig-param"><span class="n">sta_name</span></em>, <em class="sig-param"><span class="n">para_selector_list</span></em>, <em class="sig-param"><span class="n">data_folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#get_station_data_save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.get_station_data_save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the data in para_selector_list for the corresponding station id (sta_id).
+#. Parse the data into the dataframe and save in the data_folder
+#. add datetime columns
+#. load existing file and get the last time stamp
+#. keep the data from the last timestamp
+#. save by appending to the old file</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.main">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">main_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/'</span></em>, <em class="sig-param"><span class="n">cdc_data</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">build_json</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.main" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_folder</strong> – main data_folder</p></li>
+<li><p><strong>build_json</strong> – if True also build city information</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.make_datetime">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">make_datetime</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stat_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#make_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.make_datetime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.select_data">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">select_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">sta_id</span></em>, <em class="sig-param"><span class="n">para_selector_list</span></em>, <em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#select_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.select_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select station_name (sta_id) and all parameters in para_selector_list on the webpage and display it. And wait for wait_time.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.download_data.update_last_air4Thai">
+<code class="sig-prename descclassname">src.data.download_data.</code><code class="sig-name descname">update_last_air4Thai</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'http://air4thai.pcd.go.th/webV2/history/'</span></em>, <em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/air4thai_hourly/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/download_data.html#update_last_air4Thai"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.download_data.update_last_air4Thai" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scrape new air4Thai data.</p>
+<p>Append new data to an exsiting file. Create a new file if the file does not exist.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.data.fire_data">
+<span id="src-data-fire-data-module"></span><h2>src.data.fire_data module<a class="headerlink" href="#module-src.data.fire_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.data.fire_data.add_datetime_fire">
+<code class="sig-prename descclassname">src.data.fire_data.</code><code class="sig-name descname">add_datetime_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fire</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/fire_data.html#add_datetime_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.fire_data.add_datetime_fire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.fire_data.cal_repeat_spots">
+<code class="sig-prename descclassname">src.data.fire_data.</code><code class="sig-name descname">cal_repeat_spots</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">repeat_list</span><span class="o">=</span><span class="default_value">[2, 3, 5, 10]</span></em>, <em class="sig-param"><span class="n">group_list</span><span class="o">=</span><span class="default_value">['year', 'lat_km', 'long_km']</span></em>, <em class="sig-param"><span class="n">accum</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">start_month</span><span class="o">=</span><span class="default_value">'-12-01'</span></em>, <em class="sig-param"><span class="n">end_month</span><span class="o">=</span><span class="default_value">'-04-30'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/fire_data.html#cal_repeat_spots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.fire_data.cal_repeat_spots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate % of hotspots repeat withint the same year or different year
+:param df: fire data series with datetime index
+:param repeat_list: number of repetition
+:param group_list: data to be group by if use [‘year’,’lat_km’,’long_km’] mean looking at the data withint the same year</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.fire_data.process_fire_data">
+<code class="sig-prename descclassname">src.data.fire_data.</code><code class="sig-name descname">process_fire_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fire</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">and_save</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/fire_data.html#process_fire_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.fire_data.process_fire_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add datetime,  drop duplicate data and remove uncessary columns.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.fire_data.read_fire">
+<code class="sig-prename descclassname">src.data.fire_data.</code><code class="sig-name descname">read_fire</code><span class="sig-paren">(</span><em class="sig-param">file: str</em>, <em class="sig-param">lat_km: float</em>, <em class="sig-param">long_km: float</em>, <em class="sig-param">distance: (&lt;class 'int'&gt;</em>, <em class="sig-param">&lt;class 'float'&gt;) = 1000</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="_modules/src/data/fire_data.html#read_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.fire_data.read_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read fire data and keep the data within distance
+:param file: fire data csv filename
+:param lat_km: latitude of the city center in km
+:param long_km: longitude of the city center in km
+:param distance: distance in km from the city center for keeping the data
+:type distance: optional</p>
+<p>Returns: dataframe of fire data</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.data.read_data">
+<span id="src-data-read-data-module"></span><h2>src.data.read_data module<a class="headerlink" href="#module-src.data.read_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.data.read_data.build_us_em_data">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">build_us_em_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/us_emb/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#build_us_em_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.build_us_em_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the pollution data from US Embassy monitoring station for the city. Return a list of pollution dataframe.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.convert_hour">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">convert_hour</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_point</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#convert_hour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.convert_hour" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.convert_pollution_2_number">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">convert_pollution_2_number</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#convert_pollution_2_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.convert_pollution_2_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.convert_to_float">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">convert_to_float</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#convert_to_float"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.convert_to_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the data in a series to float</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.convert_to_int">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">convert_to_int</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#convert_to_int"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.convert_to_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the data in a series to int</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.convert_year">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">convert_year</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_point</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#convert_year"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.convert_year" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.isnumber">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">isnumber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#isnumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.isnumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.make_datetime_from_xl">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">make_datetime_from_xl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#make_datetime_from_xl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.make_datetime_from_xl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.parse_1xl_sheet">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">parse_1xl_sheet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#parse_1xl_sheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.parse_1xl_sheet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.read_b_data">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">read_b_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#read_b_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.read_b_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Berkeley earth .txt file data. Return a dataframe and city information.</p>
+<p>Create a datetime column with local timezone.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.read_data.read_his_xl">
+<code class="sig-prename descclassname">src.data.read_data.</code><code class="sig-name descname">read_his_xl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/read_data.html#read_his_xl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.read_data.read_his_xl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-src.data.vn_data">
+<span id="src-data-vn-data-module"></span><h2>src.data.vn_data module<a class="headerlink" href="#module-src.data.vn_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.data.vn_data.download_vn_data">
+<code class="sig-prename descclassname">src.data.vn_data.</code><code class="sig-name descname">download_vn_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="o">=</span><span class="default_value">'http://enviinfo.cem.gov.vn/'</span></em>, <em class="sig-param"><span class="n">save_folder</span><span class="o">=</span><span class="default_value">'../data/vn_epa/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/vn_data.html#download_vn_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.vn_data.download_vn_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download hourly data for all monitoring stations from Vietnamese EPA.</p>
+<p>All data are saved into the save files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> – link to the data website</p></li>
+<li><p><strong>save_folder</strong> – folder to save the data to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.vn_data.extract_station_info">
+<code class="sig-prename descclassname">src.data.vn_data.</code><code class="sig-name descname">extract_station_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/vn_data.html#extract_station_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.vn_data.extract_station_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract station name, address and location from the website.
+Use after loading the station data up.</p>
+<p>Returns: dictionary of station information</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.vn_data.extract_vn_data">
+<code class="sig-prename descclassname">src.data.vn_data.</code><code class="sig-name descname">extract_vn_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/vn_data.html#extract_vn_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.vn_data.extract_vn_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract hourly data from a Vietnamese EPA station</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>browser</strong> – firefox object</p></li>
+<li><p><strong>wait_time</strong> – time to wait after the click</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: dataframe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.vn_data.extract_vn_stations">
+<code class="sig-prename descclassname">src.data.vn_data.</code><code class="sig-name descname">extract_vn_stations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">url</span><span class="o">=</span><span class="default_value">'http://enviinfo.cem.gov.vn/'</span></em>, <em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/vn_data.html#extract_vn_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.vn_data.extract_vn_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of Vietnamese monitoring station</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>browser</strong> – </p></li>
+<li><p><strong>url</strong> – website with the station informations</p></li>
+<li><p><strong>wait_time</strong> – time to wait after the click</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: list</dt><dd><p>a list of all stations</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.vn_data.select_vn_station">
+<code class="sig-prename descclassname">src.data.vn_data.</code><code class="sig-name descname">select_vn_station</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">station</span></em>, <em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/vn_data.html#select_vn_station"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.vn_data.select_vn_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select the name of the station and wait.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.data.weather_data">
+<span id="src-data-weather-data-module"></span><h2>src.data.weather_data module<a class="headerlink" href="#module-src.data.weather_data" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.data.weather_data.add_weather_station">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">add_weather_station</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_list</span></em>, <em class="sig-param"><span class="n">w_folder</span><span class="o">=</span><span class="default_value">'../data/weather_cities/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#add_weather_station"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.add_weather_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new weather station into weather_station_info.json file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_list</strong> – a new of station_url</p></li>
+<li><p><strong>w_folder</strong> (<em>optional</em>) – weather station folder</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.convert_humidity_col">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">convert_humidity_col</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em>, <em class="sig-param"><span class="n">humidity_col</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#convert_humidity_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.convert_humidity_col" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.convert_pressure_col">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">convert_pressure_col</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em>, <em class="sig-param"><span class="n">pressure_col</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#convert_pressure_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.convert_pressure_col" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.convert_temp_col">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">convert_temp_col</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em>, <em class="sig-param"><span class="n">temperature_col</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#convert_temp_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.convert_temp_col" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.convert_unit">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">convert_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#convert_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.convert_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.convert_wind_col">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">convert_wind_col</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_df</span></em>, <em class="sig-param"><span class="n">win_col</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#convert_wind_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.convert_wind_col" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.fill_missing_weather">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">fill_missing_weather</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">limit</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">12</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#fill_missing_weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.fill_missing_weather" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.find_weather_stations">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">find_weather_stations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_names</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">weather_json_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#find_weather_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.find_weather_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a list of weather stations in city_names list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.fix_temperature">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">fix_temperature</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">lowest_t</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em>, <em class="sig-param"><span class="n">highest_t</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">65</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#fix_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.fix_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.get_city_info_from_url">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">get_city_info_from_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">waittime</span><span class="o">=</span><span class="default_value">30</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#get_city_info_from_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.get_city_info_from_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract weather station information for a city  from weather url</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> – example of weather url to parse</p></li>
+<li><p><strong>waittime</strong> – time in second to wait for the browser response</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: dict</dt><dd><p>dictionary of city info</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.get_data_n_soup">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">get_data_n_soup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">browser</span></em>, <em class="sig-param"><span class="n">date_str</span></em>, <em class="sig-param"><span class="n">header_url</span></em>, <em class="sig-param"><span class="n">waittime</span><span class="o">=</span><span class="default_value">30</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#get_data_n_soup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.get_data_n_soup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: date in string
+- Ask Selenium to open the website, and execute inner javascript.
+- Parse data into beautifulsoup object and look for the hourly table
+- Parse the table into a panda dataframe
+- remove the unit
+- add date column</p>
+<p>return: daily weather dataframe and beauitfulsoup object of that table</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.proc_open_weather">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">proc_open_weather</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wea_df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#proc_open_weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.proc_open_weather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process weather file from OpenWeahterMap.org</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.scrape_weather">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">scrape_weather</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_json</span></em>, <em class="sig-param"><span class="n">date_range</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#scrape_weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.scrape_weather" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.data.weather_data.update_weather">
+<code class="sig-prename descclassname">src.data.weather_data.</code><code class="sig-name descname">update_weather</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_json</span></em>, <em class="sig-param"><span class="n">data_folder</span></em>, <em class="sig-param"><span class="n">start_date</span><span class="o">=</span><span class="default_value">datetime.datetime(2000, 10, 1, 0, 0)</span></em>, <em class="sig-param"><span class="n">end_date</span><span class="o">=</span><span class="default_value">datetime.datetime(2020, 9, 6, 12, 58, 37, 623492)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/data/weather_data.html#update_weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.data.weather_data.update_weather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update weather for the city specified by city_json and save.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.data">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.data" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="src.html">src package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="src.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">src.data package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data.download_data">src.data.download_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data.fire_data">src.data.fire_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data.read_data">src.data.read_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data.vn_data">src.data.vn_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data.weather_data">src.data.weather_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.features.html">src.features package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html">src.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.visualization.html">src.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.gen_functions">src.gen_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.imports">src.imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="src.html">src package</a><ul>
+      <li>Previous: <a href="src.html" title="previous chapter">src package</a></li>
+      <li>Next: <a href="src.features.html" title="next chapter">src.features package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/src.data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

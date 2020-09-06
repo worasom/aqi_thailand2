@@ -1,0 +1,684 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.features package &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src.models package" href="src.models.html" />
+    <link rel="prev" title="src.data package" href="src.data.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="src-features-package">
+<h1>src.features package<a class="headerlink" href="#src-features-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src.features.build_features">
+<span id="src-features-build-features-module"></span><h2>src.features.build_features module<a class="headerlink" href="#module-src.features.build_features" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.features.build_features.add_calendar_info">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">add_calendar_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">holiday_file</span><span class="o">=</span><span class="default_value">'C:/Users/Benny/Documents/Fern/aqi_thailand2/data/th_holiday.csv'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#add_calendar_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.add_calendar_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add information related to calendar such as holiday, is_weekend, day of week and time of day.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> – data frame with datetime index,</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.add_is_holiday">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">add_is_holiday</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">holiday_file</span><span class="o">=</span><span class="default_value">'C:/Users/Benny/Documents/Fern/aqi_thailand2/data/th_holiday.csv'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#add_is_holiday"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.add_is_holiday" title="Permalink to this definition">¶</a></dt>
+<dd><p>add is_holiday columns. df must have ‘datetime’ columns</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.add_is_rain">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">add_is_rain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">rain_list</span><span class="o">=</span><span class="default_value">['Rain', 'Shower', 'Thunder', 'Strom', 'Drizzle']</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#add_is_rain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.add_is_rain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.add_lags">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">add_lags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">pollutant</span></em>, <em class="sig-param"><span class="n">num_lags</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#add_lags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.add_lags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add lags columns to x_data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.cal_arrival_time">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">cal_arrival_time</code><span class="sig-paren">(</span><em class="sig-param">detection_time: pandas.core.series.Series</em>, <em class="sig-param">distance: pandas.core.series.Series</em>, <em class="sig-param">wind_speed: (&lt;class 'float'&gt;</em>, <em class="sig-param">&lt;built-in function array&gt;) = 2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#cal_arrival_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.cal_arrival_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the approximate time that the pollution arrived at the city using the wind speed and distance from the hotspot.</p>
+<p>Round arrival time to hour</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detection_time</strong> – datetime series</p></li>
+<li><p><strong>distance</strong> – distance series in km</p></li>
+<li><p><strong>wind_speed</strong> (<em>optional</em>) – approximate wind speed, can be floar or array in km/hour</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>datetime series of arrival time</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>arrival_time</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.cal_power_damp">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">cal_power_damp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">series</span><span class="p">:</span> <span class="n">pandas.core.series.Series</span></em>, <em class="sig-param"><span class="n">distance</span><span class="p">:</span> <span class="n">pandas.core.series.Series</span></em>, <em class="sig-param"><span class="n">surface</span><span class="o">=</span><span class="default_value">'sphere'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#cal_power_damp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.cal_power_damp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the damped power based on the distance series.</p>
+<p>The damping factor maybe 1/distance or 1/distance**2.
+:param series: series to recalculate
+:param distance: distance array. Must have the same lenght as the series
+:param surface: either ‘circle’ or ‘sphere’
+:type surface: optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>new_series</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>cal_power_damp(fire[‘power’], fire[‘distance’],surface=’sphere’)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.dummy_time_of_day">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">dummy_time_of_day</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">col</span><span class="o">=</span><span class="default_value">'time_of_day'</span></em>, <em class="sig-param"><span class="n">group_hour</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#dummy_time_of_day"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.dummy_time_of_day" title="Permalink to this definition">¶</a></dt>
+<dd><p>One hot encode time_of_day columns. df must have datetime index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – dataframe to add the encoded</p></li>
+<li><p><strong>col</strong> – column name</p></li>
+<li><p><strong>group_hour</strong> – integer of hour to group the data into this help reduce the number of variables</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: processed dataframe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.fill_missing_poll">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">fill_missing_poll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">limit</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">6</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#fill_missing_poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.fill_missing_poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fill missing pollution data. Only Work with one columns dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – hourly pollution data with missing value</p></li>
+<li><p><strong>limit</strong> (<em>default</em>) – number of forward and backward filling</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: new dataframe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.find_num_lag">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">find_num_lag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poll_series</span></em>, <em class="sig-param"><span class="n">thres</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#find_num_lag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.find_num_lag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the numbers of partial autocorrelation lag to add as feature to a time series.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.get_fire_feature">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">get_fire_feature</code><span class="sig-paren">(</span><em class="sig-param">fire, zone_list=[0, 100, 200, 400, 800, 1000], fire_col: str = 'power', damp_surface: str = 'sphere', shift: int = 0, roll: int = 48, w_speed: (&lt;class 'float'&gt;, &lt;class 'int'&gt;) = 8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#get_fire_feature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.get_fire_feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Separate fire from different distance</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.sep_fire_zone">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">sep_fire_zone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fire</span></em>, <em class="sig-param"><span class="n">fire_col</span></em>, <em class="sig-param"><span class="n">zone_list</span><span class="o">=</span><span class="default_value">[0, 100, 200, 400, 800, 1000]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#sep_fire_zone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.sep_fire_zone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Separate fire data into zone mark by a distance in the zone_list without perform feature enginering.
+Use for data visualization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fire</strong> – fire dataframe</p></li>
+<li><p><strong>fire_col</strong> – ‘power’ or ‘count’</p></li>
+<li><p><strong>zone_list</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dataframe with each column, a fire data in that zone
+fire_col_list: a list of column name</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>new_fire</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.shift_fire">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">shift_fire</code><span class="sig-paren">(</span><em class="sig-param">fire_df: pandas.core.frame.DataFrame</em>, <em class="sig-param">fire_col: str = 'power'</em>, <em class="sig-param">damp_surface: str = 'sphere'</em>, <em class="sig-param">shift: int = 0</em>, <em class="sig-param">roll: int = 48</em>, <em class="sig-param">w_speed: (&lt;class 'float'&gt;</em>, <em class="sig-param">&lt;class 'int'&gt;) = 8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#shift_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.shift_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feature engineer fire data. Account of the distance from the source and time lag using wind speed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fire_df</strong> – </p></li>
+<li><p><strong>fire_col</strong> – </p></li>
+<li><p><strong>damp_surface</strong> – </p></li>
+<li><p><strong>shift</strong> – </p></li>
+<li><p><strong>roll</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.features.build_features.wind_to_dummies">
+<code class="sig-prename descclassname">src.features.build_features.</code><code class="sig-name descname">wind_to_dummies</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">series</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/build_features.html#wind_to_dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.build_features.wind_to_dummies" title="Permalink to this definition">¶</a></dt>
+<dd><p>One hot encode wind direction columns and group major wind direction
+:param series: wind data series from weather[‘Wind’]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>AssertionError</strong> – if passed an empty series</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.features.dataset">
+<span id="src-features-dataset-module"></span><h2>src.features.dataset module<a class="headerlink" href="#module-src.features.dataset" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.features.dataset.Dataset">
+<em class="property">class </em><code class="sig-prename descclassname">src.features.dataset.</code><code class="sig-name descname">Dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">main_data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'../data/'</span></em>, <em class="sig-param"><span class="n">model_folder</span><span class="o">=</span><span class="default_value">'../models/'</span></em>, <em class="sig-param"><span class="n">report_folder</span><span class="o">=</span><span class="default_value">'../reports/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Dataset object contains pollution, weather and fire data for a city.
+It is also in charge of feature engineering and splitting data for ML hyperparameter tuning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>city_name</strong> – lower case of city name</p></li>
+<li><p><strong>main_folder</strong> (<em>optional</em>) – main data folder [default:’../data/]</p></li>
+<li><p><strong>model_folder</strong> (<em>optional</em>) – model folder[default:’../models/’]</p></li>
+<li><p><strong>report_folder</strong> (<em>optional</em>) – folder to save fiture[default:’../reports/’]</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.city_name">
+<code class="sig-name descname">city_name</code><a class="headerlink" href="#src.features.dataset.Dataset.city_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name of the city</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.city_wea_dict">
+<code class="sig-name descname">city_wea_dict</code><a class="headerlink" href="#src.features.dataset.Dataset.city_wea_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>link the name of the city to the weather file</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.gas_list">
+<code class="sig-name descname">gas_list</code><a class="headerlink" href="#src.features.dataset.Dataset.gas_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>a list of pollutants existed in the data. Can be overide when loading the data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.main_folder">
+<code class="sig-name descname">main_folder</code><a class="headerlink" href="#src.features.dataset.Dataset.main_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>main data folder [default:’../data/’]. This folder contains raw data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.data_folder">
+<code class="sig-name descname">data_folder</code><a class="headerlink" href="#src.features.dataset.Dataset.data_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>data folder spcified for this city for keeping processed data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.model_folder">
+<code class="sig-name descname">model_folder</code><a class="headerlink" href="#src.features.dataset.Dataset.model_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>model folder for this city for model meta and model files</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.report_folder">
+<code class="sig-name descname">report_folder</code><a class="headerlink" href="#src.features.dataset.Dataset.report_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>report folder for saving figures</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.city_info">
+<code class="sig-name descname">city_info</code><a class="headerlink" href="#src.features.dataset.Dataset.city_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>dictionary contain city latitude and longtitude</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.poll_df">
+<code class="sig-name descname">poll_df</code><a class="headerlink" href="#src.features.dataset.Dataset.poll_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>raw pollution data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.fire">
+<code class="sig-name descname">fire</code><a class="headerlink" href="#src.features.dataset.Dataset.fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>raw fire data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.wea">
+<code class="sig-name descname">wea</code><a class="headerlink" href="#src.features.dataset.Dataset.wea" title="Permalink to this definition">¶</a></dt>
+<dd><p>raw weather data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.data_no_fire">
+<code class="sig-name descname">data_no_fire</code><a class="headerlink" href="#src.features.dataset.Dataset.data_no_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>processed pollution data, and weather data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.data">
+<code class="sig-name descname">data</code><a class="headerlink" href="#src.features.dataset.Dataset.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>processed pollution, weather and fire data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.x_cols">
+<code class="sig-name descname">x_cols</code><a class="headerlink" href="#src.features.dataset.Dataset.x_cols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.fire_dict">
+<code class="sig-name descname">fire_dict</code><a class="headerlink" href="#src.features.dataset.Dataset.fire_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.pollutant">
+<code class="sig-name descname">pollutant</code><a class="headerlink" href="#src.features.dataset.Dataset.pollutant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.monitor">
+<code class="sig-name descname">monitor</code><a class="headerlink" href="#src.features.dataset.Dataset.monitor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>AssertionError</strong> – if the city_name is not in city_names list</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_all_data">
+<code class="sig-name descname">build_all_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">build_fire</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">build_holiday</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_all_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_all_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build all data from raw files. Use after just download more raw data.</p>
+<p>The function build pollution and weather data by default, but fire and holiday data are optionals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>build_fire</strong> (<em>optional</em>) – if True, also build the fire data[default:False]</p></li>
+<li><p><strong>build_holiday</strong> (<em>optional</em>) – if True, also build the holiday data[default:False]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_fire">
+<code class="sig-name descname">build_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">instr</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'MODIS'</span></em>, <em class="sig-param"><span class="n">distance</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">fire_data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'fire_map/world_2000-2020/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract hotspots satellite data within distance from the city location.</p>
+<ol class="arabic simple">
+<li><p>Loop through the fire data in the folder to extract the hotspots within the distance from the city</p></li>
+<li><p>Call process fire data to add datetime information</p></li>
+<li><p>Calculate the distance from the hotspot to the city location.</p></li>
+<li><p>Add fire power column  = scan * track*frp. This account of the size and the temperature of the fire</p></li>
+<li><p>Add the count column, which is 1</p></li>
+<li><p>Remove unncessary columns</p></li>
+<li><p>Save the data as data_folder/fire_m.csv if instr is “MODIS’. Use fire_v.csv if instr is ‘VIIR’.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instr</strong> (<em>optional</em>) – instrument name either MODIS or VIIRS[default:’MODIS’]</p></li>
+<li><p><strong>distance</strong> (<em>optional</em>) – distance in km from the city latitude and longtitude[default:1000]</p></li>
+<li><p><strong>fire_data_folder</strong> (<em>optional</em>) – location of the hotspots data[default:’fire_map/world_2000-2020/’]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – if the instrument name does not exist</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_holiday">
+<code class="sig-name descname">build_holiday</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_holiday"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_holiday" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scrape holiday data from <a class="reference external" href="https://www.timeanddate.com/holidays/">https://www.timeanddate.com/holidays/</a> since 2000 until current.</p>
+<p>Save the data as data_folder/holiday.csv</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_lag">
+<code class="sig-name descname">build_lag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lag_range</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">roll</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_lag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_lag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the lag data using number in lag_range.
+Add the new data as self.data attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lag_range</strong> – list of lag value to add. Can be from np.arange(1,5) or [1,3, 10]</p></li>
+<li><p><strong>roll</strong> (<em>optional</em>) – if True, use the calculate the rolling average of previous values and shift 1</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_pollution">
+<code class="sig-name descname">build_pollution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_pollution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_pollution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect all Pollution data from a different sources and take the average.</p>
+<p>Use self.collect_stations_data to get a list of pollution dataframe.
+Add the average pollution data as attribute self.poll_df</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.build_weather">
+<code class="sig-name descname">build_weather</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wea_data_folder</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'weather_cities/'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.build_weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.build_weather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load weather data and fill the missing value. Add as wea attibute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wea_data_folder</strong> (<em>optional</em>) – weather data folder[default:’weather_cities/’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id0">
+<code class="sig-name descname">city_wea_dict</code><em class="property"> = {'Bangkok': 'Bangkok', 'Chiang Mai': 'Mueang Chiang Mai', 'Hanoi': 'Soc Son', 'Jakarta': 'East Jakarta'}</em><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.collect_stations_data">
+<code class="sig-name descname">collect_stations_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.collect_stations_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.collect_stations_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect all Pollution data from a different sources and take the average.</p>
+<p>Since each city have different data sources. It has to be treat differently</p>
+<p>Returns: a list of dataframe each dataframe is the data from all station.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.feature_no_fire">
+<code class="sig-name descname">feature_no_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">rolling_win</span><span class="o">=</span><span class="default_value">24</span></em>, <em class="sig-param"><span class="n">fill_missing</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">cat_hour</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">group_hour</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.feature_no_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.feature_no_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assemble pollution data, datetime and weather data. Omit the fire data for later step.</p>
+<ol class="arabic simple">
+<li><p>Call self.load_() to load processed data</p></li>
+<li><p>Build holiday data if not already exist</p></li>
+<li><p>Add pollutant as pollutant attribute</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pollutant</strong> (<em>optional</em>) – name of the pollutant [default:’PM2.5’]</p></li>
+<li><p><strong>rolling_win</strong> (<em>optional</em>) – rolling windows size [defaul:24]. This does not do anything.</p></li>
+<li><p><strong>fill_missing</strong> (<em>optional</em>) – if True, fill the missing pollution data</p></li>
+<li><p><strong>cat_hour</strong> (<em>optional</em>) – if true, one hot encode the time_of_day column</p></li>
+<li><p><strong>group_hour</strong> (<em>optiona</em>) – hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – if pollutant not in self.poll_df</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id1">
+<code class="sig-name descname">gas_list</code><em class="property"> = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']</em><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.get_data_matrix">
+<code class="sig-name descname">get_data_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">use_index</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">x_cols</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.get_data_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.get_data_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract data in data dataframe into x,y matricies using input index list.</p>
+<p>y is specified by self.monitor attribute. Use the data specified by x_cols.
+If x_cols is an empty list, use entire columns in self.data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_index</strong> – a list of datetime index for the dataset</p></li>
+<li><p><strong>x_cols</strong> (<em>optional</em>) – a list of columns for x data [default:[]]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>x data matrix
+y: y data matrix
+x_cols: data columns</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.get_th_stations">
+<code class="sig-name descname">get_th_stations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.get_th_stations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.get_th_stations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look for all polltuions station in the city by Thailand PCD.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.load_">
+<code class="sig-name descname">load_</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fire</span><span class="o">=</span><span class="default_value">'MODIS'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.load_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.load_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the process pollution data from the disk without the build</p>
+<p>Load if the file exist for.
+- pollution data
+- weather data
+- data no fire
+- data_org
+- data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.load_city_info">
+<code class="sig-name descname">load_city_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.load_city_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.load_city_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load city information add as city_info dictionary.</p>
+<p>Add latitude and longtitude information in mercadian coordinate (km). Add as ‘lat_km’ and ‘long_km’ keys</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.make_diff_col">
+<code class="sig-name descname">make_diff_col</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.make_diff_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.make_diff_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add pollutant diff column for modeling the diff instead of the actual value.
+Drop all the columns with ‘lag’ name on it.</p>
+<p>The function update self.data_no_fire attribute, x_cols attribute, and monitor attribute.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.merge_fire">
+<code class="sig-name descname">merge_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fire_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">damp_surface</span><span class="o">=</span><span class="default_value">'sphere'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.merge_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.merge_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process raw hotspot data into fire feature and merge with the rest of the data
+:param fire_dict: fire dictionary [default:None]
+:type fire_dict: optional</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.merge_new_old_pollution">
+<code class="sig-name descname">merge_new_old_pollution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">station_ids</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">hist_folders</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">['aqm_hourly2/', 'aqm_hourly3/']</span></em>, <em class="sig-param"><span class="n">new_folder</span><span class="o">=</span><span class="default_value">'air4thai_hourly/'</span></em>, <em class="sig-param"><span class="n">parse</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.merge_new_old_pollution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.merge_new_old_pollution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.</p>
+<p>Save the data for each station as data_folder/station_id.csv</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>station_ids</strong> – a list of pollution station for the city.</p></li>
+<li><p><strong>his_folders</strong> (<em>optional</em>) – a list of folder containg the historcal data folder default:[‘aqm_hourly2/’, ‘aqm_hourly3/’]</p></li>
+<li><p><strong>new_folder</strong> (<em>optional</em>) – name of the new data folder(which is update constantly)[default:’air4thai_hourly/’]</p></li>
+<li><p><strong>parse</strong> (<em>optional</em>) – if True, also parse the stations data from the excel files</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.parse_th_station">
+<em class="property">static </em><code class="sig-name descname">parse_th_station</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span></em>, <em class="sig-param"><span class="n">station_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.parse_th_station"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.parse_th_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse raw station data into .csv file in the form, which is ready to merge with the newly parse data.</p>
+<p>Look for all the files containing station_id in the filename.
+Create the folder to save the file if doesn’t exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder</strong> – folder where the raw data file is saved</p></li>
+<li><p><strong>station_id</strong> – station_id</p></li>
+<li><p><strong>save_filename</strong> – filename to save the data as</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.roll_dict">
+<code class="sig-name descname">roll_dict</code><em class="property"> = {'CO': 8, 'NO2': 1, 'O3': 8, 'PM10': 24, 'PM2.5': 24, 'SO2': 1}</em><a class="headerlink" href="#src.features.dataset.Dataset.roll_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.save_">
+<code class="sig-name descname">save_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.save_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.save_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the process data for fast loading without build.</p>
+<p>Save if the attribute exist.
+- save pollution data
+- save weather data
+- save data no fire
+- save data_org
+- save data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.features.dataset.Dataset.split_data">
+<code class="sig-name descname">split_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split_ratio</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[0.4, 0.2, 0.2, 0.2]</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/features/dataset.html#Dataset.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.features.dataset.Dataset.split_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split the data datetime index into train, valiadation and test sets</p>
+<p>Add a list of the index in each set as atttibutes
+:param split_ratio: porportion of data in each set. Must add up to less than or equal to one.
+:type split_ratio: optional
+:param shuffle: shuffle the data before splitting
+:type shuffle: optional</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="src.features.dataset.Dataset.transition_dict">
+<code class="sig-name descname">transition_dict</code><em class="property"> = {'CO': [0, 6.4, 12.5, 15.4, 1000.0], 'NO2': [0, 100, 360, 649, 1000.0], 'O3': [0, 70, 85, 105, 1000.0], 'PM10': [0, 155, 254, 354, 1000.0], 'PM2.5': [0, 35.5, 55.4, 150.4, 1000.0], 'SO2': [0, 75, 185, 304, 1000.0]}</em><a class="headerlink" href="#src.features.dataset.Dataset.transition_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.features">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.features" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="src.html">src package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="src.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="src.data.html">src.data package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">src.features package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.features.build_features">src.features.build_features module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.features.dataset">src.features.dataset module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.features">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html">src.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.visualization.html">src.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.gen_functions">src.gen_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.imports">src.imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="src.html">src package</a><ul>
+      <li>Previous: <a href="src.data.html" title="previous chapter">src.data package</a></li>
+      <li>Next: <a href="src.models.html" title="next chapter">src.models package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/src.features.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

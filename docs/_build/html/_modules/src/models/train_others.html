@@ -1,0 +1,731 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.models.train_others &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.models.train_others</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..gen_functions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..features.dataset</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">..visualization.vis_model</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="do_knn_search"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.do_knn_search">[docs]</a><span class="k">def</span> <span class="nf">do_knn_search</span><span class="p">(</span>
+        <span class="n">x_trn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">y_trn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">cv_split</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
+        <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">param_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_tree</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform randomize parameter search for KNN regressor return the best estimator</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x_trn: 2D array of x data</span>
+<span class="sd">        y_trn: 2D np.array of y data</span>
+<span class="sd">        cv_split(optional): if &quot;time&quot;. Use TimeSeriesSplit, which don&#39;t shuffle the data.</span>
+<span class="sd">        n_splits(optional): number of cross validation split [default:5]</span>
+<span class="sd">        params_dict(optional): search parameter dictionary [default:None]</span>
+<span class="sd">        x_tree(optional): if True, use ExtraTreesRegressor instead of RandomForestRegressor</span>
+
+<span class="sd">    Returns: best estimator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">KNeighborsRegressor</span><span class="p">()</span>
+
+    <span class="n">param_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;n_neighbors&#39;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
+
+    <span class="k">if</span> <span class="n">cv_split</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">TimeSeriesSplit</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">n_splits</span>
+    <span class="c1"># hyper parameter tuning</span>
+    <span class="n">search</span> <span class="o">=</span> <span class="n">RandomizedSearchCV</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">param_distributions</span><span class="o">=</span><span class="n">param_dict</span><span class="p">,</span>
+                                <span class="n">n_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_trn</span><span class="p">,</span> <span class="n">y_trn</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">best_params_</span><span class="p">,</span> <span class="n">search</span><span class="o">.</span><span class="n">best_score_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">search</span><span class="o">.</span><span class="n">best_estimator_</span></div>
+
+
+<div class="viewcode-block" id="do_ln_search"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.do_ln_search">[docs]</a><span class="k">def</span> <span class="nf">do_ln_search</span><span class="p">(</span>
+        <span class="n">x_trn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">y_trn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">cv_split</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
+        <span class="n">n_splits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">param_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ln_type</span><span class="o">=</span><span class="s1">&#39;elastic&#39;</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform randomize parameter search for linear regressir return the best estimator</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x_trn: 2D array of x data</span>
+<span class="sd">        y_trn: 2D np.array of y data</span>
+<span class="sd">        cv_split(optional): if &quot;time&quot;. Use TimeSeriesSplit, which don&#39;t shuffle the data.</span>
+<span class="sd">        n_splits(optional): number of cross validation split [default:5]</span>
+<span class="sd">        params_dict(optional): search parameter dictionary [default:None]</span>
+<span class="sd">        ln_type(optional): type of linear regressor can be &#39;elastic&#39;, or lasso [default:&#39;elastic&#39;]</span>
+<span class="sd">        n_jobs(optional): number of CPU use [default:-1]</span>
+
+<span class="sd">    Returns: best estimator</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">ln_type</span> <span class="o">==</span> <span class="s1">&#39;elastic&#39;</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">ElasticNet</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ln_type</span> <span class="o">==</span> <span class="s1">&#39;lasso&#39;</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">Lasso</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">ln_type</span> <span class="o">==</span> <span class="s1">&#39;ridge&#39;</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">Ridge</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">param_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ln_type</span> <span class="o">==</span> <span class="s1">&#39;elastic&#39;</span><span class="p">:</span>
+            <span class="n">param_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+                          <span class="s2">&quot;l1_ratio&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)}</span>
+
+    <span class="k">if</span> <span class="n">cv_split</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">TimeSeriesSplit</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">n_splits</span>
+
+    <span class="c1"># hyper parameter tuning</span>
+    <span class="n">search</span> <span class="o">=</span> <span class="n">RandomizedSearchCV</span><span class="p">(</span>
+        <span class="n">m</span><span class="p">,</span>
+        <span class="n">param_distributions</span><span class="o">=</span><span class="n">param_dict</span><span class="p">,</span>
+        <span class="n">n_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span>
+        <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_trn</span><span class="p">,</span> <span class="n">y_trn</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">best_params_</span><span class="p">,</span> <span class="n">search</span><span class="o">.</span><span class="n">best_score_</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">search</span><span class="o">.</span><span class="n">best_estimator_</span></div>
+
+
+<div class="viewcode-block" id="op_lag_fire"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.op_lag_fire">[docs]</a><span class="k">def</span> <span class="nf">op_lag_fire</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">split_ratio</span><span class="p">,</span>
+    <span class="n">lag_range</span><span class="o">=</span><span class="p">[</span>
+        <span class="mi">2</span><span class="p">,</span>
+        <span class="mi">168</span><span class="p">],</span>
+        <span class="n">step_range</span><span class="o">=</span><span class="p">[</span>
+            <span class="mi">1</span><span class="p">,</span>
+            <span class="mi">25</span><span class="p">],</span>
+    <span class="n">wind_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">2</span><span class="p">,</span>
+        <span class="mi">20</span><span class="p">],</span>
+    <span class="n">shift_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="o">-</span><span class="mi">72</span><span class="p">,</span>
+        <span class="mi">72</span><span class="p">],</span>
+    <span class="n">roll_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">24</span><span class="p">,</span>
+        <span class="mi">240</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Search for the best lag and fire parameters using skopt optimization</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset: dataset object</span>
+<span class="sd">        model: model object</span>
+<span class="sd">        split_ratio: list of split ratio</span>
+<span class="sd">        lag_range(optional): min and max value of wind speed</span>
+<span class="sd">        step_range(optional): min and max value of shift parameter</span>
+
+<span class="sd">    Return: fire_dict fire dictionary</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># build search space</span>
+    <span class="n">n_max</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">lag_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">lag_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;n_max&#39;</span><span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">step_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">step_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">)</span>
+
+    <span class="c1"># build search space</span>
+    <span class="n">wind_speed</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span>
+        <span class="n">low</span><span class="o">=</span><span class="n">wind_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">high</span><span class="o">=</span><span class="n">wind_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;wind_speed&#39;</span><span class="p">)</span>
+    <span class="n">shift</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">shift_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">shift_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;shift&#39;</span><span class="p">)</span>
+    <span class="n">roll</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">roll_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">roll_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;roll&#39;</span><span class="p">)</span>
+
+    <span class="c1">#roll = Categorical([True, False], name=&#39;roll&#39;)</span>
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">n_max</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">wind_speed</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">roll</span><span class="p">]</span>
+
+    <span class="c1"># setup the function for skopt</span>
+    <span class="nd">@use_named_args</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fit_with</span><span class="p">(</span><span class="n">n_max</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">wind_speed</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">roll</span><span class="p">):</span>
+        <span class="c1"># function to return the score (smaller better)</span>
+        <span class="n">fire_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;w_speed&#39;</span><span class="p">:</span> <span class="n">wind_speed</span><span class="p">,</span>
+                     <span class="s1">&#39;shift&#39;</span><span class="p">:</span> <span class="n">shift</span><span class="p">,</span>
+                     <span class="s1">&#39;roll&#39;</span><span class="p">:</span> <span class="n">roll</span><span class="p">}</span>
+        <span class="n">_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">(</span><span class="n">fire_dict</span><span class="p">)</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">dataset</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+
+        <span class="c1"># function to return the score (smaller better)</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">build_lag</span><span class="p">(</span><span class="n">lag_range</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_max</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span> <span class="n">roll</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">monitor</span><span class="p">)</span>
+
+        <span class="n">dataset</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="n">split_ratio</span><span class="p">)</span>
+        <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">x_cols</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+            <span class="n">use_index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+        <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+            <span class="n">use_index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">)</span>
+        <span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="n">gp_result</span> <span class="o">=</span> <span class="n">gp_minimize</span><span class="p">(</span>
+        <span class="n">func</span><span class="o">=</span><span class="n">fit_with</span><span class="p">,</span>
+        <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">,</span>
+        <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">random_state</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">n_max</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">wind_speed</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">roll</span> <span class="o">=</span> <span class="n">gp_result</span><span class="o">.</span><span class="n">x</span>
+    <span class="n">lag_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;n_max&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_max</span><span class="p">),</span>
+                <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">step</span><span class="p">),</span>
+                <span class="s1">&#39;roll&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    <span class="n">fire_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;w_speed&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">wind_speed</span><span class="p">),</span>
+        <span class="s1">&#39;shift&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">),</span>
+        <span class="s1">&#39;roll&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">roll</span><span class="p">)}</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">gp_result</span><span class="o">.</span><span class="n">fun</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new mean squared error&#39;</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="s1">&#39;using&#39;</span><span class="p">,</span> <span class="n">lag_dict</span> <span class="ow">and</span> <span class="n">fire_dict</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lag_dict</span><span class="p">,</span> <span class="n">fire_dict</span><span class="p">,</span> <span class="n">gp_result</span></div>
+
+
+<div class="viewcode-block" id="get_nn_model"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.get_nn_model">[docs]</a><span class="k">def</span> <span class="nf">get_nn_model</span><span class="p">(</span>
+        <span class="n">input_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_layer</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">nn_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">act_fun</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">drop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">momentum</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get fully connected NN model according to the specified parameters</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_shape: input dimension (according to the len of the columns)</span>
+<span class="sd">        output_shape: output dimension</span>
+<span class="sd">        num_layer: number of hidden layer can be 0</span>
+<span class="sd">        nn_size: number of neuron in one layer</span>
+<span class="sd">        act_fun: name of activation function</span>
+<span class="sd">        drop: dropout parameter</span>
+<span class="sd">        lr: optimizer learning rate</span>
+<span class="sd">        momentum: momentum parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># set optimizser</span>
+    <span class="n">adam</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">lr</span><span class="p">)</span>
+    <span class="c1"># create model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+    <span class="c1"># Input - Layer</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">nn_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">act_fun</span><span class="p">,</span> <span class="n">input_dim</span><span class="o">=</span><span class="n">input_shape</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">num_layer</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layer</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;layer_dense{i+1}&#39;</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">nn_size</span><span class="p">,</span>
+                            <span class="n">activation</span><span class="o">=</span><span class="n">act_fun</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">(</span><span class="n">momentum</span><span class="o">=</span><span class="n">momentum</span><span class="p">))</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dropout</span><span class="p">(</span><span class="n">drop</span><span class="p">))</span>
+    <span class="c1"># Output- Layer</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">))</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">adam</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="do_nn_search"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.do_nn_search">[docs]</a><span class="k">def</span> <span class="nf">do_nn_search</span><span class="p">(</span><span class="n">xtrn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform skopt optimization search for the best NN architecture.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        xtrn: normalized xtrn</span>
+<span class="sd">        ytrn: normalized ytrn</span>
+<span class="sd">        xval: normalized xval</span>
+<span class="sd">        ytrn: normalized yval</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># nn search parameters</span>
+    <span class="n">num_layers</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;num_layer&#39;</span><span class="p">)</span>
+    <span class="n">nn_sizes</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;nn_size&#39;</span><span class="p">)</span>
+    <span class="n">act_funs</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="s1">&#39;softplus&#39;</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="s1">&#39;act_fun&#39;</span><span class="p">)</span>
+    <span class="n">drops</span> <span class="o">=</span> <span class="n">Real</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                 <span class="n">name</span><span class="o">=</span><span class="s1">&#39;drop&#39;</span><span class="p">)</span>
+    <span class="n">lrs</span> <span class="o">=</span> <span class="n">Real</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="s1">&#39;log-uniform&#39;</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lr&#39;</span><span class="p">)</span>
+    <span class="n">momentums</span> <span class="o">=</span> <span class="n">Real</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+                     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;momentum&#39;</span><span class="p">)</span>
+
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">nn_sizes</span><span class="p">,</span> <span class="n">act_funs</span><span class="p">,</span> <span class="n">drops</span><span class="p">,</span> <span class="n">lrs</span><span class="p">,</span> <span class="n">momentums</span><span class="p">]</span>
+
+    <span class="nd">@use_named_args</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">fit_with</span><span class="p">(</span><span class="n">num_layer</span><span class="p">,</span> <span class="n">nn_size</span><span class="p">,</span> <span class="n">act_fun</span><span class="p">,</span> <span class="n">drop</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">momentum</span><span class="p">):</span>
+        <span class="c1"># function to return the score (smaller better)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">get_nn_model</span><span class="p">(</span>
+            <span class="n">input_shape</span><span class="o">=</span><span class="n">xtrn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">output_shape</span><span class="o">=</span><span class="n">ytrn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">num_layer</span><span class="o">=</span><span class="n">num_layer</span><span class="p">,</span>
+            <span class="n">nn_size</span><span class="o">=</span><span class="n">nn_size</span><span class="p">,</span>
+            <span class="n">act_fun</span><span class="o">=</span><span class="n">act_fun</span><span class="p">,</span>
+            <span class="n">drop</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span>
+            <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
+            <span class="n">momentum</span><span class="o">=</span><span class="n">momentum</span><span class="p">)</span>
+        <span class="c1"># set early stoping</span>
+        <span class="n">esm</span> <span class="o">=</span> <span class="n">EarlyStopping</span><span class="p">(</span><span class="n">patience</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">restore_best_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># train model</span>
+        <span class="n">history</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">validation_split</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                            <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">esm</span><span class="p">])</span>
+
+        <span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span>
+        <span class="n">K</span><span class="o">.</span><span class="n">clear_session</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+    <span class="n">gp_result</span> <span class="o">=</span> <span class="n">gp_minimize</span><span class="p">(</span>
+        <span class="n">func</span><span class="o">=</span><span class="n">fit_with</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+    <span class="n">num_layer</span><span class="p">,</span> <span class="n">nn_size</span><span class="p">,</span> <span class="n">act_fun</span><span class="p">,</span> <span class="n">drop</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">momentum</span> <span class="o">=</span> <span class="n">gp_result</span><span class="o">.</span><span class="n">x</span>
+    <span class="n">nn_params_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;num_layer&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_layer</span><span class="p">),</span>
+                      <span class="s1">&#39;nn_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">nn_size</span><span class="p">),</span>
+                      <span class="s1">&#39;act_fun&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">act_fun</span><span class="p">),</span>
+                      <span class="s1">&#39;drop&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">drop</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+                      <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">lr</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+                      <span class="s1">&#39;momentum&#39;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">momentum</span><span class="p">),</span> <span class="mi">3</span><span class="p">)}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;nn parameter is &#39;</span><span class="p">,</span> <span class="n">nn_params_dict</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">gp_result</span><span class="o">.</span><span class="n">fun</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nn_params_dict</span><span class="p">,</span> <span class="n">gp_result</span></div>
+
+
+<div class="viewcode-block" id="train_city_s2"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.train_city_s2">[docs]</a><span class="k">def</span> <span class="nf">train_city_s2</span><span class="p">(</span>
+        <span class="n">city</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span>
+        <span class="n">pollutant</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span>
+        <span class="n">build</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fire_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_cols_org</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">lag_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_cols</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;Training pipeline from process raw data, hyperparameter tune, and save model.</span>
+
+<span class="sd">    #. If build True, build the raw data from files</span>
+<span class="sd">    #. Process draw data into data using default values</span>
+<span class="sd">    #. Optimization 1: optimize for the best NN model</span>
+
+<span class="sd">    #. Build pollution meta and save</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    city: city name</span>
+<span class="sd">    pollutant(optional): pollutant name</span>
+<span class="sd">    build(optional): if True, also build the data</span>
+<span class="sd">    model(optional):</span>
+<span class="sd">    x_cols_org(optional):</span>
+<span class="sd">    lag_dict(optional):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dataset</span>
+<span class="sd">        model</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;====== NN op1 load RF model ====== &#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">fire_cols</span> <span class="o">=</span> <span class="n">load_model1</span><span class="p">(</span>
+        <span class="n">city</span><span class="o">=</span><span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span> <span class="n">pollutant</span><span class="o">=</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span> <span class="n">split_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_cols_org</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">lag_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span> <span class="o">=</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;x_cols_org&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> x_cols_org&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">build_lag</span><span class="p">(</span>
+            <span class="n">lag_range</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;n_max&#39;</span><span class="p">],</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]),</span>
+            <span class="n">roll</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;roll&#39;</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x_cols&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">x_cols</span>
+
+    <span class="n">data</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+    <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">ytrn</span> <span class="o">=</span> <span class="n">ytrn</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">yval</span> <span class="o">=</span> <span class="n">yval</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">x_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
+    <span class="n">xtrn</span> <span class="o">=</span> <span class="n">x_scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">xtrn</span><span class="p">)</span>
+    <span class="n">xval</span> <span class="o">=</span> <span class="n">x_scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span>
+    <span class="n">y_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span>
+    <span class="n">ytrn</span> <span class="o">=</span> <span class="n">y_scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">ytrn</span><span class="p">)</span>
+
+    <span class="n">nn_dict</span><span class="p">,</span> <span class="n">gp_result</span> <span class="o">=</span> <span class="n">do_nn_search</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">get_nn_model</span><span class="p">(</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">xtrn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">output_shape</span><span class="o">=</span><span class="n">ytrn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">num_layer</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;num_layer&#39;</span><span class="p">],</span>
+        <span class="n">nn_size</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;nn_size&#39;</span><span class="p">],</span>
+        <span class="n">act_fun</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;act_fun&#39;</span><span class="p">],</span>
+        <span class="n">drop</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;drop&#39;</span><span class="p">],</span>
+        <span class="n">lr</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
+        <span class="n">momentum</span><span class="o">=</span><span class="n">nn_dict</span><span class="p">[</span><span class="s1">&#39;momentum&#39;</span><span class="p">])</span>
+    <span class="n">esm</span> <span class="o">=</span> <span class="n">EarlyStopping</span><span class="p">(</span><span class="n">patience</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">restore_best_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+        <span class="n">xtrn</span><span class="p">,</span>
+        <span class="n">ytrn</span><span class="p">,</span>
+        <span class="n">validation_split</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+        <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">esm</span><span class="p">])</span>
+    <span class="n">ypred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">)</span>
+    <span class="n">ypred</span> <span class="o">=</span> <span class="n">y_scaler</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">ypred</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;validation score&#39;</span><span class="p">,</span> <span class="n">cal_scores</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">ypred</span><span class="p">,</span> <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;val_&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">nn_dict</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">x_scaler</span><span class="p">,</span> <span class="n">y_scaler</span></div>
+
+
+<div class="viewcode-block" id="train_city_s1_v2"><a class="viewcode-back" href="../../../src.models.html#src.models.train_others.train_city_s1_v2">[docs]</a><span class="k">def</span> <span class="nf">train_city_s1_v2</span><span class="p">(</span>
+        <span class="n">city</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span>
+        <span class="n">pollutant</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span>
+        <span class="n">build</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fire_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_cols_org</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">lag_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_cols</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;Training pipeline from process raw data, hyperparameter tune, and save model.</span>
+
+<span class="sd">    #. If build True, build the raw data from files</span>
+<span class="sd">    #. Process draw data into data using default values</span>
+<span class="sd">    #. Optimization 1: optimize for the best randomforest model</span>
+<span class="sd">    #. Optimization 2: remove unncessary columns</span>
+<span class="sd">    #. Optimization 3: find the best fire feature</span>
+<span class="sd">    #. Optimization 4: optimize for lag columns</span>
+<span class="sd">    #. Optimization 5: drop unncessary lag columns</span>
+<span class="sd">    #. Optimization 6: optimize for the best RF again</span>
+<span class="sd">    #. Build pollution meta and save</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        city: city name</span>
+<span class="sd">        pollutant(optional): pollutant name</span>
+<span class="sd">        build(optional): if True, also build the data</span>
+<span class="sd">        model(optional):</span>
+<span class="sd">        op_fire(optional):</span>
+<span class="sd">        x_cols_org(optional):</span>
+<span class="sd">        lag_dict(optional):</span>
+<span class="sd">        x_cols(optional):</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dataset</span>
+<span class="sd">        model</span>
+<span class="sd">        poll_meta(dict)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">city</span><span class="p">)</span>
+    <span class="c1"># remove . from pollutant name for saving file</span>
+    <span class="n">poll_name</span> <span class="o">=</span> <span class="n">pollutant</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">build</span><span class="p">:</span>
+        <span class="c1"># build data from scratch</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">build_all_data</span><span class="p">(</span><span class="n">build_fire</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">build_holiday</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># load raw data</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">load_</span><span class="p">()</span>
+    <span class="c1"># build the first dataset</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">feature_no_fire</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fire_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># use default fire feature</span>
+        <span class="n">fire_cols</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span> <span class="o">=</span> <span class="n">fire_dict</span>
+        <span class="n">fire_cols</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pollutant</span> <span class="o">=</span> <span class="n">pollutant</span>
+
+    <span class="c1"># . Optimization 1: optimize for the best randomforest model</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x_cols_org</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># split the data into 4 set</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=================optimize 1: find the best RF model=================&#39;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+        <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span><span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span><span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">x_cols</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">do_rf_search</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">cv_split</span><span class="o">=</span><span class="s1">&#39;other&#39;</span><span class="p">)</span>
+        <span class="n">score_dict</span> <span class="o">=</span> <span class="n">cal_scores</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">),</span> <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;val_&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;optimize 1 score&#39;</span><span class="p">,</span> <span class="n">score_dict</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;=================optimize 2: remove unncessary columns=================&#39;</span><span class="p">)</span>
+        <span class="n">importances</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_importances_</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">importances</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">x_cols</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;importance&#39;</span><span class="p">])</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="n">show_fea_imp</span><span class="p">(</span>
+            <span class="n">feat_imp</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{poll_name}</span><span class="s1">_fea_imp_op1.png&#39;</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s1">&#39;rf feature of importance(raw)&#39;</span><span class="p">)</span>
+
+        <span class="c1"># columns to consider droping are columns with low importance</span>
+        <span class="n">to_drop</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span>
+        <span class="n">to_drop</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">to_drop</span> <span class="k">if</span> <span class="s1">&#39;fire&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">]:</span>
+            <span class="n">to_drop</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">to_drop</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">x_cols_org</span> <span class="o">=</span> <span class="n">reduce_cols</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span> <span class="n">to_drop</span><span class="o">=</span><span class="n">to_drop</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">trn_i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">val_i</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fire_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================= optimization 3: find the best fire feature ===================&#39;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">,</span> <span class="n">gp_result</span> <span class="o">=</span> <span class="n">sk_op_fire</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">trn_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">val_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">fire_cols</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">lag_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================= optimization 4&amp;7: improve model performance by adding lag columns =================&#39;</span><span class="p">)</span>
+        <span class="c1"># prepare no-lag columns</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span> <span class="o">=</span> <span class="n">x_cols_org</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;model parameters&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">get_params</span><span class="p">())</span>
+        <span class="c1"># look for the best lag</span>
+        <span class="c1">#data.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">,</span> <span class="n">gp_result</span> <span class="o">=</span> <span class="n">op_lag_fire</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+        <span class="n">_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+        <span class="c1">#data.lag_dict = {&#39;n_max&#39;: 2, &#39;step&#39;: 5}</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">build_lag</span><span class="p">(</span>
+            <span class="n">lag_range</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;n_max&#39;</span><span class="p">],</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]),</span>
+            <span class="n">roll</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;roll&#39;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;data.column with lag&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x_cols&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+        <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+            <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+        <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+            <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;xtrn has shape&#39;</span><span class="p">,</span> <span class="n">xtrn</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">)</span>
+        <span class="n">score_dict</span> <span class="o">=</span> <span class="n">cal_scores</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">),</span> <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;val_&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;op4 score&#39;</span><span class="p">,</span> <span class="n">score_dict</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================= optimization 5: remove unncessary lag columns =================&#39;</span><span class="p">)</span>
+        <span class="n">importances</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_importances_</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">importances</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;importance&#39;</span><span class="p">])</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+        <span class="c1"># optimize 1 drop unuse cols</span>
+        <span class="n">to_drop</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="n">no_drop</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span> <span class="k">if</span> <span class="s1">&#39;fire&#39;</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">no_drop</span><span class="p">:</span>
+            <span class="n">to_drop</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">to_drop</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">reduce_cols</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span> <span class="n">to_drop</span><span class="o">=</span><span class="n">to_drop</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">trn_i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">val_i</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span> <span class="o">=</span> <span class="n">lag_dict</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span> <span class="o">=</span> <span class="n">x_cols_org</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">data</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">build_lag</span><span class="p">(</span>
+            <span class="n">lag_range</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;n_max&#39;</span><span class="p">],</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]),</span>
+            <span class="n">roll</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">x_cols</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================= optimization 8: optimize for the best rf again =================&#39;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x_cols in op7&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">xval</span><span class="p">,</span> <span class="n">yval</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">do_rf_search</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">cv_split</span><span class="o">=</span><span class="s1">&#39;other&#39;</span><span class="p">)</span>
+    <span class="n">score_dict</span> <span class="o">=</span> <span class="n">cal_scores</span><span class="p">(</span><span class="n">yval</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xval</span><span class="p">),</span> <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;val_&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">score_dict</span><span class="p">)</span>
+
+    <span class="c1"># final split</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="p">[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+    <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">xtest</span><span class="p">,</span> <span class="n">ytest</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">)</span>
+    <span class="n">score_dict</span> <span class="o">=</span> <span class="n">cal_scores</span><span class="p">(</span><span class="n">ytest</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xtest</span><span class="p">),</span> <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;test_&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final score for test set&#39;</span><span class="p">,</span> <span class="n">score_dict</span><span class="p">)</span>
+
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">,</span>
+        <span class="nb">open</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{poll_name}</span><span class="s1">_rf_model.pkl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+
+    <span class="c1"># build feature of importance using build in rf</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">importances</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_importances_</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">importances</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;importance&#39;</span><span class="p">])</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="c1">#show_fea_imp(feat_imp,filename=data.report_folder + f&#39;{poll_name}_rf_fea_op2.png&#39;, title=&#39;rf feature of importance(default)&#39;)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="c1"># custom feature of importance</span>
+        <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_importance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="c1">#show_fea_imp(feat_imp,filename=data.report_folder + f&#39;{poll_name}_rf_fea_op2.png&#39;, title=&#39;rf feature of importance(shuffle)&#39;)</span>
+
+    <span class="c1"># obtain feature of importance without lag</span>
+    <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_lag_&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+        <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">show_fea_imp</span><span class="p">(</span>
+        <span class="n">feat_imp</span><span class="p">,</span>
+        <span class="n">filename</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{poll_name}</span><span class="s1">_rf_fea_op2_nolag.png&#39;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s1">&#39;rf feature of importance(final)&#39;</span><span class="p">)</span>
+
+    <span class="n">poll_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x_cols_org&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">,</span>
+                 <span class="s1">&#39;x_cols&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span>
+                 <span class="s1">&#39;fire_cols&#39;</span><span class="p">:</span> <span class="n">fire_cols</span><span class="p">,</span>
+                 <span class="s1">&#39;fire_dict&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">,</span>
+                 <span class="s1">&#39;lag_dict&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">,</span>
+                 <span class="s1">&#39;rf_score&#39;</span><span class="p">:</span> <span class="n">score_dict</span><span class="p">,</span>
+                 <span class="s1">&#39;rf_params&#39;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">get_params</span><span class="p">()}</span>
+
+    <span class="n">model_meta</span> <span class="o">=</span> <span class="n">load_meta</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">+</span> <span class="s1">&#39;model_meta.json&#39;</span><span class="p">)</span>
+    <span class="n">model_meta</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span> <span class="o">=</span> <span class="n">poll_meta</span>
+    <span class="n">save_meta</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">+</span> <span class="s1">&#39;model_meta.json&#39;</span><span class="p">,</span> <span class="n">model_meta</span><span class="p">)</span>
+
+    <span class="n">data</span><span class="o">.</span><span class="n">save_</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">poll_meta</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src package &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src.data package" href="src.data.html" />
+    <link rel="prev" title="Welcome to ebm_band’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="src-package">
+<h1>src package<a class="headerlink" href="#src-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="src.data.html">src.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data.download_data">src.data.download_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data.fire_data">src.data.fire_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data.read_data">src.data.read_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data.vn_data">src.data.vn_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data.weather_data">src.data.weather_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.data.html#module-src.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src.features.html">src.features package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.features.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.html#module-src.features.build_features">src.features.build_features module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.html#module-src.features.dataset">src.features.dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.html#module-src.features">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src.models.html">src.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.predict_model">src.models.predict_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.train_model">src.models.train_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.train_others">src.models.train_others module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="src.visualization.html">src.visualization package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="src.visualization.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.visualization.html#module-src.visualization.vis_data">src.visualization.vis_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.visualization.html#module-src.visualization.vis_model">src.visualization.vis_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.visualization.html#module-src.visualization">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src.gen_functions">
+<span id="src-gen-functions-module"></span><h2>src.gen_functions module<a class="headerlink" href="#module-src.gen_functions" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.gen_functions.add_season">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">add_season</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">start_month</span><span class="o">=</span><span class="default_value">'-12-01'</span></em>, <em class="sig-param"><span class="n">end_month</span><span class="o">=</span><span class="default_value">'-04-30'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#add_season"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.add_season" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.cal_scores">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">cal_scores</code><span class="sig-paren">(</span><em class="sig-param">ytrue: numpy.array, ypred: numpy.array, score_list: list = [&lt;function r2_score&gt;, &lt;function mean_squared_error&gt;, &lt;function mean_absolute_error&gt;], header_str: str = 'test_', to_print=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#cal_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.cal_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the prediction score</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>ytrue: 2D numpy array of true sensors data
+ypred: 2D numpy array of predicted data
+score_list(optional): a list of function to calculate score [default: [r2_score,mean_squared_error]]
+header_str(optional): string to add to the result_dict key. Useful for separating <a href="#id1"><span class="problematic" id="id2">test_</span></a> and training data [default=’<a href="#id3"><span class="problematic" id="id4">test_</span></a>’]
+to_print: print the result to the console or result the dictionary</p>
+</dd>
+<dt>Returns: dict</dt><dd><p>result_dict: dictionary of the scores</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.get_circle">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">get_circle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_cen</span></em>, <em class="sig-param"><span class="n">y_cen</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">num_data</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#get_circle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.get_circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create x,y coordinate to form a circle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_cen</strong> – </p></li>
+<li><p><strong>y_cen</strong> – </p></li>
+<li><p><strong>r</strong> – </p></li>
+<li><p><strong>num_data</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.get_color">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">get_color</code><span class="sig-paren">(</span><em class="sig-param">series: (&lt;built-in function array&gt;</em>, <em class="sig-param">&lt;class 'pandas.core.series.Series'&gt;) = None</em>, <em class="sig-param">color_length: int = None</em>, <em class="sig-param">cmap=&lt;matplotlib.colors.LinearSegmentedColormap object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#get_color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.get_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of hex colormap for a series or for a specified length</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.get_gas_color_list">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">get_gas_color_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gas_list</span></em>, <em class="sig-param"><span class="n">gas_color_dict</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#get_gas_color_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.get_gas_color_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map the gas name to preset color in gas_color_dict.</p>
+<p>Use the same color for the gas to make it consistence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gas_list</strong> – a name of the gas</p></li>
+<li><p><strong>gas_color_dict</strong> (<em>optional</em>) – color dictionary to map the gas to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: list</dt><dd><p>a lit of color value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.get_unit">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">get_unit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pollutant</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#get_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.get_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the unit of the pollutant for plot label.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.merc_lon">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">merc_lon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#merc_lon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.merc_lon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert x in meter to longitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.merc_x">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">merc_x</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lon</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#merc_x"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.merc_x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.merc_y">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">merc_y</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#merc_y"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.merc_y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.season_avg">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">season_avg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">cols</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">roll</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'max'</span></em>, <em class="sig-param"><span class="n">offset</span><span class="o">=</span><span class="default_value">182</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#season_avg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.season_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate thea seasonal average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – dataframe to calculate the average of</p></li>
+<li><p><strong>cols</strong> – columns to use for the means</p></li>
+<li><p><strong>roll</strong> – if True, calculate the rolling average or use daily average</p></li>
+<li><p><strong>agg</strong> – either ‘max’ or ‘mean’</p></li>
+<li><p><strong>offset</strong> – date of year offset</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: pd.DataFrame(), dict</dt><dd><p>df:  dataframe of the seasonal pattern
+winder_day_dict: dictionary that map dayof year to month-day</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.smooth">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">smooth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">window_len</span><span class="o">=</span><span class="default_value">11</span></em>, <em class="sig-param"><span class="n">window</span><span class="o">=</span><span class="default_value">'hanning'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#smooth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>smooth the data using a window with requested size.</p>
+<p>This method is based on the convolution of a scaled window with the signal.
+The signal is prepared by introducing reflected copies of the signal
+(with the window size) in both ends so that transient parts are minimized
+in the begining and end part of the output signal.</p>
+<dl>
+<dt>input:</dt><dd><p>x: the input signal
+window_len: the dimension of the smoothing window; should be an odd integer
+window: the type of window from ‘flat’, ‘hanning’, ‘hamming’, ‘bartlett’, ‘blackman’</p>
+<blockquote>
+<div><p>flat window will produce a moving average smoothing.</p>
+</div></blockquote>
+</dd>
+<dt>output:</dt><dd><p>the smoothed signal</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p>t=linspace(-2,2,0.1)
+x=sin(t)+randn(len(t))*0.1
+y=smooth(x)</p>
+<p>see also:</p>
+<p>numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+scipy.signal.lfilter</p>
+<p>NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.to_aqi">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">to_aqi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">pollutant</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#to_aqi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.to_aqi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert pollution value to AQI</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – pollution reading</p></li>
+<li><p><strong>pollutant</strong> – type of pollutant</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: int</dt><dd><p>AQI value of the pollutant</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.gen_functions.to_latlon">
+<code class="sig-prename descclassname">src.gen_functions.</code><code class="sig-name descname">to_latlon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/gen_functions.html#to_latlon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.gen_functions.to_latlon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert x and y mercator coordinate to latitude and longtitude
+:param xy:</p>
+<p>Return (float,float)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.imports">
+<span id="src-imports-module"></span><h2>src.imports module<a class="headerlink" href="#module-src.imports" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">src package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="src.data.html">src.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.features.html">src.features package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html">src.models package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.visualization.html">src.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.gen_functions">src.gen_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src.imports">src.imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to ebm_band’s documentation!</a></li>
+      <li>Next: <a href="src.data.html" title="next chapter">src.data package</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/src.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

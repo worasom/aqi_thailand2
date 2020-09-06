@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.features.build_features &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.features.build_features</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="add_is_holiday"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.add_is_holiday">[docs]</a><span class="k">def</span> <span class="nf">add_is_holiday</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">,</span>
+        <span class="n">holiday_file</span><span class="o">=</span><span class="s1">&#39;C:/Users/Benny/Documents/Fern/aqi_thailand2/data/th_holiday.csv&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; add is_holiday columns. df must have &#39;datetime&#39; columns</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># prepare datetime columns</span>
+
+    <span class="k">try</span><span class="p">:</span>
+
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;datetime&#39;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+
+    <span class="c1"># load holiday files</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">holiday_file</span><span class="p">):</span>
+        <span class="n">holiday</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">holiday_file</span><span class="p">)</span>
+        <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+        <span class="c1"># keep only national holiday</span>
+        <span class="n">holiday</span> <span class="o">=</span> <span class="n">holiday</span><span class="p">[</span><span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;National holiday&#39;</span><span class="p">,</span> <span class="s1">&#39;Joint Holiday&#39;</span><span class="p">,</span> <span class="s1">&#39;Public Holiday&#39;</span><span class="p">])]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;the holiday file does not exist&#39;</span><span class="p">)</span>
+
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+    <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">holiday</span><span class="p">[[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">]],</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;is_holiday&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">~</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_calendar_info"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.add_calendar_info">[docs]</a><span class="k">def</span> <span class="nf">add_calendar_info</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">,</span>
+        <span class="n">holiday_file</span><span class="o">=</span><span class="s1">&#39;C:/Users/Benny/Documents/Fern/aqi_thailand2/data/th_holiday.csv&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add information related to calendar such as holiday, is_weekend, day of week and time of day.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: data frame with datetime index,</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># add datetime information</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">add_is_holiday</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">holiday_file</span><span class="p">)</span>
+    <span class="c1"># add weekend information</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;is_weekend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofweek</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span> <span class="o">*</span> <span class="mi">1</span>
+    <span class="c1"># add day of week</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;day_of_week&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofweek</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;time_of_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hour</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="wind_to_dummies"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.wind_to_dummies">[docs]</a><span class="k">def</span> <span class="nf">wind_to_dummies</span><span class="p">(</span><span class="n">series</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;One hot encode wind direction columns and group major wind direction</span>
+<span class="sd">    Args:</span>
+<span class="sd">        series: wind data series from weather[&#39;Wind&#39;]</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: if passed an empty series</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;empty series&#39;</span><span class="p">)</span>
+
+    <span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;category&#39;</span><span class="p">)</span>
+    <span class="n">dummies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+
+    <span class="c1"># group the wind direction into major wind direction</span>
+    <span class="n">direction_to_collpse</span> <span class="o">=</span> <span class="n">dummies</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    <span class="c1"># remove &#39;CALM&#39;</span>
+    <span class="k">if</span> <span class="s1">&#39;CALM&#39;</span> <span class="ow">in</span> <span class="n">direction_to_collpse</span><span class="p">:</span>
+        <span class="n">direction_to_collpse</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;CALM&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;VAR&#39;</span> <span class="ow">in</span> <span class="n">direction_to_collpse</span><span class="p">:</span>
+        <span class="n">direction_to_collpse</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">direction_to_collpse</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">direction</span><span class="p">):</span>
+                <span class="n">dummies</span><span class="p">[</span><span class="n">char</span><span class="p">]</span> <span class="o">=</span> <span class="n">dummies</span><span class="p">[</span><span class="n">char</span><span class="p">]</span> <span class="o">+</span> <span class="n">dummies</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span>
+            <span class="n">dummies</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># group the &#39;var&#39; direction</span>
+    <span class="n">major_direction</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;W&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">major_direction</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span> <span class="o">=</span> <span class="n">dummies</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span> <span class="o">+</span> <span class="n">dummies</span><span class="p">[</span><span class="s1">&#39;VAR&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dummies</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;VAR&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">dummies</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wind_&#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dummies</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dummies</span></div>
+
+
+<div class="viewcode-block" id="add_is_rain"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.add_is_rain">[docs]</a><span class="k">def</span> <span class="nf">add_is_rain</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">rain_list</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;Rain&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Shower&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Thunder&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Strom&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Drizzle&#39;</span><span class="p">]):</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;is_rain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Condition&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rain_list</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;Condition&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="find_num_lag"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.find_num_lag">[docs]</a><span class="k">def</span> <span class="nf">find_num_lag</span><span class="p">(</span><span class="n">poll_series</span><span class="p">,</span> <span class="n">thres</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculate the numbers of partial autocorrelation lag to add as feature to a time series.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pac</span> <span class="o">=</span> <span class="n">pacf</span><span class="p">(</span><span class="n">poll_series</span><span class="p">)</span>
+    <span class="c1"># find the number of lag</span>
+    <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pac</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+
+
+<div class="viewcode-block" id="add_lags"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.add_lags">[docs]</a><span class="k">def</span> <span class="nf">add_lags</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pollutant</span><span class="p">,</span> <span class="n">num_lags</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add lags columns to x_data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># calculate num lags</span>
+    <span class="k">if</span> <span class="n">num_lags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">num_lags</span> <span class="o">=</span> <span class="n">find_num_lag</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">pollutant</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">num_lags</span><span class="p">:</span>
+        <span class="n">lag_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{pollutant}</span><span class="s1">_lag_</span><span class="si">{idx}</span><span class="s1">&#39;</span>
+        <span class="n">lag_series</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">lag_series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">lag_name</span>
+        <span class="c1"># add to data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">lag_series</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<span class="c1"># function for feature eng fire</span>
+
+
+<div class="viewcode-block" id="cal_power_damp"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.cal_power_damp">[docs]</a><span class="k">def</span> <span class="nf">cal_power_damp</span><span class="p">(</span>
+        <span class="n">series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+        <span class="n">distance</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+        <span class="n">surface</span><span class="o">=</span><span class="s1">&#39;sphere&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculate the damped power based on the distance series.</span>
+
+<span class="sd">    The damping factor maybe 1/distance or 1/distance**2.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        series: series to recalculate</span>
+<span class="sd">        distance: distance array. Must have the same lenght as the series</span>
+<span class="sd">        surface(optional): either &#39;circle&#39; or &#39;sphere&#39;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        new_series</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        cal_power_damp(fire[&#39;power&#39;], fire[&#39;distance&#39;],surface=&#39;sphere&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">surface</span> <span class="o">==</span> <span class="s1">&#39;sphere&#39;</span><span class="p">:</span>
+        <span class="n">new_series</span> <span class="o">=</span> <span class="n">series</span> <span class="o">/</span> <span class="n">distance</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="k">elif</span> <span class="n">surface</span> <span class="o">==</span> <span class="s1">&#39;circle&#39;</span><span class="p">:</span>
+        <span class="n">new_series</span> <span class="o">=</span> <span class="n">series</span> <span class="o">/</span> <span class="n">distance</span>
+
+    <span class="k">return</span> <span class="n">new_series</span></div>
+
+
+<div class="viewcode-block" id="cal_arrival_time"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.cal_arrival_time">[docs]</a><span class="k">def</span> <span class="nf">cal_arrival_time</span><span class="p">(</span>
+    <span class="n">detection_time</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+    <span class="n">distance</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+    <span class="n">wind_speed</span><span class="p">:</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculate the approximate time that the pollution arrived at the city using the wind speed and distance from the hotspot.</span>
+
+<span class="sd">    Round arrival time to hour</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        detection_time: datetime series</span>
+<span class="sd">        distance: distance series in km</span>
+<span class="sd">        wind_speed(optional): approximate wind speed, can be floar or array in km/hour</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        arrival_time: datetime series of arrival time</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arrival_time</span> <span class="o">=</span> <span class="n">detection_time</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="n">wind_speed</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">arrival_time</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="shift_fire"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.shift_fire">[docs]</a><span class="k">def</span> <span class="nf">shift_fire</span><span class="p">(</span>
+    <span class="n">fire_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">fire_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span>
+    <span class="n">damp_surface</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span><span class="p">,</span>
+    <span class="n">shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">roll</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
+    <span class="n">w_speed</span><span class="p">:</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">)</span> <span class="o">=</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Feature engineer fire data. Account of the distance from the source and time lag using wind speed.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fire_df:</span>
+<span class="sd">        fire_col</span>
+<span class="sd">        damp_surface</span>
+<span class="sd">        shift</span>
+<span class="sd">        roll</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">require_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="n">fire_col</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fire_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">require_cols</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">require_cols</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+            <span class="s1">&#39;missing required columns for feature engineering fire data&#39;</span><span class="p">)</span>
+
+    <span class="c1"># calculate the damping factors</span>
+    <span class="n">fire_df</span><span class="p">[</span><span class="s1">&#39;damp_&#39;</span> <span class="o">+</span> <span class="n">fire_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">cal_power_damp</span><span class="p">(</span>
+        <span class="n">fire_df</span><span class="p">[</span><span class="n">fire_col</span><span class="p">],</span> <span class="n">fire_df</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">],</span> <span class="n">surface</span><span class="o">=</span><span class="n">damp_surface</span><span class="p">)</span>
+    <span class="c1"># calculate particle arrival time</span>
+    <span class="n">fire_df</span><span class="p">[</span><span class="s1">&#39;arrival_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cal_arrival_time</span><span class="p">(</span>
+        <span class="n">detection_time</span><span class="o">=</span><span class="n">fire_df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+        <span class="n">distance</span><span class="o">=</span><span class="n">fire_df</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">],</span>
+        <span class="n">wind_speed</span><span class="o">=</span><span class="n">w_speed</span><span class="p">)</span>
+
+    <span class="n">fire_df</span> <span class="o">=</span> <span class="n">fire_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;arrival_time&#39;</span><span class="p">)</span>
+    <span class="n">fire_df</span> <span class="o">=</span> <span class="n">fire_df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()[</span><span class="s1">&#39;damp_&#39;</span> <span class="o">+</span> <span class="n">fire_col</span><span class="p">]</span>
+    <span class="n">fire_df</span> <span class="o">=</span> <span class="n">fire_df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">fire_df</span> <span class="o">=</span> <span class="n">fire_df</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">shift</span><span class="p">)</span>
+    <span class="n">fire_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;datetime&#39;</span>
+    <span class="k">return</span> <span class="n">fire_df</span></div>
+
+
+<div class="viewcode-block" id="get_fire_feature"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.get_fire_feature">[docs]</a><span class="k">def</span> <span class="nf">get_fire_feature</span><span class="p">(</span>
+    <span class="n">fire</span><span class="p">,</span>
+    <span class="n">zone_list</span><span class="o">=</span><span class="p">[</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="mi">100</span><span class="p">,</span>
+        <span class="mi">200</span><span class="p">,</span>
+        <span class="mi">400</span><span class="p">,</span>
+        <span class="mi">800</span><span class="p">,</span>
+        <span class="mi">1000</span><span class="p">],</span>
+        <span class="n">fire_col</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;power&#39;</span><span class="p">,</span>
+        <span class="n">damp_surface</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;sphere&#39;</span><span class="p">,</span>
+        <span class="n">shift</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">roll</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
+        <span class="n">w_speed</span><span class="p">:</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">)</span> <span class="o">=</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Separate fire from different distance</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fire_col_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">new_fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">zone_list</span><span class="p">,</span> <span class="n">zone_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">col_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;fire_</span><span class="si">{start}</span><span class="s1">_</span><span class="si">{stop}</span><span class="s1">&#39;</span>
+
+        <span class="n">fire_col_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_name</span><span class="p">)</span>
+        <span class="c1"># select sub-data baseline the distance</span>
+        <span class="n">fire_s</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[(</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">)][[</span><span class="n">fire_col</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">fire_s</span> <span class="o">=</span> <span class="n">shift_fire</span><span class="p">(</span>
+            <span class="n">fire_s</span><span class="p">,</span>
+            <span class="n">fire_col</span><span class="o">=</span><span class="n">fire_col</span><span class="p">,</span>
+            <span class="n">damp_surface</span><span class="o">=</span><span class="n">damp_surface</span><span class="p">,</span>
+            <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span>
+            <span class="n">roll</span><span class="o">=</span><span class="n">roll</span><span class="p">,</span>
+            <span class="n">w_speed</span><span class="o">=</span><span class="n">w_speed</span><span class="p">)</span>
+        <span class="n">fire_s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">col_name</span>
+        <span class="n">new_fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">new_fire</span><span class="p">,</span> <span class="n">fire_s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">new_fire</span> <span class="o">=</span> <span class="n">new_fire</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">new_fire</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;datetime&#39;</span>
+    <span class="k">return</span> <span class="n">new_fire</span><span class="p">,</span> <span class="n">fire_col_list</span></div>
+
+
+<div class="viewcode-block" id="sep_fire_zone"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.sep_fire_zone">[docs]</a><span class="k">def</span> <span class="nf">sep_fire_zone</span><span class="p">(</span><span class="n">fire</span><span class="p">,</span> <span class="n">fire_col</span><span class="p">,</span> <span class="n">zone_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot; Separate fire data into zone mark by a distance in the zone_list without perform feature enginering.</span>
+<span class="sd">    Use for data visualization</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fire: fire dataframe</span>
+<span class="sd">        fire_col: &#39;power&#39; or &#39;count&#39;</span>
+<span class="sd">        zone_list:</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        new_fire: a dataframe with each column, a fire data in that zone</span>
+<span class="sd">        fire_col_list: a list of column name</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fire_col_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">new_fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">zone_list</span><span class="p">,</span> <span class="n">zone_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="n">col_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;fire_</span><span class="si">{start}</span><span class="s1">_</span><span class="si">{stop}</span><span class="s1">&#39;</span>
+        <span class="n">fire_col_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_name</span><span class="p">)</span>
+        <span class="c1"># select sub-data baseline the distance</span>
+        <span class="n">fire_s</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[(</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+            <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">)][[</span><span class="n">fire_col</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">fire_s</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col_name</span><span class="p">]</span>
+        <span class="n">fire_s</span> <span class="o">=</span> <span class="n">fire_s</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">new_fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">new_fire</span><span class="p">,</span> <span class="n">fire_s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_fire</span><span class="p">,</span> <span class="n">fire_col_list</span></div>
+
+
+<div class="viewcode-block" id="dummy_time_of_day"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.dummy_time_of_day">[docs]</a><span class="k">def</span> <span class="nf">dummy_time_of_day</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;time_of_day&#39;</span><span class="p">,</span> <span class="n">group_hour</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;One hot encode time_of_day columns. df must have datetime index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: dataframe to add the encoded</span>
+<span class="sd">        col: column name</span>
+<span class="sd">        group_hour: integer of hour to group the data into this help reduce the number of variables</span>
+
+<span class="sd">    Returns: processed dataframe</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># add time of day column</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hour</span>
+
+    <span class="k">if</span> <span class="n">group_hour</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># turn the columns into catergory. Use group_hour to reduce the number</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span>
+            <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="mi">24</span> <span class="o">+</span> <span class="n">group_hour</span><span class="p">,</span>
+                <span class="n">group_hour</span><span class="p">),</span>
+            <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">prefix</span><span class="o">=</span><span class="n">col</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">temp</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># drop old columns</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="fill_missing_poll"><a class="viewcode-back" href="../../../src.features.html#src.features.build_features.fill_missing_poll">[docs]</a><span class="k">def</span> <span class="nf">fill_missing_poll</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fill missing pollution data. Only Work with one columns dataframe</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: hourly pollution data with missing value</span>
+<span class="sd">        limit(default): number of forward and backward filling</span>
+
+<span class="sd">    Returns: new dataframe</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">min_date</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">max_date</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">new_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">min_date</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">max_date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">new_poll_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">new_index</span><span class="p">),</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">how</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+    <span class="n">new_poll_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;datetime&#39;</span>
+
+    <span class="n">new_poll_df_f</span> <span class="o">=</span> <span class="n">new_poll_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;ffill&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">new_poll_df_b</span> <span class="o">=</span> <span class="n">new_poll_df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;bfill&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">new_poll_df_f</span><span class="p">,</span> <span class="n">new_poll_df_b</span><span class="p">],</span>
+                     <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,452 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.gen_functions &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.gen_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="sd">&quot;&quot;&quot; Unit conversion function</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="merc_x"><a class="viewcode-back" href="../../src.html#src.gen_functions.merc_x">[docs]</a><span class="k">def</span> <span class="nf">merc_x</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span>
+    <span class="c1"># convert logitude in degree to mercadian in meter</span>
+    <span class="c1"># Earth radius in meter</span>
+    <span class="c1"># from https://wiki.openstreetmap.org/wiki/Mercator</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">r_major</span> <span class="o">=</span> <span class="mf">6378137.000</span>
+    <span class="k">return</span> <span class="n">r_major</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="merc_y"><a class="viewcode-back" href="../../src.html#src.gen_functions.merc_y">[docs]</a><span class="k">def</span> <span class="nf">merc_y</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># convert latitude in degree to mercadian in meter</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">shift</span><span class="p">:</span>
+        <span class="c1"># Add correction to latitude</span>
+        <span class="n">lat</span> <span class="o">+=</span> <span class="mf">0.08</span>
+
+    <span class="k">if</span> <span class="n">lat</span> <span class="o">&gt;</span> <span class="mf">89.5</span><span class="p">:</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="mf">89.5</span>
+    <span class="k">if</span> <span class="n">lat</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">89.5</span><span class="p">:</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="o">-</span><span class="mf">89.5</span>
+
+    <span class="n">r_major</span> <span class="o">=</span> <span class="mf">6378137.000</span>
+    <span class="n">r_minor</span> <span class="o">=</span> <span class="mf">6356752.3142</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">r_minor</span> <span class="o">/</span> <span class="n">r_major</span>
+    <span class="n">eccent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">temp</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="n">sinphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">con</span> <span class="o">=</span> <span class="n">eccent</span> <span class="o">*</span> <span class="n">sinphi</span>
+    <span class="n">com</span> <span class="o">=</span> <span class="n">eccent</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">con</span> <span class="o">=</span> <span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">con</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">con</span><span class="p">))</span><span class="o">**</span><span class="n">com</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">phi</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">con</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">-</span> <span class="n">r_major</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="to_latlon"><a class="viewcode-back" href="../../src.html#src.gen_functions.to_latlon">[docs]</a><span class="k">def</span> <span class="nf">to_latlon</span><span class="p">(</span><span class="n">xy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert x and y mercator coordinate to latitude and longtitude</span>
+<span class="sd">    Args:</span>
+<span class="sd">        xy</span>
+
+<span class="sd">    Return (float,float)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">inProj</span> <span class="o">=</span> <span class="n">Proj</span><span class="p">(</span><span class="s1">&#39;epsg:3395&#39;</span><span class="p">)</span>
+    <span class="n">outProj</span> <span class="o">=</span> <span class="n">Proj</span><span class="p">(</span><span class="s1">&#39;epsg:4326&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">inProj</span><span class="p">,</span> <span class="n">outProj</span><span class="p">,</span> <span class="o">*</span><span class="n">xy</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="merc_lon"><a class="viewcode-back" href="../../src.html#src.gen_functions.merc_lon">[docs]</a><span class="k">def</span> <span class="nf">merc_lon</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert x in meter to longitude</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="mf">6378137.000</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">180</span></div>
+
+
+<div class="viewcode-block" id="get_color"><a class="viewcode-back" href="../../src.html#src.gen_functions.get_color">[docs]</a><span class="k">def</span> <span class="nf">get_color</span><span class="p">(</span>
+        <span class="n">series</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">color_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">Blues</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a list of hex colormap for a series or for a specified length &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">series</span><span class="p">:</span>
+        <span class="c1"># colormap from a series</span>
+        <span class="n">vmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+        <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># colormap for specified lenght</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">color_length</span><span class="p">)</span>
+        <span class="n">vmin</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+    <span class="c1"># normalize item number values to colormap</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="c1"># colormap values = viridis, jet, spectral</span>
+    <span class="n">color_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">series</span><span class="p">]</span>
+    <span class="n">color_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">to_hex</span><span class="p">(</span><span class="n">color</span><span class="p">))</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">color_list</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">color_list</span></div>
+
+
+<div class="viewcode-block" id="get_gas_color_list"><a class="viewcode-back" href="../../src.html#src.gen_functions.get_gas_color_list">[docs]</a><span class="k">def</span> <span class="nf">get_gas_color_list</span><span class="p">(</span><span class="n">gas_list</span><span class="p">,</span> <span class="n">gas_color_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Map the gas name to preset color in gas_color_dict.</span>
+
+<span class="sd">    Use the same color for the gas to make it consistence</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        gas_list: a name of the gas</span>
+<span class="sd">        gas_color_dict(optional): color dictionary to map the gas to</span>
+
+<span class="sd">    Returns: list</span>
+<span class="sd">        a lit of color value</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">gas_color_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">gas_color_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">:</span> <span class="s1">&#39;#0000ff&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;PM10&#39;</span><span class="p">:</span> <span class="s1">&#39;#660099&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;O3&#39;</span><span class="p">:</span> <span class="s1">&#39;#cc0033&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="s1">&#39;#cc3300&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;NO2&#39;</span><span class="p">:</span> <span class="s1">&#39;#669900&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;SO2&#39;</span><span class="p">:</span> <span class="s1">&#39;#00ff00&#39;</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">gas_color_dict</span><span class="p">[</span><span class="n">gas</span><span class="p">]</span> <span class="k">if</span> <span class="n">gas</span> <span class="ow">in</span> <span class="n">gas_color_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="k">else</span> <span class="s1">&#39;royalblue&#39;</span> <span class="k">for</span> <span class="n">gas</span> <span class="ow">in</span> <span class="n">gas_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="cal_scores"><a class="viewcode-back" href="../../src.html#src.gen_functions.cal_scores">[docs]</a><span class="k">def</span> <span class="nf">cal_scores</span><span class="p">(</span>
+        <span class="n">ytrue</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">ypred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">score_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r2_score</span><span class="p">,</span>
+            <span class="n">mean_squared_error</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">],</span>
+    <span class="n">header_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;test_&#39;</span><span class="p">,</span>
+        <span class="n">to_print</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the prediction score</span>
+
+<span class="sd">    Inputs:</span>
+<span class="sd">        ytrue: 2D numpy array of true sensors data</span>
+<span class="sd">        ypred: 2D numpy array of predicted data</span>
+<span class="sd">        score_list(optional): a list of function to calculate score [default: [r2_score,mean_squared_error]]</span>
+<span class="sd">        header_str(optional): string to add to the result_dict key. Useful for separating test_ and training data [default=&#39;test_&#39;]</span>
+<span class="sd">        to_print: print the result to the console or result the dictionary</span>
+
+<span class="sd">    Returns: dict</span>
+<span class="sd">        result_dict: dictionary of the scores</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">result_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">score_fun</span> <span class="ow">in</span> <span class="n">score_list</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">header_str</span> <span class="o">+</span> <span class="n">score_fun</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">score_fun</span><span class="p">(</span><span class="n">ytrue</span><span class="p">,</span> <span class="n">ypred</span><span class="p">)})</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">result_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">header_str</span> <span class="o">+</span> <span class="n">score_fun</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">})</span>
+    <span class="k">if</span> <span class="n">to_print</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">result_dict</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result_dict</span></div>
+
+
+<div class="viewcode-block" id="add_season"><a class="viewcode-back" href="../../src.html#src.gen_functions.add_season">[docs]</a><span class="k">def</span> <span class="nf">add_season</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">start_month</span><span class="o">=</span><span class="s1">&#39;-12-01&#39;</span><span class="p">,</span> <span class="n">end_month</span><span class="o">=</span><span class="s1">&#39;-04-30&#39;</span><span class="p">):</span>
+    <span class="c1"># add winter season column</span>
+    <span class="c1"># df.index must be datetime format sorted in ascending order</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">year</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;season&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;other&#39;</span>
+    <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span> <span class="o">+</span> <span class="n">start_month</span>
+        <span class="n">end_date</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">end_month</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;winter_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_date</span><span class="p">:</span><span class="n">end_date</span><span class="p">,</span> <span class="s1">&#39;season&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">label</span>
+
+    <span class="c1"># convert year to seasona year</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;season&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+        <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="smooth"><a class="viewcode-back" href="../../src.html#src.gen_functions.smooth">[docs]</a><span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_len</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="s1">&#39;hanning&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;smooth the data using a window with requested size.</span>
+
+<span class="sd">    This method is based on the convolution of a scaled window with the signal.</span>
+<span class="sd">    The signal is prepared by introducing reflected copies of the signal</span>
+<span class="sd">    (with the window size) in both ends so that transient parts are minimized</span>
+<span class="sd">    in the begining and end part of the output signal.</span>
+
+<span class="sd">    input:</span>
+<span class="sd">        x: the input signal</span>
+<span class="sd">        window_len: the dimension of the smoothing window; should be an odd integer</span>
+<span class="sd">        window: the type of window from &#39;flat&#39;, &#39;hanning&#39;, &#39;hamming&#39;, &#39;bartlett&#39;, &#39;blackman&#39;</span>
+<span class="sd">            flat window will produce a moving average smoothing.</span>
+
+<span class="sd">    output:</span>
+<span class="sd">        the smoothed signal</span>
+
+<span class="sd">    example:</span>
+
+<span class="sd">        t=linspace(-2,2,0.1)</span>
+<span class="sd">        x=sin(t)+randn(len(t))*0.1</span>
+<span class="sd">        y=smooth(x)</span>
+
+<span class="sd">    see also:</span>
+
+<span class="sd">    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve</span>
+<span class="sd">    scipy.signal.lfilter</span>
+
+<span class="sd">    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">window_len</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">if</span> <span class="n">window</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="s1">&#39;hanning&#39;</span><span class="p">,</span> <span class="s1">&#39;hamming&#39;</span><span class="p">,</span> <span class="s1">&#39;bartlett&#39;</span><span class="p">,</span> <span class="s1">&#39;blackman&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Window is on of &#39;flat&#39;, &#39;hanning&#39;, &#39;hamming&#39;, &#39;bartlett&#39;, &#39;blackman&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">window_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="n">window_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="c1"># print(len(s))</span>
+    <span class="k">if</span> <span class="n">window</span> <span class="o">==</span> <span class="s1">&#39;flat&#39;</span><span class="p">:</span>  <span class="c1"># moving average</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">window_len</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;np.&#39;</span> <span class="o">+</span> <span class="n">window</span> <span class="o">+</span> <span class="s1">&#39;(window_len)&#39;</span><span class="p">)</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">w</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">s</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">window_len</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">window_len</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="season_avg"><a class="viewcode-back" href="../../src.html#src.gen_functions.season_avg">[docs]</a><span class="k">def</span> <span class="nf">season_avg</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">[],</span> <span class="n">roll</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">182</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate thea seasonal average.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: dataframe to calculate the average of</span>
+<span class="sd">        cols: columns to use for the means</span>
+<span class="sd">        roll: if True, calculate the rolling average or use daily average</span>
+<span class="sd">        agg: either &#39;max&#39; or &#39;mean&#39;</span>
+<span class="sd">        offset: date of year offset</span>
+
+<span class="sd">    Returns: pd.DataFrame(), dict</span>
+<span class="sd">        df:  dataframe of the seasonal pattern</span>
+<span class="sd">        winder_day_dict: dictionary that map dayof year to month-day</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="k">if</span> <span class="n">roll</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+
+    <span class="c1"># resample data</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;dayofyear&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofyear</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">year</span>
+
+    <span class="c1"># add winter day by substratcing the first day of july</span>
+    <span class="n">winterday</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;dayofyear&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">offset</span>
+    <span class="c1"># get rid of the negative number</span>
+    <span class="n">winter_day_max</span> <span class="o">=</span> <span class="n">winterday</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">winterday</span><span class="p">[</span><span class="n">winterday</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">winterday</span><span class="p">[</span><span class="n">winterday</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> \
+        <span class="n">offset</span> <span class="o">+</span> <span class="n">winter_day_max</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;winter_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">winterday</span>
+
+    <span class="c1"># add month-day</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;month_day&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;winter_day&#39;</span><span class="p">,</span> <span class="s1">&#39;month_day&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;winter_day&#39;</span><span class="p">)</span>
+    <span class="n">temp</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">winter_day_dict</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()[</span><span class="s1">&#39;month_day&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">winter_day_dict</span></div>
+
+
+<div class="viewcode-block" id="to_aqi"><a class="viewcode-back" href="../../src.html#src.gen_functions.to_aqi">[docs]</a><span class="k">def</span> <span class="nf">to_aqi</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">pollutant</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert pollution value to AQI</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: pollution reading</span>
+<span class="sd">        pollutant: type of pollutant</span>
+
+<span class="sd">    Returns: int</span>
+<span class="sd">        AQI value of the pollutant</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">transition_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;PM2.5&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">35.4</span><span class="p">,</span> <span class="mf">55.4</span><span class="p">,</span> <span class="mf">150.4</span><span class="p">,</span> <span class="mf">250.4</span><span class="p">,</span> <span class="mf">350.4</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span> <span class="s1">&#39;PM10&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">254</span><span class="p">,</span> <span class="mi">354</span><span class="p">,</span> <span class="mi">424</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="mi">604</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span> <span class="s1">&#39;O3&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span> <span class="s1">&#39;SO2&#39;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="mi">0</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">185</span><span class="p">,</span> <span class="mi">304</span><span class="p">,</span> <span class="mi">504</span><span class="p">,</span> <span class="mi">604</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span> <span class="s1">&#39;NO2&#39;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="mi">0</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">649</span><span class="p">,</span> <span class="mi">1249</span><span class="p">,</span> <span class="mi">2049</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span> <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="mi">0</span><span class="p">,</span> <span class="mf">4.4</span><span class="p">,</span> <span class="mf">9.4</span><span class="p">,</span> <span class="mf">12.4</span><span class="p">,</span> <span class="mf">15.4</span><span class="p">,</span> <span class="mf">30.4</span><span class="p">,</span> <span class="mf">40.4</span><span class="p">,</span> <span class="mf">50.4</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">]}</span>
+
+        <span class="n">aqi_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">999</span><span class="p">]</span>
+        <span class="n">tran</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_dict</span><span class="p">[</span><span class="n">pollutant</span><span class="p">])</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="n">tran</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">tran</span><span class="p">):</span>
+            <span class="n">aqi</span> <span class="o">=</span> <span class="n">aqi_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="n">tran</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">tran</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">lower_aqi</span> <span class="o">=</span> <span class="n">aqi_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">upper_aqi</span> <span class="o">=</span> <span class="n">aqi_list</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">aqi</span> <span class="o">=</span> <span class="p">(</span><span class="n">upper_aqi</span> <span class="o">-</span> <span class="n">lower_aqi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">*</span> \
+                <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">+</span> <span class="n">lower_aqi</span>
+            <span class="n">aqi</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ceil</span><span class="p">(</span><span class="n">aqi</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">aqi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">aqi</span></div>
+
+
+<div class="viewcode-block" id="get_unit"><a class="viewcode-back" href="../../src.html#src.gen_functions.get_unit">[docs]</a><span class="k">def</span> <span class="nf">get_unit</span><span class="p">(</span><span class="n">pollutant</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtain the unit of the pollutant for plot label.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">unit_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">:</span> <span class="s1">&#39;$\mu g/m^3$&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;PM10&#39;</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;$\mu g/m^3$&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;O3&#39;</span><span class="p">:</span> <span class="s1">&#39;ppb&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;NO2&#39;</span><span class="p">:</span> <span class="s1">&#39;ppb&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;SO2&#39;</span><span class="p">:</span> <span class="s1">&#39;ppb&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="s1">&#39;ppm&#39;</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">unit_dict</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_circle"><a class="viewcode-back" href="../../src.html#src.gen_functions.get_circle">[docs]</a><span class="k">def</span> <span class="nf">get_circle</span><span class="p">(</span><span class="n">x_cen</span><span class="p">,</span> <span class="n">y_cen</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">num_data</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create x,y coordinate to form a circle</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x_cen</span>
+<span class="sd">        y_cen</span>
+<span class="sd">        r</span>
+<span class="sd">        num_data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">num_data</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">step</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="n">x_arr</span> <span class="o">=</span> <span class="n">x_cen</span> <span class="o">+</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+    <span class="n">y_arr</span> <span class="o">=</span> <span class="n">y_cen</span> <span class="o">+</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x_arr</span><span class="p">,</span> <span class="n">y_arr</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1028 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.features.dataset &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.features.dataset</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..gen_functions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..data.read_data</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..data.fire_data</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..data.weather_data</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.build_features</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="sd">&quot;&quot;&quot;Pollution Dataset Object of a particular city. This object is contains the raw dataset</span>
+<span class="sd">and processed data, and is in charge of splitting data for training.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset">[docs]</a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Dataset object contains pollution, weather and fire data for a city.</span>
+<span class="sd">    It is also in charge of feature engineering and splitting data for ML hyperparameter tuning.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        city_name: lower case of city name</span>
+<span class="sd">        main_folder(optional): main data folder [default:&#39;../data/]</span>
+<span class="sd">        model_folder(optional): model folder[default:&#39;../models/&#39;]</span>
+<span class="sd">        report_folder(optional): folder to save fiture[default:&#39;../reports/&#39;]</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        city_name: name of the city</span>
+<span class="sd">        city_wea_dict: link the name of the city to the weather file</span>
+<span class="sd">        gas_list: a list of pollutants existed in the data. Can be overide when loading the data</span>
+<span class="sd">        main_folder: main data folder [default:&#39;../data/&#39;]. This folder contains raw data.</span>
+<span class="sd">        data_folder: data folder spcified for this city for keeping processed data</span>
+<span class="sd">        model_folder: model folder for this city for model meta and model files</span>
+<span class="sd">        report_folder: report folder for saving figures</span>
+<span class="sd">        city_info: dictionary contain city latitude and longtitude</span>
+<span class="sd">        poll_df: raw pollution data</span>
+<span class="sd">        fire: raw fire data</span>
+<span class="sd">        wea: raw weather data</span>
+<span class="sd">        data_no_fire: processed pollution data, and weather data</span>
+<span class="sd">        data: processed pollution, weather and fire data</span>
+<span class="sd">        x_cols:</span>
+<span class="sd">        fire_dict:</span>
+<span class="sd">        pollutant</span>
+<span class="sd">        monitor</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: if the city_name is not in city_names list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># a defaul list of pollutants</span>
+    <span class="n">gas_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span> <span class="s1">&#39;PM10&#39;</span><span class="p">,</span> <span class="s1">&#39;O3&#39;</span><span class="p">,</span> <span class="s1">&#39;CO&#39;</span><span class="p">,</span> <span class="s1">&#39;NO2&#39;</span><span class="p">,</span> <span class="s1">&#39;SO2&#39;</span><span class="p">]</span>
+    <span class="c1"># mapping city name to weather city name</span>
+    <span class="n">city_wea_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Chiang Mai&#39;</span><span class="p">:</span> <span class="s1">&#39;Mueang Chiang Mai&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Bangkok&#39;</span><span class="p">:</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span> <span class="s1">&#39;Soc Son&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Jakarta&#39;</span><span class="p">:</span> <span class="s1">&#39;East Jakarta&#39;</span><span class="p">}</span>
+
+    <span class="n">transition_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="mf">55.4</span><span class="p">,</span> <span class="mf">150.4</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span>
+                       <span class="s1">&#39;PM10&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">254</span><span class="p">,</span> <span class="mi">354</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span>
+                       <span class="s1">&#39;O3&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">85</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span>
+                       <span class="s1">&#39;SO2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">185</span><span class="p">,</span> <span class="mi">304</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span>
+                       <span class="s1">&#39;NO2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">649</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">],</span>
+                       <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">6.4</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">,</span> <span class="mf">15.4</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">]}</span>
+
+    <span class="n">roll_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+                 <span class="s1">&#39;PM10&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+                 <span class="s1">&#39;O3&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                 <span class="s1">&#39;SO2&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="s1">&#39;NO2&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">city_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">main_data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/&#39;</span><span class="p">,</span>
+            <span class="n">model_folder</span><span class="o">=</span><span class="s1">&#39;../models/&#39;</span><span class="p">,</span> <span class="n">report_folder</span><span class="o">=</span><span class="s1">&#39;../reports/&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize</span>
+
+<span class="sd">        #. Check if the city name exist in the database</span>
+<span class="sd">        #. Setup main, data, and model folders. Add as attribute</span>
+<span class="sd">        #. Check if the folders exists, if not create the folders</span>
+<span class="sd">        #. Load city information and add as atribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">city_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">,</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">,</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">city_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">city_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;city name not in the city_names list. No data for this city&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># the city exist in the database set folders attributes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">=</span> <span class="n">city_name</span>
+            <span class="n">city_name</span> <span class="o">=</span> <span class="n">city_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">=</span> <span class="n">main_data_folder</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">=</span> <span class="n">main_data_folder</span> <span class="o">+</span> <span class="n">city_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">=</span> <span class="n">model_folder</span> <span class="o">+</span> <span class="n">city_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">=</span> <span class="n">report_folder</span> <span class="o">+</span> <span class="n">city_name</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_wea_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">city_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_folder</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_folder</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_city_info</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Dataset.load_city_info"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.load_city_info">[docs]</a>    <span class="k">def</span> <span class="nf">load_city_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load city information add as city_info dictionary.</span>
+
+<span class="sd">        Add latitude and longtitude information in mercadian coordinate (km). Add as &#39;lat_km&#39; and &#39;long_km&#39; keys</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="s1">&#39;pm25/cities_info.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">city_info_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">city_json</span> <span class="ow">in</span> <span class="n">city_info_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="n">city_json</span><span class="p">[</span><span class="s1">&#39;City&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span> <span class="o">=</span> <span class="n">city_json</span>
+                <span class="k">break</span>
+
+        <span class="c1"># add lattitude and longtitude in km</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">merc_y</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;Latitude&#39;</span><span class="p">])</span> <span class="o">/</span>
+            <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">merc_x</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;Longitude&#39;</span><span class="p">])</span> <span class="o">/</span>
+            <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Dataset.get_th_stations"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.get_th_stations">[docs]</a>    <span class="k">def</span> <span class="nf">get_th_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Look for all polltuions station in the city by Thailand PCD.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># load stations information for air4 Thai</span>
+        <span class="n">station_info_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}</span><span class="s1">aqm_hourly2/&#39;</span> <span class="o">+</span> \
+            <span class="s1">&#39;stations_locations.json&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">station_info_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">station_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">station_info</span> <span class="o">=</span> <span class="n">station_info</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span>
+
+        <span class="c1"># find stations in Chiangmai and parase that files</span>
+        <span class="n">station_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">station_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">stations</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">station_info</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">[</span><span class="s1">&#39;areaEN&#39;</span><span class="p">]:</span>
+                <span class="n">station_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stations</span><span class="p">[</span><span class="s1">&#39;stationID&#39;</span><span class="p">])</span>
+                <span class="n">station_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stations</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">station_ids</span><span class="p">,</span> <span class="n">station_info_list</span></div>
+
+<div class="viewcode-block" id="Dataset.parse_th_station"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.parse_th_station">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_th_station</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse raw station data into .csv file in the form, which is ready to merge with the newly parse data.</span>
+
+<span class="sd">        Look for all the files containing station_id in the filename.</span>
+<span class="sd">        Create the folder to save the file if doesn&#39;t exist.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            folder: folder where the raw data file is saved</span>
+<span class="sd">            station_id: station_id</span>
+<span class="sd">            save_filename: filename to save the data as</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># look for all files containing station_id in the filename</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.xlsx&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">filenames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="c1"># if filename exist load that file</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">save_filename</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="s1">&#39;process/&#39;</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder</span> <span class="o">+</span> <span class="s1">&#39;process/&#39;</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span> <span class="o">+</span> <span class="s1">&#39;process/&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;save data as&#39;</span><span class="p">,</span> <span class="n">save_filename</span><span class="p">)</span>
+
+            <span class="n">station_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">station_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">read_his_xl</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">station_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">station_data</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+            <span class="c1"># save the data if the dataframe is not empty</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">station_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">save_filename</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.merge_new_old_pollution"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.merge_new_old_pollution">[docs]</a>    <span class="k">def</span> <span class="nf">merge_new_old_pollution</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">station_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="n">hist_folders</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;aqm_hourly2/&#39;</span><span class="p">,</span> <span class="s1">&#39;aqm_hourly3/&#39;</span><span class="p">],</span>
+            <span class="n">new_folder</span><span class="o">=</span><span class="s1">&#39;air4thai_hourly/&#39;</span><span class="p">,</span>
+            <span class="n">parse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.</span>
+
+<span class="sd">        Save the data for each station as data_folder/station_id.csv</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            station_ids: a list of pollution station for the city.</span>
+<span class="sd">            his_folders(optional): a list of folder containg the historcal data folder default:[&#39;aqm_hourly2/&#39;, &#39;aqm_hourly3/&#39;]</span>
+<span class="sd">            new_folder(optional): name of the new data folder(which is update constantly)[default:&#39;air4thai_hourly/&#39;]</span>
+<span class="sd">            parse(optional): if True, also parse the stations data from the excel files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">:</span>
+
+            <span class="n">old_data_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># extract data from both folder</span>
+            <span class="k">for</span> <span class="n">hist_folder</span> <span class="ow">in</span> <span class="n">hist_folders</span><span class="p">:</span>
+                <span class="c1"># load old data if exist</span>
+                <span class="n">old_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}{hist_folder}</span><span class="s1">&#39;</span> <span class="o">+</span> \
+                    <span class="s1">&#39;process/&#39;</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">old_filename</span><span class="p">):</span>
+                    <span class="c1"># data not exists parse data from raw excel file</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parse_th_station</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}{hist_folder}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">station_id</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">old_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">old_filename</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                    <span class="n">old_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">old_data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">old_data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+                    <span class="n">old_data</span> <span class="o">=</span> <span class="n">old_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+                    <span class="c1"># keep only the gass columns</span>
+                    <span class="n">gas_list</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gas_list</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">old_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+                    <span class="n">old_data</span> <span class="o">=</span> <span class="n">old_data</span><span class="p">[</span><span class="n">gas_list</span><span class="p">]</span>
+                    <span class="n">old_data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_data</span><span class="p">)</span>
+
+            <span class="n">old_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">old_data_list</span><span class="p">)</span>
+            <span class="n">old_data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">old_data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">old_data</span> <span class="o">=</span> <span class="n">old_data</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+            <span class="n">old_data</span> <span class="o">=</span> <span class="n">old_data</span><span class="p">[</span><span class="o">~</span><span class="n">old_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
+
+            <span class="c1"># read data parse from the website</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}{new_folder}</span><span class="s1">&#39;</span> <span class="o">+</span>
+                <span class="n">station_id</span> <span class="o">+</span>
+                <span class="s1">&#39;.csv&#39;</span><span class="p">,</span>
+                <span class="n">na_values</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+            <span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; (&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">new_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+            <span class="c1"># keep only the gass columns</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gas_list</span><span class="p">]</span>
+            <span class="c1"># concatinate data and save</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">old_data</span><span class="p">,</span> <span class="n">new_data</span><span class="p">])</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">~</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;save file&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.collect_stations_data"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.collect_stations_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_stations_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collect all Pollution data from a different sources and take the average.</span>
+
+<span class="sd">        Since each city have different data sources. It has to be treat differently</span>
+
+<span class="sd">        Returns: a list of dataframe each dataframe is the data from all station.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># data list contain the dataframe of all pollution data before merging</span>
+        <span class="c1"># all of this data has &#39;datetime&#39; as a columns</span>
+        <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># load data from Berekely Earth Projects This is the same for all</span>
+        <span class="c1"># cities</span>
+        <span class="n">b_data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">read_b_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="s1">&#39;pm25/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
+        <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b_data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">:</span>
+            <span class="c1"># Chiang Mai has two stations, which are stored into folder</span>
+            <span class="c1"># (historical data and newly scrape data)</span>
+            <span class="n">station_ids</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_th_stations</span><span class="p">()</span>
+            <span class="c1"># for Chiang mai keep only the first two stations</span>
+            <span class="n">station_ids</span> <span class="o">=</span> <span class="n">station_ids</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+            <span class="c1"># update the file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">merge_new_old_pollution</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span>
+            <span class="c1"># load the file</span>
+            <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+                <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">:</span>
+            <span class="c1"># List of Bangkok stations that has been processed</span>
+            <span class="n">station_ids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;02t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;03t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;05t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;11t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;12t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;50t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;52t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;53t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;59t&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;61t&#39;</span><span class="p">]</span>
+            <span class="c1"># update the file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">merge_new_old_pollution</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span>
+            <span class="c1"># load the file</span>
+            <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">station_ids</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="n">station_id</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+                <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span>
+            <span class="c1"># for Hanoi Data, also load Ha Dong Data</span>
+            <span class="n">b_data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">read_b_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="s1">&#39;pm25/&#39;</span> <span class="o">+</span> <span class="s1">&#39;Ha_Dong.txt&#39;</span><span class="p">)</span>
+            <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b_data</span><span class="p">)</span>
+            <span class="n">data_list</span> <span class="o">+=</span> <span class="n">build_us_em_data</span><span class="p">(</span><span class="n">city_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">city_name</span><span class="p">,</span>
+                                          <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}</span><span class="s1">us_emb/&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">:</span>
+            <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b_data</span><span class="p">)</span>
+            <span class="n">data_list</span> <span class="o">+=</span> <span class="n">build_us_em_data</span><span class="p">(</span><span class="n">city_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">city_name</span><span class="p">,</span>
+                                          <span class="n">data_folder</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.main_folder}</span><span class="s1">us_emb/&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data_list</span></div>
+
+<div class="viewcode-block" id="Dataset.build_pollution"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_pollution">[docs]</a>    <span class="k">def</span> <span class="nf">build_pollution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collect all Pollution data from a different sources and take the average.</span>
+
+<span class="sd">        Use self.collect_stations_data to get a list of pollution dataframe.</span>
+<span class="sd">        Add the average pollution data as attribute self.poll_df</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">data_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collect_stations_data</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Averaging data from {len(data_list)} stations&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">data_list</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">])</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">df</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># take the average of all the data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">round</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Dataset.build_fire"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_fire">[docs]</a>    <span class="k">def</span> <span class="nf">build_fire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;MODIS&#39;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                   <span class="n">fire_data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;fire_map/world_2000-2020/&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract hotspots satellite data within distance from the city location.</span>
+
+<span class="sd">        #. Loop through the fire data in the folder to extract the hotspots within the distance from the city</span>
+<span class="sd">        #. Call process fire data to add datetime information</span>
+<span class="sd">        #. Calculate the distance from the hotspot to the city location.</span>
+<span class="sd">        #. Add fire power column  = scan * track*frp. This account of the size and the temperature of the fire</span>
+<span class="sd">        #. Add the count column, which is 1</span>
+<span class="sd">        #. Remove unncessary columns</span>
+<span class="sd">        #. Save the data as data_folder/fire_m.csv if instr is &quot;MODIS&#39;. Use fire_v.csv if instr is &#39;VIIR&#39;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            instr(optional): instrument name either MODIS or VIIRS[default:&#39;MODIS&#39;]</span>
+<span class="sd">            distance(optional): distance in km from the city latitude and longtitude[default:1000]</span>
+<span class="sd">            fire_data_folder(optional): location of the hotspots data[default:&#39;fire_map/world_2000-2020/&#39;]</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AssertionError: if the instrument name does not exist</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Loading all hotspots data. This might take sometimes&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="mi">1200</span>
+
+        <span class="c1"># else self.city_name == &#39;Bangkok&#39;:</span>
+        <span class="c1">#    distance = 600</span>
+
+        <span class="c1"># the instrument is either MODIS or VIIRS</span>
+        <span class="k">if</span> <span class="n">instr</span> <span class="o">==</span> <span class="s1">&#39;MODIS&#39;</span><span class="p">:</span>
+            <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="n">fire_data_folder</span> <span class="o">+</span> <span class="s1">&#39;M6/*.csv&#39;</span>
+
+        <span class="k">elif</span> <span class="n">instr</span> <span class="o">==</span> <span class="s1">&#39;VIIRS&#39;</span><span class="p">:</span>
+            <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="n">fire_data_folder</span> <span class="o">+</span> <span class="s1">&#39;V1/*.csv&#39;</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;instrument name can be either MODIS or VIIRS&#39;</span><span class="p">)</span>
+
+        <span class="c1"># keeping radius</span>
+        <span class="c1">#upper_lat = self.city_info[&#39;lat_km&#39;] + distance</span>
+        <span class="c1">#lower_lat = self.city_info[&#39;lat_km&#39;] - distance</span>
+        <span class="c1">#upper_long = self.city_info[&#39;long_km&#39;] + distance</span>
+        <span class="c1">#lower_long = self.city_info[&#39;long_km&#39;] - distance</span>
+
+        <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="c1"># for file in tqdm_notebook(files):</span>
+
+        <span class="c1">#     df = pd.read_csv(file)</span>
+        <span class="c1">#     # convert lat and long to km</span>
+        <span class="c1">#     df[&#39;lat_km&#39;] = (</span>
+        <span class="c1">#         df[&#39;latitude&#39;].apply(merc_y) /</span>
+        <span class="c1">#         1E3).round().astype(int)</span>
+        <span class="c1">#     df[&#39;long_km&#39;] = (merc_x(df[&#39;longitude&#39;]) / 1E3).round().astype(int)</span>
+
+        <span class="c1">#     # remove by lat</span>
+        <span class="c1">#     df = df[(df[&#39;lat_km&#39;] &lt;= (upper_lat)) &amp; (df[&#39;lat_km&#39;] &gt;= (lower_lat))]</span>
+
+        <span class="c1">#     # remove by long</span>
+        <span class="c1">#     df = df[(df[&#39;long_km&#39;] &lt;= (upper_long)) &amp; (df[&#39;long_km&#39;] &gt;= (lower_long))]</span>
+        <span class="n">lat_km</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span>
+        <span class="n">long_km</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span>
+
+        <span class="c1"># use joblib to speed up the file reading process over 2 cpus</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span>
+            <span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span>
+            <span class="n">delayed</span><span class="p">(</span><span class="n">read_fire</span><span class="p">)(</span>
+                <span class="n">file</span><span class="p">,</span>
+                <span class="n">lat_km</span><span class="p">,</span>
+                <span class="n">long_km</span><span class="p">,</span>
+                <span class="n">distance</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fire</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">process_fire_data</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fire</span><span class="o">=</span><span class="n">fire</span><span class="p">,</span> <span class="n">and_save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">instr</span> <span class="o">==</span> <span class="s1">&#39;MODIS&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;fire_m.csv&#39;</span>
+
+        <span class="k">elif</span> <span class="n">instr</span> <span class="o">==</span> <span class="s1">&#39;VIIRS&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;fire_v.csv&#39;</span>
+
+        <span class="c1"># add distance columns</span>
+        <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span> <span class="o">-</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                                   <span class="p">((</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span> <span class="o">-</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="c1"># create power column and drop unncessary columns</span>
+        <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;scan&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;track&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;frp&#39;</span><span class="p">]</span>
+        <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;brightness&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;acq_time&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;track&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;scan&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;frp&#39;</span><span class="p">],</span>
+                             <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span>
+                <span class="s1">&#39;bright_ti4&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;acq_time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;track&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;scan&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;frp&#39;</span><span class="p">],</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># save fire data</span>
+        <span class="n">fire</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.build_weather"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_weather">[docs]</a>    <span class="k">def</span> <span class="nf">build_weather</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wea_data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;weather_cities/&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load weather data and fill the missing value. Add as wea attibute.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wea_data_folder(optional): weather data folder[default:&#39;weather_cities/&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_wea_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">city_name</span><span class="p">]</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_folder</span> <span class="o">+</span> <span class="n">wea_data_folder</span> <span class="o">+</span> \
+            <span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+        <span class="n">wea</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">wea</span> <span class="o">=</span> <span class="n">fill_missing_weather</span><span class="p">(</span><span class="n">wea</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="c1"># round the weather data</span>
+        <span class="n">wea</span><span class="p">[[</span><span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span> <span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">wea</span><span class="p">[[</span>
+            <span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span> <span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wea</span> <span class="o">=</span> <span class="n">wea</span></div>
+
+<div class="viewcode-block" id="Dataset.build_holiday"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_holiday">[docs]</a>    <span class="k">def</span> <span class="nf">build_holiday</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scrape holiday data from https://www.timeanddate.com/holidays/ since 2000 until current.</span>
+
+<span class="sd">        Save the data as data_folder/holiday.csv</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Chiang Mai&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">:</span>
+            <span class="n">head_url</span> <span class="o">=</span> <span class="s1">&#39;https://www.timeanddate.com/holidays/thailand/&#39;</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">:</span>
+            <span class="n">head_url</span> <span class="o">=</span> <span class="s1">&#39;https://www.timeanddate.com/holidays/indonesia/&#39;</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span>
+            <span class="n">head_url</span> <span class="o">=</span> <span class="s1">&#39;https://www.timeanddate.com/holidays/vietnam/&#39;</span>
+
+        <span class="n">years</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">year</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">holiday</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="n">years</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">head_url</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">year</span>
+            <span class="n">holiday</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">holiday</span><span class="p">,</span> <span class="n">df</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">holiday</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="s1">&#39;day_of_week&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">]</span>
+        <span class="n">holiday</span> <span class="o">=</span> <span class="n">holiday</span><span class="p">[</span><span class="o">~</span><span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+
+        <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;Date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">holiday</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+        <span class="n">holiday</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;holiday.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.build_all_data"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_all_data">[docs]</a>    <span class="k">def</span> <span class="nf">build_all_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">build_fire</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">build_holiday</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build all data from raw files. Use after just download more raw data.</span>
+
+<span class="sd">        The function build pollution and weather data by default, but fire and holiday data are optionals</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            build_fire(optional): if True, also build the fire data[default:False]</span>
+<span class="sd">            build_holiday(optional): if True, also build the holiday data[default:False]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_pollution</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_weather</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">build_fire</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_fire</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">build_holiday</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_holiday</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Dataset.feature_no_fire"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.feature_no_fire">[docs]</a>    <span class="k">def</span> <span class="nf">feature_no_fire</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">pollutant</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span>
+            <span class="n">rolling_win</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+            <span class="n">fill_missing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">cat_hour</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">group_hour</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assemble pollution data, datetime and weather data. Omit the fire data for later step.</span>
+
+<span class="sd">        #. Call self.load_() to load processed data</span>
+<span class="sd">        #. Build holiday data if not already exist</span>
+<span class="sd">        #. Add pollutant as pollutant attribute</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pollutant(optional): name of the pollutant [default:&#39;PM2.5&#39;]</span>
+<span class="sd">            rolling_win(optional): rolling windows size [defaul:24]. This does not do anything.</span>
+<span class="sd">            fill_missing(optional): if True, fill the missing pollution data</span>
+<span class="sd">            cat_hour(optional): if true, one hot encode the time_of_day column</span>
+<span class="sd">            group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            AssertionError: if pollutant not in self.poll_df</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;poll_df&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;wea&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;holiday.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build_holiday</span><span class="p">()</span>
+
+        <span class="c1"># check if pollutant data exist</span>
+        <span class="k">if</span> <span class="n">pollutant</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No </span><span class="si">{pollutant}</span><span class="s1"> data&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pollutant</span> <span class="o">=</span> <span class="n">pollutant</span>
+
+        <span class="k">if</span> <span class="n">fill_missing</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span> <span class="o">=</span> <span class="n">fill_missing_poll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">pollutant</span><span class="p">,</span>
+            <span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Wind&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Condition&#39;</span><span class="p">]</span>
+        <span class="c1"># merge pollution and wind data</span>
+
+        <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="p">,</span>
+            <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+
+        <span class="c1"># select data and drop null value</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span>
+            <span class="n">rolling_win</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">pollutant</span> <span class="o">==</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;2010&#39;</span><span class="p">:]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;2016-03-21&#39;</span><span class="p">:]</span>
+
+        <span class="c1"># add lag information</span>
+        <span class="c1"># data = add_lags(data, pollutant)</span>
+        <span class="c1"># one hot encode wind data</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">wind_to_dummies</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Wind&#39;</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;Wind&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">dummies</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">add_is_rain</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">add_calendar_info</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">holiday_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;holiday.csv&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cat_hour</span><span class="p">:</span>
+            <span class="c1"># one hot encode the time of day columns</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">dummy_time_of_day</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;time_of_day&#39;</span><span class="p">,</span> <span class="n">group_hour</span><span class="o">=</span><span class="n">group_hour</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;some data cannot be convert to float&#39;</span><span class="p">)</span>
+
+        <span class="c1"># find duplicate index and drop them</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;data no fire has shape&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span> <span class="o">=</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Dataset.merge_fire"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.merge_fire">[docs]</a>    <span class="k">def</span> <span class="nf">merge_fire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fire_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">damp_surface</span><span class="o">=</span><span class="s1">&#39;sphere&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Process raw hotspot data into fire feature and merge with the rest of the data</span>
+<span class="sd">        Args:</span>
+<span class="sd">            fire_dict(optional): fire dictionary [default:None]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># use self.fire_dict attribute</span>
+        <span class="k">if</span> <span class="n">fire_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;use default fire feature&#39;</span><span class="p">)</span>
+            <span class="n">fire_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;w_speed&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;shift&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;roll&#39;</span><span class="p">:</span> <span class="mi">44</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fire_dict</span> <span class="o">=</span> <span class="n">fire_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">:</span>
+            <span class="n">zone_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">:</span>
+            <span class="n">zone_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">1200</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">:</span>
+            <span class="n">zone_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">zone_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+
+        <span class="n">fire_proc</span><span class="p">,</span> <span class="n">fire_cols</span> <span class="o">=</span> <span class="n">get_fire_feature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fire</span><span class="p">,</span> <span class="n">zone_list</span><span class="o">=</span><span class="n">zone_list</span><span class="p">,</span>
+                                                <span class="n">fire_col</span><span class="o">=</span><span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="n">damp_surface</span><span class="o">=</span><span class="n">damp_surface</span><span class="p">,</span>
+                                                <span class="n">shift</span><span class="o">=</span><span class="n">fire_dict</span><span class="p">[</span><span class="s1">&#39;shift&#39;</span><span class="p">],</span> <span class="n">roll</span><span class="o">=</span><span class="n">fire_dict</span><span class="p">[</span><span class="s1">&#39;roll&#39;</span><span class="p">],</span> <span class="n">w_speed</span><span class="o">=</span><span class="n">fire_dict</span><span class="p">[</span><span class="s1">&#39;w_speed&#39;</span><span class="p">])</span>
+
+        <span class="c1"># merge with fire data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">fire_proc</span><span class="p">,</span>
+            <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">return</span> <span class="n">fire_cols</span><span class="p">,</span> <span class="n">zone_list</span></div>
+
+<div class="viewcode-block" id="Dataset.make_diff_col"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.make_diff_col">[docs]</a>    <span class="k">def</span> <span class="nf">make_diff_col</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add pollutant diff column for modeling the diff instead of the actual value.</span>
+<span class="sd">        Drop all the columns with &#39;lag&#39; name on it.</span>
+
+<span class="sd">        The function update self.data_no_fire attribute, x_cols attribute, and monitor attribute.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create diff columns</span>
+        <span class="n">new_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pollutant</span> <span class="o">+</span> <span class="s1">&#39;_diff&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="p">[</span><span class="n">new_col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pollutant</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+        <span class="c1"># add monitor col</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">new_col</span>
+
+        <span class="c1"># the first row of diff is nan. Add that value as attribute before</span>
+        <span class="c1"># deleting the row.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">pollutant</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+        <span class="c1"># find the columns to drop</span>
+        <span class="n">to_drop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span>
+            <span class="s1">&#39;lag_&#39;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.split_data"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.split_data">[docs]</a>    <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">split_ratio</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="mf">0.4</span><span class="p">,</span>
+                <span class="mf">0.2</span><span class="p">,</span>
+                <span class="mf">0.2</span><span class="p">,</span>
+                <span class="mf">0.2</span><span class="p">],</span>
+            <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Split the data datetime index into train, valiadation and test sets</span>
+
+<span class="sd">        Add a list of the index in each set as atttibutes</span>
+<span class="sd">        Args:</span>
+<span class="sd">            split_ratio(optional): porportion of data in each set. Must add up to less than or equal to one.</span>
+<span class="sd">            shuffle(optional): shuffle the data before splitting</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># use the data after merge</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">split_ratio</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;The sum of the splitting ratios must not exceed 1&#39;</span><span class="p">)</span>
+
+        <span class="n">idxs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
+        <span class="c1"># find splitting indicies</span>
+        <span class="n">split_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">split_ratio</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">split_ratio</span> <span class="o">=</span> <span class="n">split_ratio</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">split_ratio</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Dataset.get_data_matrix"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.get_data_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">get_data_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_index</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">x_cols</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Extract data in data dataframe into x,y matricies using input index list.</span>
+
+<span class="sd">        y is specified by self.monitor attribute. Use the data specified by x_cols.</span>
+<span class="sd">        If x_cols is an empty list, use entire columns in self.data</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            use_index: a list of datetime index for the dataset</span>
+<span class="sd">            x_cols(optional): a list of columns for x data [default:[]]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            x: x data matrix</span>
+<span class="sd">            y: y data matrix</span>
+<span class="sd">            x_cols: data columns</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">use_index</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;no self.data attribute. Call self.merge_fire() first&#39;</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="n">x_cols</span><span class="p">]</span>
+
+        <span class="n">x_cols</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_cols</span></div>
+
+<div class="viewcode-block" id="Dataset.build_lag"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.build_lag">[docs]</a>    <span class="k">def</span> <span class="nf">build_lag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lag_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build the lag data using number in lag_range.</span>
+<span class="sd">        Add the new data as self.data attribute.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lag_range: list of lag value to add. Can be from np.arange(1,5) or [1,3, 10]</span>
+<span class="sd">            roll(optional): if True, use the calculate the rolling average of previous values and shift 1</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lag_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_org</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lag_range</span><span class="p">:</span>
+            <span class="n">lag_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_org</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">lag_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;_lag_</span><span class="si">{n}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">roll</span><span class="p">:</span>
+                <span class="c1"># calculate the rolling average</span>
+                <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="n">lag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lag_df</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">lag_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Dataset.save_"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.save_">[docs]</a>    <span class="k">def</span> <span class="nf">save_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the process data for fast loading without build.</span>
+
+<span class="sd">        Save if the attribute exist.</span>
+<span class="sd">        - save pollution data</span>
+<span class="sd">        - save weather data</span>
+<span class="sd">        - save data no fire</span>
+<span class="sd">        - save data_org</span>
+<span class="sd">        - save data</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;poll_df&#39;</span><span class="p">):</span>
+            <span class="c1"># save pollution data</span>
+            <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># save without index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;poll.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># save with index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;poll.csv&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;wea&#39;</span><span class="p">):</span>
+            <span class="c1"># save fire data</span>
+            <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># save without index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;weather.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># save with index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;weather.csv&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;data_no_fire&#39;</span><span class="p">):</span>
+            <span class="c1"># save fire data</span>
+            <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># save without index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_no_fire.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># save with index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_no_fire.csv&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;data_org&#39;</span><span class="p">):</span>
+            <span class="c1"># save fire data</span>
+            <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># save without index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_org.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># save with index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_org.csv&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+            <span class="c1"># save fire data</span>
+            <span class="k">if</span> <span class="s1">&#39;datetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># save without index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># save with index</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data.csv&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Dataset.load_"><a class="viewcode-back" href="../../../src.features.html#src.features.dataset.Dataset.load_">[docs]</a>    <span class="k">def</span> <span class="nf">load_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fire</span><span class="o">=</span><span class="s1">&#39;MODIS&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load the process pollution data from the disk without the build</span>
+
+<span class="sd">        Load if the file exist for.</span>
+<span class="sd">        - pollution data</span>
+<span class="sd">        - weather data</span>
+<span class="sd">        - data no fire</span>
+<span class="sd">        - data_org</span>
+<span class="sd">        - data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;poll.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;poll.csv&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># add pollution list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gas_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">):</span>
+                <span class="c1"># for Chiang Mai, delete all PM2.5 record before 2010</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:</span><span class="s1">&#39;2010&#39;</span><span class="p">,</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no pollution data. Call self.build_pollution first&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fire</span> <span class="o">==</span> <span class="s1">&#39;MODIS&#39;</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;fire_m.csv&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;fire_v.csv&#39;</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fire</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no fire data. Call self.build_fire first&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;weather.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;weather.csv&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;Dew Point(C)&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;Wind Gust(kmph)&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;Pressure(in)&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;Precip.(in)&#39;</span><span class="p">],</span>
+                              <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wea</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no weather data. Call self.build_weather first&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_no_fire.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_no_fire.csv&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_no_fire</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_org.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data_org.csv&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data.csv&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s1">&#39;data.csv&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

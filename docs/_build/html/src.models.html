@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.models package &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src.visualization package" href="src.visualization.html" />
+    <link rel="prev" title="src.features package" href="src.features.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="src-models-package">
+<h1>src.models package<a class="headerlink" href="#src-models-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-src.models.predict_model">
+<span id="src-models-predict-model-module"></span><h2>src.models.predict_model module<a class="headerlink" href="#module-src.models.predict_model" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="src.models.predict_model.Inferer">
+<em class="property">class </em><code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">Inferer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">split_list</span><span class="o">=</span><span class="default_value">[0.7, 0.3]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Inferer object is in charge of predicting and infering from previous training data.</p>
+<p>Required a trained model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>city_name</strong> – lower case of city name</p></li>
+<li><p><strong>pollutant</strong> – str=’PM2.5’</p></li>
+<li><p><strong>split_list</strong> (<em>optional</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="src.models.predict_model.Inferer.dataset">
+<code class="sig-name descname">dataset</code><a class="headerlink" href="#src.models.predict_model.Inferer.dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>AssertionError</strong> – if the city_name is not in city_names list</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.models.predict_model.Inferer._get_data_sample">
+<code class="sig-name descname">_get_data_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_samples</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">step</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">day_err</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">hour_err</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer._get_data_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer._get_data_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the possible test data from train data. Add as data_samples attribute</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Args</strong> – n_samples: number of sample per hours
+step: if not 1, skip some data to make the draw faster
+day_err
+hour_err</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.models.predict_model.Inferer.cal_error">
+<code class="sig-name descname">cal_error</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer.cal_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer.cal_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the training and seasonal error. Add trn_error and seasonal_error as attribute</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.models.predict_model.Inferer.compare_inf_act">
+<code class="sig-name descname">compare_inf_act</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">q_list</span><span class="o">=</span><span class="default_value">[0.75]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer.compare_inf_act"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer.compare_inf_act" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare inference and actual data. Save the results plot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q_list</strong> (<em>optional</em>) – a list of inference quantile[defaul=[0.05, 0.25, 0.5, 0.75,  0.95]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.models.predict_model.Inferer.features_effect_season">
+<code class="sig-name descname">features_effect_season</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">ax</span></em>, <em class="sig-param"><span class="n">red_list</span><span class="o">=</span><span class="default_value">[0, 0.1, 0.25, 0.5, 0.75, 0.9]</span></em>, <em class="sig-param"><span class="n">save</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer.features_effect_season"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer.features_effect_season" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show an effect of reducing feature or features on the seasonal patterns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>features</strong> – a list of feature to observe</p></li>
+<li><p><strong>q</strong> – quantile for picking the inference distribution [default:0.75]</p></li>
+<li><p><strong>red_list</strong> – a list of reducting</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.models.predict_model.Inferer.features_effect_sum">
+<code class="sig-name descname">features_effect_sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">features_list</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">red_list</span><span class="o">=</span><span class="default_value">[0, 0.1, 0.25, 0.5, 0.75, 0.9]</span></em>, <em class="sig-param"><span class="n">time_range</span><span class="o">=</span><span class="default_value">[0, - 1]</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">raw_filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#Inferer.features_effect_sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.Inferer.features_effect_sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summarize effect of reduction in red_list of the features in the feature list.</p>
+<p>Calculate the summary value between time_range and use aggegration method specified by agg
+:param features_list:
+:param q:
+:param red_list:
+:param agg:
+:param raw_filename: use when wannting to export the raw plot to csv</p>
+<dl class="simple">
+<dt>Return: pd.DataFrame.</dt><dd><p>The average prediction pollution level if reduction of each feature occure</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model._reduct_effect_q">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">_reduct_effect_q</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">data_samples</span></em>, <em class="sig-param"><span class="n">features</span></em>, <em class="sig-param"><span class="n">sea_error</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">per_cut</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#_reduct_effect_q"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model._reduct_effect_q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the reduction effect of a single q value.</p>
+<p>Convert to seasonal pattern</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – model for prediction</p></li>
+<li><p><strong>data_samples</strong> – weather and fire data</p></li>
+<li><p><strong>features</strong> – a list of features to reduce</p></li>
+<li><p><strong>sea_error</strong> – correction factor by dayofyear</p></li>
+<li><p><strong>q</strong> – quantile value to sample from</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: seasonal pattern dataframe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.add_lag">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">add_lag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">lag_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#add_lag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.add_lag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the lag data using number in lag_range.
+Add the new data as self.data attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – dataframe to build lag</p></li>
+<li><p><strong>lag_dict</strong> – a dictionary containing laging information such n_max, ‘step’, ‘roll’</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: dataframe containing original data and lags</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.cal_error">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">cal_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">data_index</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#cal_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.cal_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate model performance over training and test dataset.</p>
+<ul class="simple">
+<li><p>take the daily average and plot actual vs prediction for training and test set</p></li>
+</ul>
+<p>return xtrn, ytrn, xtest, ytext in dataframe format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>model</strong> – fitted model</p></li>
+<li><p><strong>split_list</strong> (<em>optional</em>) – train/test spliting ratio[default:[0.7,0.3]]</p></li>
+<li><p><strong>xlim</strong> (<em>optional</em>) – if passed, use these value for xlim</p></li>
+<li><p><strong>filename</strong> (<em>optional</em>) – if not None, save the figure using the filename</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>actual, prediction of the training set (no averaging)
+test_pred_df: actual, prediction of the test set (no averaging)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>trn_pred_df</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.cal_season_band">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">cal_season_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">band_df</span></em>, <em class="sig-param"><span class="n">sea_error</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#cal_season_band"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.cal_season_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert daily prediction to seasonal prediction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>band_df</strong> – daily prediction value after rolling average</p></li>
+<li><p><strong>sea_error</strong> – seasonal prediction error</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: pd.DataFrame</dt><dd><p>seasonal prediction with error corrected</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.cal_season_error">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">cal_season_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_df</span></em>, <em class="sig-param"><span class="n">roll_win</span><span class="o">=</span><span class="default_value">15</span></em>, <em class="sig-param"><span class="n">agg</span><span class="o">=</span><span class="default_value">'mean'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#cal_season_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.cal_season_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate seasonal error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_df</strong> – hourly training error</p></li>
+<li><p><strong>roll_win</strong> – rolling window</p></li>
+<li><p><strong>agg</strong> – aggegration statistic</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: pd.DataFrame</dt><dd><p>seasonal pattern of the error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.get_data_samples">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">get_data_samples</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">time_range</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">n_samples</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">step</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">day_err</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">hour_err</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#get_data_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.get_data_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the possible test data from train dataset. The dataset must alredy has the lag columns built</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – load data using load_model1 function</p></li>
+<li><p><strong>time_range</strong> – time range for inference</p></li>
+<li><p><strong>n_samples</strong> – number of sample per hours</p></li>
+<li><p><strong>step</strong> – if not 1, skip some data to make the draw faster</p></li>
+<li><p><strong>day_err</strong> – </p></li>
+<li><p><strong>hour_err</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Return pd.DataFame</dt><dd><p>sample of weather and fire conditon for each hour. Each hour will have n_samples of data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.get_sample">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">get_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_datetime</span></em>, <em class="sig-param"><span class="n">wea</span></em>, <em class="sig-param"><span class="n">fire</span></em>, <em class="sig-param"><span class="n">year_list</span></em>, <em class="sig-param"><span class="n">year_samples</span></em>, <em class="sig-param"><span class="n">day_err</span><span class="o">=</span><span class="default_value">7</span></em>, <em class="sig-param"><span class="n">hour_err</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#get_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.get_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomsamples weather and fire data from previous years around the same dayofyear</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_datetime</strong> – datetime for sampling from the train data</p></li>
+<li><p><strong>wea</strong> – weather dataframe from training data</p></li>
+<li><p><strong>fire</strong> – fire data df from training data</p></li>
+<li><p><strong>year_list</strong> – a list of years in training data</p></li>
+<li><p><strong>year_samples</strong> – a list of sample from each year</p></li>
+<li><p><strong>day_error</strong> – plus/minus date range to sample from</p></li>
+<li><p><strong>hour_err</strong> – plus/minus hour to sample from</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sample dataframe</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>data_samples</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.get_year_sample">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">get_year_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">year_list</span></em>, <em class="sig-param"><span class="n">n_samples</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#get_year_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.get_year_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the number of sample from each year.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year_list</strong> – a list of year to sample the dataset. Ex from trn_data.index.year.unique()</p></li>
+<li><p><strong>n_samples</strong> (<em>optional</em>) – number of total samples [default:100]</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.load_meta">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">load_meta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta_filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#load_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.load_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read model_meta dictionary and return model_meta dicitonary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_filename</strong> – model meta filename</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Return: dict</dt><dd><p>pollutant_meta dictionary for that pollutant</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.load_model">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'Chiang Mai'</span></em>, <em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">build</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">split_list</span><span class="o">=</span><span class="default_value">[0.45, 0.25, 0.3]</span></em>, <em class="sig-param"><span class="n">update</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load and update the model without optimization steps. Use parameters from model_meta file.</p>
+<p>Use for small data update without parameters change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>city</strong> – </p></li>
+<li><p><strong>pollutant</strong> – </p></li>
+<li><p><strong>split_list</strong> – datasplit for training and testset</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>model
+dataset: dataset object
+fire_cols:</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.make_band">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">make_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ypred_df</span></em>, <em class="sig-param"><span class="n">q_list</span><span class="o">=</span><span class="default_value">[0.01, 0.25, 0.5, 0.75, 0.99]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#make_band"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.make_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert aggregate prediction for the same timestamp into upper and lower band.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ypred_df</strong> – prediction dataframe</p></li>
+<li><p><strong>q_list</strong> – a list of quantile to calculate</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: dataframe</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.make_senario">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">make_senario</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">data_samples</span></em>, <em class="sig-param"><span class="n">features</span></em>, <em class="sig-param"><span class="n">per_cut</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#make_senario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.make_senario" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make prediction of the data sample with some feature value reduced.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – model for prediction</p></li>
+<li><p><strong>data_samples</strong> – test data sample for different data</p></li>
+<li><p><strong>features</strong> – columns to cut down</p></li>
+<li><p><strong>per_cut</strong> – percent reduction must be between 0 - 1</p></li>
+<li><p><strong>x_cols</strong> – x_columns to use for the model</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns: pd.DataFrame, pd.DataFrame</dt><dd><p>ypred_df: predicted value for calculate band</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.predict_model.reduc_effect">
+<code class="sig-prename descclassname">src.models.predict_model.</code><code class="sig-name descname">reduc_effect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">data_samples</span></em>, <em class="sig-param"><span class="n">features</span></em>, <em class="sig-param"><span class="n">sea_error</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">red_list</span><span class="o">=</span><span class="default_value">[0.9, 0.75, 0.5, 0.25, 0.1, 0]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/predict_model.html#reduc_effect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.predict_model.reduc_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate effect of reduction for feature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – model for prediction</p></li>
+<li><p><strong>data_samples</strong> – weather and fire data</p></li>
+<li><p><strong>features</strong> – a list of features to reduce</p></li>
+<li><p><strong>sea_error</strong> – correction factor by dayofyear</p></li>
+<li><p><strong>q</strong> – quantile value to sample from</p></li>
+<li><p><strong>red_list</strong> – list of reduction fraction</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sea_pred_all</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.models.train_model">
+<span id="src-models-train-model-module"></span><h2>src.models.train_model module<a class="headerlink" href="#module-src.models.train_model" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.models.train_model.do_rf_search">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">do_rf_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">y_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">cv_split</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'time'</span></em>, <em class="sig-param"><span class="n">n_splits</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em>, <em class="sig-param"><span class="n">param_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_tree</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">n_jobs</span><span class="o">=</span><span class="default_value">- 2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#do_rf_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.do_rf_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform randomize parameter search for randomforest regressor return the best estimator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_trn</strong> – 2D array of x data</p></li>
+<li><p><strong>y_trn</strong> – 2D np.array of y data</p></li>
+<li><p><strong>cv_split</strong> (<em>optional</em>) – if “time”. Use TimeSeriesSplit, which don’t shuffle the dataset.</p></li>
+<li><p><strong>n_splits</strong> (<em>optional</em>) – number of cross validation split [default:5]</p></li>
+<li><p><strong>params_dict</strong> (<em>optional</em>) – search parameter dictionary [default:None]</p></li>
+<li><p><strong>x_tree</strong> (<em>optional</em>) – if True, use ExtraTreesRegressor instead of RandomForestRegressor</p></li>
+<li><p><strong>n_jobs</strong> (<em>optional</em>) – number of CPU use [default:-1]</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: best estimator</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.feat_importance">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">feat_importance</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">x_cols</em>, <em class="sig-param">score=&lt;function r2_score&gt;</em>, <em class="sig-param">n_iter=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#feat_importance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.feat_importance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the feature importance by shuffle the data
+:param model: the model
+:param x: the training data
+:param y: target variable
+:param x_cols: name of the x columns
+:param metric: either r2_score of mean_squared_error</p>
+<p>Returns: feature of importance pd.DataFrame</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.load_meta">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">load_meta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta_filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#load_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.load_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read model_meta dictionary and return model_meta dicitonary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_filename</strong> – model meta filename</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Return: dict</dt><dd><p>pollutant_meta dictionary for that pollutant</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.op_lag">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">op_lag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">split_ratio</span></em>, <em class="sig-param"><span class="n">lag_range</span><span class="o">=</span><span class="default_value">[2, 120]</span></em>, <em class="sig-param"><span class="n">step_range</span><span class="o">=</span><span class="default_value">[1, 25]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#op_lag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.op_lag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the best lag parameters using skopt optimization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>model</strong> – model object</p></li>
+<li><p><strong>split_ratio</strong> – list of split ratio</p></li>
+<li><p><strong>lag_range</strong> (<em>optional</em>) – min and max value of wind speed</p></li>
+<li><p><strong>step_range</strong> (<em>optional</em>) – min and max value of shift parameter</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: fire_dict fire dictionary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.reduce_cols">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">reduce_cols</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">x_cols</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">to_drop</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">trn_i</span></em>, <em class="sig-param"><span class="n">val_i</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#reduce_cols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.reduce_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try droping the columns in to_drop. Keep track of the columns which can be remove from the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>x_cols</strong> – current x columns</p></li>
+<li><p><strong>to_drop</strong> – data to drop</p></li>
+<li><p><strong>model</strong> – model object to fit and predict</p></li>
+<li><p><strong>trn_i</strong> – index in dataset.split_list for training data</p></li>
+<li><p><strong>val_i</strong> – index in dataset.split_list for validation data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>fitted model
+x_cols: a list of new x_cols data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.save_meta">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">save_meta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta_filename</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">model_meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#save_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.save_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save model_meta</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_filename</strong> – model_meta filename</p>
+</dd>
+</dl>
+<p>Returns(optional): model meta dictionary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.sk_op_fire">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">sk_op_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">trn_index</span></em>, <em class="sig-param"><span class="n">val_index</span></em>, <em class="sig-param"><span class="n">wind_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[2, 20]</span></em>, <em class="sig-param"><span class="n">shift_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[- 72, 72]</span></em>, <em class="sig-param"><span class="n">roll_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[24, 240]</span></em>, <em class="sig-param"><span class="n">vis</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">with_lag</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="_modules/src/models/train_model.html#sk_op_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.sk_op_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the best fire parameter using skopt optimization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>model</strong> – model object</p></li>
+<li><p><strong>trn_index</strong> – datetime index for training set</p></li>
+<li><p><strong>val_index</strong> – datetime index of validation set</p></li>
+<li><p><strong>wind_range</strong> (<em>optional</em>) – min and max value of wind speed</p></li>
+<li><p><strong>shift_range</strong> (<em>optional</em>) – min and max value of shift parameter</p></li>
+<li><p><strong>roll_range</strong> (<em>optional</em>) – min and max value of roll parameter</p></li>
+<li><p><strong>vis</strong> (<em>optional</em>) – if True, also plot the search space</p></li>
+<li><p><strong>with_lag</strong> (<em>optional</em>) – if True optimized the data with lag columns</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: fire_dict fire dictionary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_model.train_city_s1">
+<code class="sig-prename descclassname">src.models.train_model.</code><code class="sig-name descname">train_city_s1</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'Chiang Mai'</span></em>, <em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">build</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fire_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols_org</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">lag_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_model.html#train_city_s1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_model.train_city_s1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training pipeline from process raw data, hyperparameter tune, and save model.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>If build True, build the raw data from files</p></li>
+<li><p>Process draw data into data using default values</p></li>
+<li><p>Optimization 1: optimize for the best randomforest model</p></li>
+<li><p>Optimization 2: remove unncessary columns</p></li>
+<li><p>Optimization 3: find the best fire feature</p></li>
+<li><p>Optimization 4: optimize for lag columns</p></li>
+<li><p>Optimization 5: drop unncessary lag columns</p></li>
+<li><p>Optimization 6: optimize for the best RF again</p></li>
+<li><p>Build pollution meta and save</p></li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>city</strong> – city name</p></li>
+<li><p><strong>pollutant</strong> (<em>optional</em>) – pollutant name</p></li>
+<li><p><strong>build</strong> (<em>optional</em>) – if True, also build the data</p></li>
+<li><p><strong>model</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>op_fire</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>x_cols_org</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>lag_dict</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>x_cols</strong> (<em>optional</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataset
+model
+poll_meta(dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.models.train_others">
+<span id="src-models-train-others-module"></span><h2>src.models.train_others module<a class="headerlink" href="#module-src.models.train_others" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="src.models.train_others.do_knn_search">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">do_knn_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">y_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">cv_split</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'time'</span></em>, <em class="sig-param"><span class="n">n_splits</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em>, <em class="sig-param"><span class="n">param_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_tree</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#do_knn_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.do_knn_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform randomize parameter search for KNN regressor return the best estimator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_trn</strong> – 2D array of x data</p></li>
+<li><p><strong>y_trn</strong> – 2D np.array of y data</p></li>
+<li><p><strong>cv_split</strong> (<em>optional</em>) – if “time”. Use TimeSeriesSplit, which don’t shuffle the data.</p></li>
+<li><p><strong>n_splits</strong> (<em>optional</em>) – number of cross validation split [default:5]</p></li>
+<li><p><strong>params_dict</strong> (<em>optional</em>) – search parameter dictionary [default:None]</p></li>
+<li><p><strong>x_tree</strong> (<em>optional</em>) – if True, use ExtraTreesRegressor instead of RandomForestRegressor</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: best estimator</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.do_ln_search">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">do_ln_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">y_trn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">cv_split</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'time'</span></em>, <em class="sig-param"><span class="n">n_splits</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em>, <em class="sig-param"><span class="n">param_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ln_type</span><span class="o">=</span><span class="default_value">'elastic'</span></em>, <em class="sig-param"><span class="n">n_jobs</span><span class="o">=</span><span class="default_value">- 2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#do_ln_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.do_ln_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform randomize parameter search for linear regressir return the best estimator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_trn</strong> – 2D array of x data</p></li>
+<li><p><strong>y_trn</strong> – 2D np.array of y data</p></li>
+<li><p><strong>cv_split</strong> (<em>optional</em>) – if “time”. Use TimeSeriesSplit, which don’t shuffle the data.</p></li>
+<li><p><strong>n_splits</strong> (<em>optional</em>) – number of cross validation split [default:5]</p></li>
+<li><p><strong>params_dict</strong> (<em>optional</em>) – search parameter dictionary [default:None]</p></li>
+<li><p><strong>ln_type</strong> (<em>optional</em>) – type of linear regressor can be ‘elastic’, or lasso [default:’elastic’]</p></li>
+<li><p><strong>n_jobs</strong> (<em>optional</em>) – number of CPU use [default:-1]</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns: best estimator</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.do_nn_search">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">do_nn_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xtrn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">ytrn</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">xval</span></em>, <em class="sig-param"><span class="n">yval</span></em>, <em class="sig-param"><span class="n">n_jobs</span><span class="o">=</span><span class="default_value">- 2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#do_nn_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.do_nn_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform skopt optimization search for the best NN architecture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xtrn</strong> – normalized xtrn</p></li>
+<li><p><strong>ytrn</strong> – normalized ytrn</p></li>
+<li><p><strong>xval</strong> – normalized xval</p></li>
+<li><p><strong>ytrn</strong> – normalized yval</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.get_nn_model">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">get_nn_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">output_shape</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">num_layer</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">nn_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">act_fun</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">drop</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">lr</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">momentum</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#get_nn_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.get_nn_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get fully connected NN model according to the specified parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_shape</strong> – input dimension (according to the len of the columns)</p></li>
+<li><p><strong>output_shape</strong> – output dimension</p></li>
+<li><p><strong>num_layer</strong> – number of hidden layer can be 0</p></li>
+<li><p><strong>nn_size</strong> – number of neuron in one layer</p></li>
+<li><p><strong>act_fun</strong> – name of activation function</p></li>
+<li><p><strong>drop</strong> – dropout parameter</p></li>
+<li><p><strong>lr</strong> – optimizer learning rate</p></li>
+<li><p><strong>momentum</strong> – momentum parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.op_lag_fire">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">op_lag_fire</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">split_ratio</span></em>, <em class="sig-param"><span class="n">lag_range</span><span class="o">=</span><span class="default_value">[2, 168]</span></em>, <em class="sig-param"><span class="n">step_range</span><span class="o">=</span><span class="default_value">[1, 25]</span></em>, <em class="sig-param"><span class="n">wind_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[2, 20]</span></em>, <em class="sig-param"><span class="n">shift_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[- 72, 72]</span></em>, <em class="sig-param"><span class="n">roll_range</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[24, 240]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#op_lag_fire"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.op_lag_fire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the best lag and fire parameters using skopt optimization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – dataset object</p></li>
+<li><p><strong>model</strong> – model object</p></li>
+<li><p><strong>split_ratio</strong> – list of split ratio</p></li>
+<li><p><strong>lag_range</strong> (<em>optional</em>) – min and max value of wind speed</p></li>
+<li><p><strong>step_range</strong> (<em>optional</em>) – min and max value of shift parameter</p></li>
+</ul>
+</dd>
+</dl>
+<p>Return: fire_dict fire dictionary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.train_city_s1_v2">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">train_city_s1_v2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'Chiang Mai'</span></em>, <em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">build</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fire_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols_org</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">lag_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#train_city_s1_v2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.train_city_s1_v2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training pipeline from process raw data, hyperparameter tune, and save model.</p>
+<ol class="arabic simple">
+<li><p>If build True, build the raw data from files</p></li>
+<li><p>Process draw data into data using default values</p></li>
+<li><p>Optimization 1: optimize for the best randomforest model</p></li>
+<li><p>Optimization 2: remove unncessary columns</p></li>
+<li><p>Optimization 3: find the best fire feature</p></li>
+<li><p>Optimization 4: optimize for lag columns</p></li>
+<li><p>Optimization 5: drop unncessary lag columns</p></li>
+<li><p>Optimization 6: optimize for the best RF again</p></li>
+<li><p>Build pollution meta and save</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>city</strong> – city name</p></li>
+<li><p><strong>pollutant</strong> (<em>optional</em>) – pollutant name</p></li>
+<li><p><strong>build</strong> (<em>optional</em>) – if True, also build the data</p></li>
+<li><p><strong>model</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>op_fire</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>x_cols_org</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>lag_dict</strong> (<em>optional</em>) – </p></li>
+<li><p><strong>x_cols</strong> (<em>optional</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataset
+model
+poll_meta(dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.models.train_others.train_city_s2">
+<code class="sig-prename descclassname">src.models.train_others.</code><code class="sig-name descname">train_city_s2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">city</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'Chiang Mai'</span></em>, <em class="sig-param"><span class="n">pollutant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'PM2.5'</span></em>, <em class="sig-param"><span class="n">build</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">model</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fire_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols_org</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">lag_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x_cols</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/models/train_others.html#train_city_s2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#src.models.train_others.train_city_s2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training pipeline from process raw data, hyperparameter tune, and save model.</p>
+<ol class="arabic simple">
+<li><p>If build True, build the raw data from files</p></li>
+<li><p>Process draw data into data using default values</p></li>
+<li><p>Optimization 1: optimize for the best NN model</p></li>
+<li><p>Build pollution meta and save</p></li>
+</ol>
+<p>Args:
+city: city name
+pollutant(optional): pollutant name
+build(optional): if True, also build the data
+model(optional):
+x_cols_org(optional):
+lag_dict(optional):</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dataset
+model</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-src.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.models" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="src.html">src package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="src.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="src.data.html">src.data package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.features.html">src.features package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">src.models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.models.predict_model">src.models.predict_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.models.train_model">src.models.train_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.models.train_others">src.models.train_others module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-src.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.visualization.html">src.visualization package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.gen_functions">src.gen_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src.imports">src.imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.html#module-src">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="src.html">src package</a><ul>
+      <li>Previous: <a href="src.features.html" title="previous chapter">src.features package</a></li>
+      <li>Next: <a href="src.visualization.html" title="next chapter">src.visualization package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/src.models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

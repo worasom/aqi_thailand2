@@ -1,0 +1,29 @@
+src.visualization package
+=========================
+
+Submodules
+----------
+
+src.visualization.vis\_data module
+----------------------------------
+
+.. automodule:: src.visualization.vis_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+src.visualization.vis\_model module
+-----------------------------------
+
+.. automodule:: src.visualization.vis_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: src.visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:

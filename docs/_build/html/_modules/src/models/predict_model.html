@@ -1,0 +1,963 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.models.predict_model &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.models.predict_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..gen_functions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..features.dataset</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">..features.build_features</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.train_model</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..visualization.vis_data</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..visualization.vis_model</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="load_meta"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.load_meta">[docs]</a><span class="k">def</span> <span class="nf">load_meta</span><span class="p">(</span><span class="n">meta_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read model_meta dictionary and return model_meta dicitonary</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        meta_filename: model meta filename</span>
+
+
+<span class="sd">    Return: dict</span>
+<span class="sd">        pollutant_meta dictionary for that pollutant</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">meta_filename</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">meta_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">model_meta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">model_meta</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">return</span> <span class="n">model_meta</span></div>
+
+
+<div class="viewcode-block" id="load_model"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.load_model">[docs]</a><span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span>
+        <span class="n">city</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span>
+        <span class="n">pollutant</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span>
+        <span class="n">build</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">split_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="mf">0.45</span><span class="p">,</span>
+            <span class="mf">0.25</span><span class="p">,</span>
+            <span class="mf">0.3</span><span class="p">],</span>
+        <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load and update the model without optimization steps. Use parameters from model_meta file.</span>
+
+<span class="sd">    Use for small data update without parameters change.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        city:</span>
+<span class="sd">        pollutant:</span>
+<span class="sd">        split_list: datasplit for training and testset</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        model: model</span>
+<span class="sd">        dataset: dataset object</span>
+<span class="sd">        fire_cols:</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">city</span><span class="p">)</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">pollutant</span> <span class="o">=</span> <span class="n">pollutant</span>
+    <span class="c1"># remove . from pollutant name for saving file</span>
+    <span class="n">poll_name</span> <span class="o">=</span> <span class="n">pollutant</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># load model_meta</span>
+    <span class="n">model_meta</span> <span class="o">=</span> <span class="n">load_meta</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">+</span> <span class="s1">&#39;model_meta.json&#39;</span><span class="p">)</span>
+    <span class="n">poll_meta</span> <span class="o">=</span> <span class="n">model_meta</span><span class="p">[</span><span class="n">pollutant</span><span class="p">]</span>
+
+    <span class="c1"># load model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+        <span class="nb">open</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">model_folder</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{poll_name}</span><span class="s1">_rf_model.pkl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">build</span><span class="p">:</span>
+        <span class="c1"># build data from scratch</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">build_all_data</span><span class="p">(</span><span class="n">build_fire</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">build_holiday</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># load raw data</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">load_</span><span class="p">()</span>
+    <span class="c1"># build the first dataset</span>
+    <span class="c1">#print(&#39;rolling_win&#39;, poll_meta[&#39;rolling_win&#39;])</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">feature_no_fire</span><span class="p">(</span>
+        <span class="n">pollutant</span><span class="o">=</span><span class="n">pollutant</span><span class="p">,</span>
+        <span class="n">rolling_win</span><span class="o">=</span><span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;rolling_win&#39;</span><span class="p">],</span>
+        <span class="n">fill_missing</span><span class="o">=</span><span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;fill_missing&#39;</span><span class="p">],</span>
+        <span class="n">cat_hour</span><span class="o">=</span><span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;cat_hour&#39;</span><span class="p">],</span>
+        <span class="n">group_hour</span><span class="o">=</span><span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;group_hour&#39;</span><span class="p">])</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">fire_dict</span> <span class="o">=</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;fire_dict&#39;</span><span class="p">]</span>
+    <span class="n">fire_cols</span><span class="p">,</span> <span class="n">zone_list</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">merge_fire</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">fire_dict</span><span class="p">)</span>
+
+    <span class="c1">#print(&#39;\n fire_columns&#39;, fire_cols)</span>
+    <span class="c1"># build lag_data</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">lag_dict</span> <span class="o">=</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;lag_dict&#39;</span><span class="p">]</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols_org</span> <span class="o">=</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;x_cols_org&#39;</span><span class="p">]</span>
+    <span class="c1">#print(&#39;\n x_cols_org&#39;, dataset.x_cols_org)</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">data_org</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="p">[[</span><span class="n">dataset</span><span class="o">.</span><span class="n">monitor</span><span class="p">]</span> <span class="o">+</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols_org</span><span class="p">]</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">build_lag</span><span class="p">(</span>
+        <span class="n">lag_range</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;n_max&#39;</span><span class="p">],</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]),</span>
+        <span class="n">roll</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;roll&#39;</span><span class="p">])</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;x_cols&#39;</span><span class="p">]</span>
+    <span class="c1">#print(&#39;\n x_cols&#39;, dataset.x_cols)</span>
+
+    <span class="c1"># split data</span>
+    <span class="n">dataset</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">split_ratio</span><span class="o">=</span><span class="n">split_list</span><span class="p">)</span>
+    <span class="n">trn_index</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">test_index</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">trn_index</span><span class="p">,</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="n">xtest</span><span class="p">,</span> <span class="n">ytest</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">test_index</span><span class="p">,</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;raw model performance&#39;</span><span class="p">,</span>
+        <span class="n">cal_scores</span><span class="p">(</span>
+            <span class="n">ytest</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xtest</span><span class="p">),</span>
+            <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;test_&#39;</span><span class="p">))</span>
+
+    <span class="c1"># calculate the average error</span>
+    <span class="n">trn_error</span> <span class="o">=</span> <span class="n">cal_error</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">data_index</span><span class="o">=</span><span class="n">trn_index</span><span class="p">)</span>
+    <span class="c1"># resample</span>
+    <span class="n">ytrn_pred_df_avg</span> <span class="o">=</span> <span class="n">trn_error</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;daily avg training error&#39;</span><span class="p">,</span>
+        <span class="n">cal_scores</span><span class="p">(</span>
+            <span class="n">ytrn_pred_df_avg</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">ytrn_pred_df_avg</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;avg_trn_&#39;</span><span class="p">))</span>
+
+    <span class="c1"># calculate the average error</span>
+    <span class="n">ytest_pred_df</span> <span class="o">=</span> <span class="n">cal_error</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">data_index</span><span class="o">=</span><span class="n">test_index</span><span class="p">)</span>
+    <span class="c1"># resample</span>
+    <span class="n">ytest_pred_df_avg</span> <span class="o">=</span> <span class="n">ytest_pred_df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">&#39;daily avg test error&#39;</span><span class="p">,</span>
+        <span class="n">cal_scores</span><span class="p">(</span>
+            <span class="n">ytest_pred_df_avg</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">ytest_pred_df_avg</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">header_str</span><span class="o">=</span><span class="s1">&#39;avg_test_&#39;</span><span class="p">))</span>
+
+    <span class="c1"># obtain feature of importance without lag</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">feature_importances_</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">importances</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">,</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;importance&#39;</span><span class="p">])</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+        <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_lag_&#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">feat_imp</span> <span class="o">=</span> <span class="n">feat_imp</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+        <span class="s1">&#39;importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">fire_cols</span><span class="p">,</span> <span class="n">zone_list</span><span class="p">,</span> <span class="n">feat_imp</span><span class="p">,</span> <span class="n">poll_meta</span><span class="p">[</span><span class="s1">&#39;rolling_win&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="cal_error"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.cal_error">[docs]</a><span class="k">def</span> <span class="nf">cal_error</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">data_index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate model performance over training and test dataset.</span>
+
+<span class="sd">    - take the daily average and plot actual vs prediction for training and test set</span>
+<span class="sd">    return xtrn, ytrn, xtest, ytext in dataframe format</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset: dataset object</span>
+<span class="sd">        model: fitted model</span>
+<span class="sd">        split_list(optional): train/test spliting ratio[default:[0.7,0.3]]</span>
+<span class="sd">        xlim(optional): if passed, use these value for xlim</span>
+<span class="sd">        filename(optional): if not None, save the figure using the filename</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        trn_pred_df: actual, prediction of the training set (no averaging)</span>
+<span class="sd">        test_pred_df: actual, prediction of the test set (no averaging)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># dataset.split_data(split_ratio=split_list)</span>
+    <span class="n">xtrn</span><span class="p">,</span> <span class="n">ytrn</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_data_matrix</span><span class="p">(</span>
+        <span class="n">use_index</span><span class="o">=</span><span class="n">data_index</span><span class="p">,</span> <span class="n">x_cols</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">)</span>
+    <span class="c1">#xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)</span>
+
+    <span class="n">ytrn_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">xtrn</span><span class="p">)</span>
+    <span class="c1">#ytest_pred = model.predict(xtest)</span>
+
+    <span class="c1"># turn into df</span>
+    <span class="n">ytrn_pred_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ytrn</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">data_index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">])</span>
+    <span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ytrn_pred</span>
+    <span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;actual&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span>
+    <span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;rmse&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ytrn_pred_df</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1">#ytest_pred_df = pd.DataFrame(ytest, index=dataset.split_list[1], columns=[&#39;actual&#39;])</span>
+    <span class="c1">#ytest_pred_df[&#39;pred&#39;] = ytest_pred</span>
+    <span class="c1">#ytest_pred_df[&#39;error&#39;] = ytest_pred_df[&#39;actual&#39;] - ytest_pred_df[&#39;pred&#39;]</span>
+    <span class="c1">#ytest_pred_df[&#39;rmse&#39;] = np.sqrt(ytest_pred_df[&#39;error&#39;]**2)</span>
+
+    <span class="k">return</span> <span class="n">ytrn_pred_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="cal_season_error"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.cal_season_error">[docs]</a><span class="k">def</span> <span class="nf">cal_season_error</span><span class="p">(</span><span class="n">error_df</span><span class="p">,</span> <span class="n">roll_win</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculate seasonal error</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        error_df: hourly training error</span>
+<span class="sd">        roll_win: rolling window</span>
+<span class="sd">        agg: aggegration statistic</span>
+
+<span class="sd">    Returns: pd.DataFrame</span>
+<span class="sd">        seasonal pattern of the error</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sea_error</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">season_avg</span><span class="p">(</span>
+        <span class="n">error_df</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">[</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;rmse&#39;</span><span class="p">],</span> <span class="n">roll</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">182</span><span class="p">)</span>
+    <span class="n">sea_error</span> <span class="o">=</span> <span class="n">sea_error</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;winter_day&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">sea_error</span> <span class="o">=</span> <span class="n">sea_error</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;dayofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sea_error</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">roll_win</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_year_sample"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.get_year_sample">[docs]</a><span class="k">def</span> <span class="nf">get_year_sample</span><span class="p">(</span><span class="n">year_list</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the number of sample from each year.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        year_list: a list of year to sample the dataset. Ex from trn_data.index.year.unique()</span>
+<span class="sd">        n_samples(optional): number of total samples [default:100]</span>
+
+<span class="sd">    Return: list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">year_sam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">year_list</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">year_sam</span> <span class="o">=</span> <span class="n">year_sam</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span> <span class="o">/</span> <span class="n">year_sam</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">year_sam</span> <span class="o">=</span> <span class="p">(</span><span class="n">year_sam</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">year_sam</span></div>
+
+
+<div class="viewcode-block" id="get_sample"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.get_sample">[docs]</a><span class="k">def</span> <span class="nf">get_sample</span><span class="p">(</span>
+        <span class="n">test_datetime</span><span class="p">,</span>
+        <span class="n">wea</span><span class="p">,</span>
+        <span class="n">fire</span><span class="p">,</span>
+        <span class="n">year_list</span><span class="p">,</span>
+        <span class="n">year_samples</span><span class="p">,</span>
+        <span class="n">day_err</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="n">hour_err</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomsamples weather and fire data from previous years around the same dayofyear</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        test_datetime: datetime for sampling from the train data</span>
+<span class="sd">        wea: weather dataframe from training data</span>
+<span class="sd">        fire: fire data df from training data</span>
+<span class="sd">        year_list: a list of years in training data</span>
+<span class="sd">        year_samples: a list of sample from each year</span>
+<span class="sd">        day_error: plus/minus date range to sample from</span>
+<span class="sd">        hour_err: plus/minus hour to sample from</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        data_samples: sample dataframe</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># get date range</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">test_datetime</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{day_err}</span><span class="s1"> days&#39;</span><span class="p">)</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">test_datetime</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{day_err}</span><span class="s1"> days&#39;</span><span class="p">)</span>
+    <span class="n">date_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">date_range</span> <span class="o">=</span> <span class="n">date_range</span><span class="o">.</span><span class="n">dayofyear</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="c1"># get hour range</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">test_datetime</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{hour_err}</span><span class="s1"> hours&#39;</span><span class="p">)</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">test_datetime</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{hour_err}</span><span class="s1"> hours&#39;</span><span class="p">)</span>
+    <span class="n">hour_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+    <span class="n">hour_range</span> <span class="o">=</span> <span class="n">hour_range</span><span class="o">.</span><span class="n">hour</span>
+
+    <span class="c1"># get wether sample</span>
+    <span class="c1"># select the data</span>
+    <span class="n">fire_samples</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">wea_samples</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">year</span><span class="p">,</span> <span class="n">year_sample</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">year_list</span><span class="p">,</span> <span class="n">year_samples</span><span class="p">):</span>
+        <span class="c1"># select deata for the year</span>
+        <span class="n">wea_sam</span> <span class="o">=</span> <span class="n">wea</span><span class="p">[(</span><span class="n">wea</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">year</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">wea</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="n">date_range</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">wea</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">hour_range</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wea_sam</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">wea_samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wea_sam</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">year_sample</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="c1"># select deata for the year</span>
+        <span class="n">fire_sam</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[(</span><span class="n">fire</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">year</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="n">date_range</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">hour_range</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fire_sam</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fire_samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fire_sam</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">year_sample</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="n">wea_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="n">wea_samples</span><span class="p">,</span>
+        <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+        <span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span>
+            <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fire_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="n">fire_samples</span><span class="p">,</span>
+        <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+        <span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span>
+            <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">wea_samples</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_datetime</span>
+
+    <span class="n">data_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">wea_samples</span><span class="p">,</span> <span class="n">fire_samples</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_samples</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_lag"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.add_lag">[docs]</a><span class="k">def</span> <span class="nf">add_lag</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">lag_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build the lag data using number in lag_range.</span>
+<span class="sd">    Add the new data as self.data attribute.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df: dataframe to build lag</span>
+<span class="sd">        lag_dict: a dictionary containing laging information such n_max, &#39;step&#39;, &#39;roll&#39;</span>
+
+<span class="sd">    Returns: dataframe containing original data and lags</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lag_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;n_max&#39;</span><span class="p">],</span> <span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">])</span>
+    <span class="n">roll</span> <span class="o">=</span> <span class="n">lag_dict</span><span class="p">[</span><span class="s1">&#39;roll&#39;</span><span class="p">]</span>
+
+    <span class="n">lag_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">df</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">lag_range</span><span class="p">:</span>
+        <span class="n">lag_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">lag_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;_lag_</span><span class="si">{n}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">roll</span><span class="p">:</span>
+            <span class="c1"># calculate the rolling average</span>
+            <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lag_df</span> <span class="o">=</span> <span class="n">lag_df</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="n">lag_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lag_df</span><span class="p">)</span>
+
+    <span class="n">new_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">lag_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_data_samples"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.get_data_samples">[docs]</a><span class="k">def</span> <span class="nf">get_data_samples</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="p">,</span>
+        <span class="n">time_range</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">day_err</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">hour_err</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sample the possible test data from train dataset. The dataset must alredy has the lag columns built</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset: load data using load_model1 function</span>
+<span class="sd">        time_range: time range for inference</span>
+<span class="sd">        n_samples: number of sample per hours</span>
+<span class="sd">        step: if not 1, skip some data to make the draw faster</span>
+<span class="sd">        day_err</span>
+<span class="sd">        hour_err</span>
+
+<span class="sd">    Return pd.DataFame</span>
+<span class="sd">        sample of weather and fire conditon for each hour. Each hour will have n_samples of data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># look for the name of weather cols</span>
+    <span class="n">data_cols</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span>
+    <span class="n">wea_cols</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Temperature(C)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Humidity(%)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Wind Speed(kmph)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;wind_CALM&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;wind_E&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;wind_N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;wind_S&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;wind_W&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;is_rain&#39;</span><span class="p">]</span>
+    <span class="n">wea_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">data_cols</span><span class="p">[</span><span class="n">data_cols</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">s</span><span class="p">[:</span><span class="mi">4</span><span class="p">])]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">wea_cols</span><span class="p">])</span>
+    <span class="n">wea_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">wea_cols</span><span class="p">)</span>
+
+    <span class="c1"># look for fire_cols</span>
+    <span class="n">fire_cols</span> <span class="o">=</span> <span class="n">data_cols</span><span class="p">[</span><span class="n">data_cols</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;fire&#39;</span><span class="p">)]</span>
+
+    <span class="n">date_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;is_holiday&#39;</span><span class="p">,</span> <span class="s1">&#39;is_weekend&#39;</span><span class="p">,</span> <span class="s1">&#39;day_of_week&#39;</span><span class="p">,</span> <span class="s1">&#39;time_of_day&#39;</span><span class="p">]</span>
+    <span class="n">date_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">data_cols</span><span class="p">[</span><span class="n">data_cols</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">s</span><span class="p">[:</span><span class="mi">6</span><span class="p">])]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">date_cols</span><span class="p">])</span>
+    <span class="n">date_cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">date_cols</span><span class="p">)</span>
+
+    <span class="c1"># create train and test dfs</span>
+    <span class="n">trn_index</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">trn_data</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trn_index</span><span class="p">]</span>
+    <span class="n">test_index</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+
+    <span class="c1"># number of sample per year</span>
+    <span class="n">year_list</span> <span class="o">=</span> <span class="n">trn_index</span><span class="o">.</span><span class="n">year</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+    <span class="n">year_sam</span> <span class="o">=</span> <span class="n">get_year_sample</span><span class="p">(</span><span class="n">year_list</span><span class="o">=</span><span class="n">year_list</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="c1"># extract fire &amp; weather dfs from the train data</span>
+    <span class="n">wea</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">wea_cols</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trn_index</span><span class="p">]</span>
+    <span class="n">wea</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wea</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">year</span>
+    <span class="n">wea</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wea</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofyear</span>
+    <span class="n">wea</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wea</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hour</span>
+
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">fire_cols</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">trn_index</span><span class="p">]</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">year</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;day_of_year&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofyear</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hour</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_range</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># time range from the test data</span>
+        <span class="n">time_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span>
+            <span class="n">start</span><span class="o">=</span><span class="n">test_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+            <span class="n">end</span><span class="o">=</span><span class="n">test_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+            <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+    <span class="c1"># sample the data</span>
+    <span class="c1">#data_samples = []</span>
+    <span class="c1"># for test_datetime in tqdm_notebook(time_range[::step]):</span>
+
+    <span class="c1">#    samples = get_sample(test_datetime, wea, fire,year_list, year_samples=year_sam,day_err=10,hour_err=2)</span>
+    <span class="c1">#    data_samples.append(samples)</span>
+
+     <span class="c1"># use joblib to speed up sampling process</span>
+    <span class="n">data_samples</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">get_sample</span><span class="p">)(</span><span class="n">test_datetime</span><span class="p">,</span>
+                                                          <span class="n">wea</span><span class="p">,</span>
+                                                          <span class="n">fire</span><span class="p">,</span>
+                                                          <span class="n">year_list</span><span class="p">,</span>
+                                                          <span class="n">year_sam</span><span class="p">,</span>
+                                                          <span class="n">day_err</span><span class="p">,</span>
+                                                          <span class="n">hour_err</span><span class="p">)</span> <span class="k">for</span> <span class="n">test_datetime</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">time_range</span><span class="p">[::</span><span class="n">step</span><span class="p">]))</span>
+    <span class="c1">#data_samples = pd.concat(fire, ignore_index=True)</span>
+
+    <span class="n">data_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data_samples</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># create date_data</span>
+    <span class="n">date_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">time_range</span><span class="p">)</span>
+    <span class="n">date_data</span> <span class="o">=</span> <span class="n">add_calendar_info</span><span class="p">(</span>
+        <span class="n">date_data</span><span class="p">,</span>
+        <span class="n">holiday_file</span><span class="o">=</span><span class="n">dataset</span><span class="o">.</span><span class="n">data_folder</span> <span class="o">+</span>
+        <span class="s1">&#39;holiday.csv&#39;</span><span class="p">)</span>
+    <span class="n">date_data</span> <span class="o">=</span> <span class="n">add_lag</span><span class="p">(</span><span class="n">date_data</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">lag_dict</span><span class="p">)</span>
+
+    <span class="c1"># add calenda information by merging with data_data</span>
+    <span class="n">data_samples</span> <span class="o">=</span> <span class="n">data_samples</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+    <span class="n">data_samples</span> <span class="o">=</span> <span class="n">data_samples</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+        <span class="n">date_data</span><span class="p">[</span><span class="n">date_cols</span><span class="p">],</span>
+        <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_samples</span><span class="o">.</span><span class="n">dropna</span><span class="p">()[</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_cols</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="make_band"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.make_band">[docs]</a><span class="k">def</span> <span class="nf">make_band</span><span class="p">(</span><span class="n">ypred_df</span><span class="p">,</span> <span class="n">q_list</span><span class="o">=</span><span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Convert aggregate prediction for the same timestamp into upper and lower band.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ypred_df: prediction dataframe</span>
+<span class="sd">        q_list: a list of quantile to calculate</span>
+
+<span class="sd">    Returns: dataframe</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">band_df</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">q_list</span><span class="p">:</span>
+
+        <span class="n">band</span> <span class="o">=</span> <span class="n">ypred_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
+        <span class="n">band_index</span> <span class="o">=</span> <span class="n">band</span><span class="o">.</span><span class="n">index</span>
+        <span class="c1">#band = smooth(band.values,window_len=41)</span>
+
+        <span class="n">band_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">band</span><span class="p">,</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">band_index</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s1">&#39;q&#39;</span> <span class="o">+</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">q</span><span class="p">)]))</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">band_df</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_senario"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.make_senario">[docs]</a><span class="k">def</span> <span class="nf">make_senario</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data_samples</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">per_cut</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make prediction of the data sample with some feature value reduced.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: model for prediction</span>
+<span class="sd">        data_samples: test data sample for different data</span>
+<span class="sd">        features: columns to cut down</span>
+<span class="sd">        per_cut: percent reduction must be between 0 - 1</span>
+<span class="sd">        x_cols: x_columns to use for the model</span>
+
+<span class="sd">    Returns: pd.DataFrame, pd.DataFrame</span>
+<span class="sd">        ypred_df: predicted value for calculate band</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cols_to_cut</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+        <span class="n">cols_to_cut</span> <span class="o">=</span> <span class="n">cols_to_cut</span> <span class="o">+</span> \
+            <span class="n">data_samples</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">data_samples</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">feature</span><span class="p">)]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cols_to_cut</span><span class="p">)</span>
+    <span class="n">data_senario</span> <span class="o">=</span> <span class="n">data_samples</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">data_senario</span><span class="p">[</span><span class="n">cols_to_cut</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_samples</span><span class="p">[</span><span class="n">cols_to_cut</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">per_cut</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">data_senario</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">data_samples</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cal_season_band"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.cal_season_band">[docs]</a><span class="k">def</span> <span class="nf">cal_season_band</span><span class="p">(</span><span class="n">band_df</span><span class="p">,</span> <span class="n">sea_error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert daily prediction to seasonal prediction</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        band_df: daily prediction value after rolling average</span>
+<span class="sd">        sea_error: seasonal prediction error</span>
+
+<span class="sd">    Returns: pd.DataFrame</span>
+<span class="sd">        seasonal prediction with error corrected</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sea_pred</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">season_avg</span><span class="p">(</span>
+        <span class="n">band_df</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="p">[],</span> <span class="n">roll</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">182</span><span class="p">)</span>
+    <span class="n">sea_pred</span> <span class="o">=</span> <span class="n">sea_pred</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;winter_day&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">sea_pred</span> <span class="o">=</span> <span class="n">sea_pred</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;dayofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Correct bias</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">sea_pred</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">sea_pred</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">+=</span> <span class="n">sea_error</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">sea_pred</span></div>
+
+
+<div class="viewcode-block" id="_reduct_effect_q"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model._reduct_effect_q">[docs]</a><span class="k">def</span> <span class="nf">_reduct_effect_q</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data_samples</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">sea_error</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">per_cut</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the reduction effect of a single q value.</span>
+
+<span class="sd">    Convert to seasonal pattern</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: model for prediction</span>
+<span class="sd">        data_samples: weather and fire data</span>
+<span class="sd">        features: a list of features to reduce</span>
+<span class="sd">        sea_error: correction factor by dayofyear</span>
+<span class="sd">        q: quantile value to sample from</span>
+
+<span class="sd">    Returns: seasonal pattern dataframe</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ypred_df</span> <span class="o">=</span> <span class="n">make_senario</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data_samples</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">per_cut</span><span class="o">=</span><span class="n">per_cut</span><span class="p">)</span>
+    <span class="n">band_df</span> <span class="o">=</span> <span class="n">make_band</span><span class="p">(</span><span class="n">ypred_df</span><span class="p">,</span> <span class="n">q_list</span><span class="o">=</span><span class="p">[</span><span class="n">q</span><span class="p">])</span>
+
+    <span class="n">sea_pred</span> <span class="o">=</span> <span class="n">cal_season_band</span><span class="p">(</span><span class="n">band_df</span><span class="p">,</span> <span class="n">sea_error</span><span class="p">)</span>
+    <span class="n">sea_pred</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">per_cut</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)]</span>
+
+    <span class="c1">#data_senario = make_band(data_senario, q_list=[0.5])</span>
+    <span class="c1">#data_senario = cal_season_band(data_senario, pd.DataFrame(np.zeroes(len(data_senario)), index=data_senario.index))</span>
+    <span class="c1">#data_senario.columns = [int(round(1-per_cut,2)*100)]</span>
+
+    <span class="k">return</span> <span class="n">sea_pred</span></div>
+
+
+<div class="viewcode-block" id="reduc_effect"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.reduc_effect">[docs]</a><span class="k">def</span> <span class="nf">reduc_effect</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">data_samples</span><span class="p">,</span>
+    <span class="n">features</span><span class="p">,</span>
+    <span class="n">sea_error</span><span class="p">,</span>
+    <span class="n">q</span><span class="p">,</span>
+    <span class="n">red_list</span><span class="o">=</span><span class="p">[</span>
+        <span class="mf">0.90</span><span class="p">,</span>
+        <span class="mf">0.75</span><span class="p">,</span>
+        <span class="mf">0.5</span><span class="p">,</span>
+        <span class="mf">0.25</span><span class="p">,</span>
+        <span class="mf">0.10</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate effect of reduction for feature.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: model for prediction</span>
+<span class="sd">        data_samples: weather and fire data</span>
+<span class="sd">        features: a list of features to reduce</span>
+<span class="sd">        sea_error: correction factor by dayofyear</span>
+<span class="sd">        q: quantile value to sample from</span>
+<span class="sd">        red_list: list of reduction fraction</span>
+
+<span class="sd">    Return:</span>
+<span class="sd">        sea_pred_all</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># sea_pred_all = []</span>
+
+    <span class="c1"># for per_cut in  red_list:</span>
+    <span class="c1">#     ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)</span>
+    <span class="c1">#     band_df = make_band(ypred_df, q_list=[q])</span>
+    <span class="c1">#     sea_pred = cal_season_band(band_df, sea_error)</span>
+    <span class="c1">#     sea_pred.columns = [round(1-per_cut,2)]</span>
+    <span class="c1">#     sea_pred_all.append(sea_pred)</span>
+
+    <span class="n">sea_pred_all</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span>
+        <span class="n">n_jobs</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span>
+        <span class="n">delayed</span><span class="p">(</span><span class="n">_reduct_effect_q</span><span class="p">)(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">data_samples</span><span class="p">,</span>
+            <span class="n">features</span><span class="p">,</span>
+            <span class="n">sea_error</span><span class="p">,</span>
+            <span class="n">q</span><span class="p">,</span>
+            <span class="n">per_cut</span><span class="p">)</span> <span class="k">for</span> <span class="n">per_cut</span> <span class="ow">in</span> <span class="n">red_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">sea_pred_all</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Inferer"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer">[docs]</a><span class="k">class</span> <span class="nc">Inferer</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Inferer object is in charge of predicting and infering from previous training data.</span>
+
+<span class="sd">    Required a trained model.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        city_name: lower case of city name</span>
+<span class="sd">        pollutant:str=&#39;PM2.5&#39;</span>
+<span class="sd">        split_list(optional)</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dataset</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        AssertionError: if the city_name is not in city_names list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">city_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">pollutant</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span>
+        <span class="n">split_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="mf">0.7</span><span class="p">,</span>
+            <span class="mf">0.3</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize</span>
+
+<span class="sd">        #. Check if the city name exist in the database</span>
+<span class="sd">        #. Setup main, data, and model folders. Add as attribute</span>
+<span class="sd">        #. Check if the folders exists, if not create the folders</span>
+<span class="sd">        #. Load city information and add as atribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">city_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Chiang Mai&#39;</span><span class="p">,</span> <span class="s1">&#39;Bangkok&#39;</span><span class="p">,</span> <span class="s1">&#39;Hanoi&#39;</span><span class="p">,</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">city_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">city_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s1">&#39;city name not in the city_names list. No data for this city&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># load model and add as attribute</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">fire_cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zone_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_imp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rolling_win</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span>
+                <span class="n">city</span><span class="o">=</span><span class="n">city_name</span><span class="p">,</span> <span class="n">pollutant</span><span class="o">=</span><span class="n">pollutant</span><span class="p">,</span> <span class="n">split_list</span><span class="o">=</span><span class="n">split_list</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cal_error</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">report_folder</span>
+
+            <span class="n">levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">transition_dict</span><span class="p">[</span><span class="n">pollutant</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;purple&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">color_zip</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">levels</span><span class="p">,</span> <span class="n">colors</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="Inferer.cal_error"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer.cal_error">[docs]</a>    <span class="k">def</span> <span class="nf">cal_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the training and seasonal error. Add trn_error and seasonal_error as attribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># calculate error of the train dataset and turn it into the seasonal</span>
+        <span class="c1"># error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trn_error</span> <span class="o">=</span> <span class="n">cal_error</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">data_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span> <span class="o">=</span> <span class="n">cal_season_error</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trn_error</span><span class="p">,</span> <span class="n">roll_win</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;max error&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span><span class="o">.</span><span class="n">values</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Inferer._get_data_sample"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer._get_data_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_data_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">day_err</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">hour_err</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sample the possible test data from train data. Add as data_samples attribute</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                n_samples: number of sample per hours</span>
+<span class="sd">                step: if not 1, skip some data to make the draw faster</span>
+<span class="sd">                day_err</span>
+<span class="sd">                hour_err</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;obtaining inference samples. This will take about 20 mins&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_samples</span> <span class="o">=</span> <span class="n">get_data_samples</span><span class="p">(</span>
+            <span class="n">dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+            <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">day_err</span><span class="o">=</span><span class="n">day_err</span><span class="p">,</span>
+            <span class="n">hour_err</span><span class="o">=</span><span class="n">day_err</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;datasample has shape&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_samples</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inferer.compare_inf_act"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer.compare_inf_act">[docs]</a>    <span class="k">def</span> <span class="nf">compare_inf_act</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_list</span><span class="o">=</span><span class="p">[</span><span class="mf">0.75</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Compare inference and actual data. Save the results plot.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            q_list(optional): a list of inference quantile[defaul=[0.05, 0.25, 0.5, 0.75,  0.95]]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># get data sample</span>
+        <span class="n">plot_sea_error</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trn_error</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span>
+            <span class="s1">&#39;season_error.png&#39;</span><span class="p">)</span>
+
+        <span class="c1"># compare inference with actual data</span>
+        <span class="c1"># predict the data</span>
+        <span class="n">ypred_df</span> <span class="o">=</span> <span class="n">make_senario</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_samples</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;fire_0_100&#39;</span><span class="p">],</span>
+            <span class="n">per_cut</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">band_df</span> <span class="o">=</span> <span class="n">make_band</span><span class="p">(</span><span class="n">ypred_df</span><span class="p">,</span> <span class="n">q_list</span><span class="o">=</span><span class="n">q_list</span><span class="p">)</span>
+        <span class="c1"># smooth the data</span>
+        <span class="n">band_df</span> <span class="o">=</span> <span class="n">band_df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rolling_win</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="c1">#band_df = band_df.resample(&#39;d&#39;).mean()</span>
+
+        <span class="n">ytest_pred_df</span> <span class="o">=</span> <span class="n">cal_error</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">data_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">split_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">plt_infer_actual</span><span class="p">(</span>
+            <span class="n">ytest_pred_df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">dropna</span><span class="p">(),</span>
+            <span class="n">band_df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+            <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span>
+            <span class="s1">&#39;test_data_vs_inference.png&#39;</span><span class="p">)</span>
+
+        <span class="c1"># plot seasonal predicton vs real data</span>
+        <span class="n">sea_pred</span> <span class="o">=</span> <span class="n">cal_season_band</span><span class="p">(</span><span class="n">band_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span><span class="p">)</span>
+
+        <span class="c1"># compare seasonal behavior with inference</span>
+        <span class="n">plot_infer_season</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">poll_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;2017-10-01&#39;</span><span class="p">:],</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">pollutant</span><span class="p">,</span>
+                          <span class="n">sea_pred</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">color_zip</span><span class="p">,</span>
+                          <span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span> <span class="s1">&#39;test_data_vs_inference_season.png&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inferer.features_effect_season"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer.features_effect_season">[docs]</a>    <span class="k">def</span> <span class="nf">features_effect_season</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="n">q</span><span class="p">,</span>
+            <span class="n">ax</span><span class="p">,</span>
+            <span class="n">red_list</span><span class="o">=</span><span class="p">[</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="mf">0.1</span><span class="p">,</span>
+                <span class="mf">0.25</span><span class="p">,</span>
+                <span class="mf">0.5</span><span class="p">,</span>
+                <span class="mf">0.75</span><span class="p">,</span>
+                <span class="mf">0.9</span><span class="p">],</span>
+            <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show an effect of reducing feature or features on the seasonal patterns</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            features: a list of feature to observe</span>
+<span class="sd">            q: quantile for picking the inference distribution [default:0.75]</span>
+<span class="sd">            red_list: a list of reducting</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fea_effect</span> <span class="o">=</span> <span class="n">reduc_effect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_samples</span><span class="p">,</span>
+            <span class="n">features</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span><span class="p">,</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">,</span>
+            <span class="n">red_list</span><span class="o">=</span><span class="n">red_list</span><span class="p">)</span>
+
+        <span class="c1">#_, ax = plt.subplots(1, 1, figsize=(10, 5))</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fea_effect</span><span class="p">)</span>
+
+        <span class="n">title_str</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Effect of Reducing (</span><span class="si">% r</span><span class="s1">eduction) </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+            <span class="n">fill</span><span class="p">(</span>
+                <span class="n">title_str</span><span class="p">,</span>
+                <span class="mi">50</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_zip</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="n">new_ticks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;07-01&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;08-20&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;10-09&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;11-28&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;01-16&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;03-06&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;04-25&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;06-14&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">new_ticks</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="n">fea_effect</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">fea_effect</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fea_effect</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">(),</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper left&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;month-date&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\mu g/m^3$&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">110</span><span class="p">])</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">35.4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mf">55.4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">365</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="s1">&#39; moderate&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mi">365</span><span class="p">,</span> <span class="mf">55.4</span><span class="p">,</span> <span class="s1">&#39; unhealthy&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">report_folder</span> <span class="o">+</span> <span class="s1">&#39;effect_of_&#39;</span> <span class="o">+</span> <span class="n">title_str</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fea_effect</span></div>
+
+<div class="viewcode-block" id="Inferer.features_effect_sum"><a class="viewcode-back" href="../../../src.models.html#src.models.predict_model.Inferer.features_effect_sum">[docs]</a>    <span class="k">def</span> <span class="nf">features_effect_sum</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">features_list</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">red_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">],</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">agg</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">raw_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Summarize effect of reduction in red_list of the features in the feature list.</span>
+
+<span class="sd">        Calculate the summary value between time_range and use aggegration method specified by agg</span>
+<span class="sd">        Args:</span>
+<span class="sd">            features_list:</span>
+<span class="sd">            q</span>
+<span class="sd">            red_list</span>
+<span class="sd">            agg</span>
+<span class="sd">            raw_filename: use when wannting to export the raw plot to csv</span>
+
+<span class="sd">        Return: pd.DataFrame.</span>
+<span class="sd">            The average prediction pollution level if reduction of each feature occure</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fea_effect_df</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">columns_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">tqdm_notebook</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">features_list</span><span class="p">)):</span>
+            <span class="n">sea_pred_all</span> <span class="o">=</span> <span class="n">reduc_effect</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_samples</span><span class="p">,</span>
+                <span class="n">feature</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sea_error</span><span class="p">,</span>
+                <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">,</span>
+                <span class="n">red_list</span><span class="o">=</span><span class="n">red_list</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">raw_filename</span><span class="p">:</span>
+
+                <span class="n">sea_pred_all</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{raw_filename}</span><span class="s1">_</span><span class="si">{i}</span><span class="s1">.csv&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># calculate the mean</span>
+            <span class="n">sea_pred_all_mean</span> <span class="o">=</span> <span class="n">sea_pred_all</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">time_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">time_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+                <span class="n">agg</span><span class="p">)</span>
+            <span class="n">columns_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &amp; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">feature</span><span class="p">))</span>
+            <span class="n">fea_effect_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sea_pred_all_mean</span><span class="p">)</span>
+
+        <span class="n">fea_effect_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">fea_effect_df</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">fea_effect_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">columns_list</span>
+
+        <span class="k">return</span> <span class="n">fea_effect_df</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

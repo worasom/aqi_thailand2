@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.data.fire_data &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.data.fire_data</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..gen_functions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="sd">&quot;&quot;&quot; Functions for proess hospots data.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="read_fire"><a class="viewcode-back" href="../../../src.data.html#src.data.fire_data.read_fire">[docs]</a><span class="k">def</span> <span class="nf">read_fire</span><span class="p">(</span>
+    <span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">lat_km</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">long_km</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">distance</span><span class="p">:</span> <span class="p">(</span>
+        <span class="nb">int</span><span class="p">,</span>
+        <span class="nb">float</span><span class="p">)</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read fire data and keep the data within distance</span>
+<span class="sd">    Args:</span>
+<span class="sd">        file: fire data csv filename</span>
+<span class="sd">        lat_km: latitude of the city center in km</span>
+<span class="sd">        long_km: longitude of the city center in km</span>
+<span class="sd">        distance(optional): distance in km from the city center for keeping the data</span>
+
+<span class="sd">    Returns: dataframe of fire data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="c1"># convert lat</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;latitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">merc_y</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1E3</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">merc_x</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;longitude&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1E3</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="c1"># remove by lat</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="p">[(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">lat_km</span> <span class="o">+</span> <span class="n">distance</span><span class="p">))</span> <span class="o">&amp;</span>
+          <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;lat_km&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">lat_km</span> <span class="o">-</span> <span class="n">distance</span><span class="p">))]</span>
+    <span class="c1"># remove by long</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="p">[(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">long_km</span> <span class="o">+</span> <span class="n">distance</span><span class="p">))</span> <span class="o">&amp;</span>
+          <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;long_km&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">long_km</span> <span class="o">-</span> <span class="n">distance</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="n">f</span></div>
+
+
+<div class="viewcode-block" id="add_datetime_fire"><a class="viewcode-back" href="../../../src.data.html#src.data.fire_data.add_datetime_fire">[docs]</a><span class="k">def</span> <span class="nf">add_datetime_fire</span><span class="p">(</span><span class="n">fire</span><span class="p">):</span>
+    <span class="c1"># add datetime conlumns to hotspot data</span>
+    <span class="c1"># assemble datetime column \</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;acq_date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;acq_time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H%M&#39;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># convert to Bangkok time zone and remove time zone information</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="s1">&#39;Asia/Bangkok&#39;</span><span class="p">)</span>
+    <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fire</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fire</span></div>
+
+
+<div class="viewcode-block" id="process_fire_data"><a class="viewcode-back" href="../../../src.data.html#src.data.fire_data.process_fire_data">[docs]</a><span class="k">def</span> <span class="nf">process_fire_data</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fire</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">and_save</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add datetime,  drop duplicate data and remove uncessary columns.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># add datetime</span>
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">add_datetime_fire</span><span class="p">(</span><span class="n">fire</span><span class="p">)</span>
+
+    <span class="c1"># drop duplicate data</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;before drop&#39;</span><span class="p">,</span> <span class="n">fire</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># sort values by brightness</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># for MODIS file</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;lat_km&#39;</span><span class="p">,</span> <span class="s1">&#39;long_km&#39;</span><span class="p">,</span> <span class="s1">&#39;brightness&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="c1"># for VIIRS</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;lat_km&#39;</span><span class="p">,</span> <span class="s1">&#39;long_km&#39;</span><span class="p">,</span> <span class="s1">&#39;bright_ti4&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">([</span><span class="s1">&#39;datetime&#39;</span><span class="p">,</span> <span class="s1">&#39;lat_km&#39;</span><span class="p">,</span> <span class="s1">&#39;long_km&#39;</span><span class="p">])</span>
+
+    <span class="c1"># drop unncessary columns</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">columns_to_drop</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;acq_date&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;satellite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;instrument&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;daynight&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;bright_t31&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">columns_to_drop</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;acq_date&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;satellite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;instrument&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;daynight&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;bright_ti5&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+    <span class="c1"># remove the data before &#39;2002-07-04&#39; because there is only one satellite</span>
+    <span class="n">fire</span> <span class="o">=</span> <span class="n">fire</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;2002-07-04&#39;</span><span class="p">:]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;after drop&#39;</span><span class="p">,</span> <span class="n">fire</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">and_save</span><span class="p">:</span>
+        <span class="n">fire</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fire</span></div>
+
+
+<div class="viewcode-block" id="cal_repeat_spots"><a class="viewcode-back" href="../../../src.data.html#src.data.fire_data.cal_repeat_spots">[docs]</a><span class="k">def</span> <span class="nf">cal_repeat_spots</span><span class="p">(</span>
+        <span class="n">df</span><span class="p">,</span>
+        <span class="n">repeat_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="mi">2</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">,</span>
+            <span class="mi">5</span><span class="p">,</span>
+            <span class="mi">10</span><span class="p">],</span>
+    <span class="n">group_list</span><span class="o">=</span><span class="p">[</span>
+            <span class="s1">&#39;year&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lat_km&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;long_km&#39;</span><span class="p">],</span>
+        <span class="n">accum</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">start_month</span><span class="o">=</span><span class="s1">&#39;-12-01&#39;</span><span class="p">,</span>
+        <span class="n">end_month</span><span class="o">=</span><span class="s1">&#39;-04-30&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate % of hotspots repeat withint the same year or different year</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: fire data series with datetime index</span>
+<span class="sd">        repeat_list: number of repetition</span>
+<span class="sd">        group_list: data to be group by if use [&#39;year&#39;,&#39;lat_km&#39;,&#39;long_km&#39;] mean looking at the data withint the same year</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">add_season</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">start_month</span><span class="p">,</span> <span class="n">end_month</span><span class="p">)</span>
+    <span class="c1"># remove the data from other season</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;season&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;other&#39;</span><span class="p">]</span>
+
+    <span class="c1"># total unique hotspot</span>
+    <span class="n">total_loc</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;coor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+
+    <span class="n">year_rep</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_list</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span>
+
+    <span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">repeat_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">accum</span><span class="p">:</span>
+            <span class="n">repeat_per</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">year_rep</span><span class="p">[</span><span class="n">year_rep</span> <span class="o">&gt;=</span> <span class="n">rep</span><span class="p">])</span> <span class="o">/</span> <span class="n">total_loc</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">repeat_per</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">year_rep</span><span class="p">[</span><span class="n">year_rep</span> <span class="o">==</span> <span class="n">rep</span><span class="p">])</span> <span class="o">/</span> <span class="n">total_loc</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">summary</span><span class="p">[</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">repeat_per</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

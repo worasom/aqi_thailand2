@@ -1,0 +1,1 @@
+sphinx-apidoc -a -d 5 --full --implicit-namespaces -H ebm_band -A SCL -V 2.0 -o . ../src

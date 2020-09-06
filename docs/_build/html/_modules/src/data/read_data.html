@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>src.data.read_data &#8212; aqi_thailand2  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for src.data.read_data</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">..imports</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="read_b_data"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.read_b_data">[docs]</a><span class="k">def</span> <span class="nf">read_b_data</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read Berkeley earth .txt file data. Return a dataframe and city information.</span>
+
+<span class="sd">    Create a datetime column with local timezone.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># read data file</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+                          <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># inspecting the top of the files to get the timezone</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">city_info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="c1"># remove %</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;% &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+            <span class="n">city_info</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="n">time_zone</span> <span class="o">=</span> <span class="n">city_info</span><span class="p">[</span><span class="s1">&#39;Time Zone&#39;</span><span class="p">]</span>
+    <span class="c1"># assemble datetime column</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">data_df</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">data_df</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">data_df</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">data_df</span><span class="p">[</span><span class="mi">3</span><span class="p">]})</span>
+    <span class="c1"># convert to Bangkok time zone and remove the time zone information</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span>
+        <span class="s1">&#39;UTC&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">time_zone</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># drop Year, month, day, UTC hours, PM10_mask columns</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PM2.5&#39;</span><span class="p">,</span> <span class="s1">&#39;datetime&#39;</span><span class="p">]</span>
+
+    <span class="c1"># inspecting the top of the files</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">city_info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="c1"># remove %</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;% &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)</span>
+            <span class="n">city_info</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="k">return</span> <span class="n">data_df</span><span class="p">,</span> <span class="n">city_info</span></div>
+
+
+<div class="viewcode-block" id="build_us_em_data"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.build_us_em_data">[docs]</a><span class="k">def</span> <span class="nf">build_us_em_data</span><span class="p">(</span><span class="n">city_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;../data/us_emb/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Combine the pollution data from US Embassy monitoring station for the city. Return a list of pollution dataframe.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">city_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Hanoi&#39;</span><span class="p">,</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;no data for </span><span class="si">{city_name}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">city_name</span> <span class="o">==</span> <span class="s1">&#39;Jakarta&#39;</span><span class="p">:</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;JakartaCentral&#39;</span><span class="p">,</span> <span class="s1">&#39;JakartaSouth&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Hanoi&#39;</span><span class="p">]</span>
+
+    <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">:</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{data_folder}{name}</span><span class="s1">*.csv&#39;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="c1"># concatenate all data</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">na_values</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">999</span><span class="p">])</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">df</span><span class="p">])</span>
+        <span class="c1"># format the data</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Parameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Parameter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; - &#39;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Date (LT)&#39;</span><span class="p">])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="s1">&#39;Parameter&#39;</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="s1">&#39;Value&#39;</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_list</span></div>
+
+
+<div class="viewcode-block" id="read_his_xl"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.read_his_xl">[docs]</a><span class="k">def</span> <span class="nf">read_his_xl</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="c1"># read air4thai historical data</span>
+    <span class="n">xl</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">station_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">sheet_name</span> <span class="ow">in</span> <span class="n">xl</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">xl</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">parse_1xl_sheet</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">station_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">station_data</span><span class="p">,</span> <span class="n">data</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">station_data</span> <span class="o">=</span> <span class="n">convert_pollution_2_number</span><span class="p">(</span><span class="n">station_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">station_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="isnumber"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.isnumber">[docs]</a><span class="k">def</span> <span class="nf">isnumber</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c1"># if the data is number</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="convert_to_float"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.convert_to_float">[docs]</a><span class="k">def</span> <span class="nf">convert_to_float</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert the data in a series to float</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># remove non-numeric data</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">isnumber</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="convert_to_int"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.convert_to_int">[docs]</a><span class="k">def</span> <span class="nf">convert_to_int</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert the data in a series to int</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># remove non-numeric data</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">isnumber</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="convert_pollution_2_number"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.convert_pollution_2_number">[docs]</a><span class="k">def</span> <span class="nf">convert_pollution_2_number</span><span class="p">(</span><span class="n">data_df</span><span class="p">):</span>
+
+    <span class="c1"># convert all pollution data to int or float</span>
+    <span class="n">pollution_cols</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    <span class="n">pollution_cols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;datetime&#39;</span><span class="p">)</span>
+    <span class="c1"># convert data for all pollution column</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">pollution_cols</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">data_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_to_float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_df</span></div>
+
+
+<div class="viewcode-block" id="convert_year"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.convert_year">[docs]</a><span class="k">def</span> <span class="nf">convert_year</span><span class="p">(</span><span class="n">data_point</span><span class="p">):</span>
+    <span class="c1"># apply to the date column in the data to prepare for making datetime column</span>
+    <span class="c1"># convert datatype to string</span>
+    <span class="n">data_point</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;2000&#39;</span> <span class="o">+</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;2000&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;200&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;9&#39;</span> <span class="o">==</span> <span class="n">data_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;19&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;20&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+
+    <span class="k">return</span> <span class="n">data_point</span></div>
+
+
+<div class="viewcode-block" id="convert_hour"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.convert_hour">[docs]</a><span class="k">def</span> <span class="nf">convert_hour</span><span class="p">(</span><span class="n">data_point</span><span class="p">):</span>
+    <span class="c1"># apply to the hour column in the data to prepare for making datetime column</span>
+    <span class="c1"># shift by 1 hour to get rid of 2400</span>
+    <span class="n">data_point</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data_point</span> <span class="o">-</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="c1"># convert datatype to string</span>
+    <span class="n">data_point</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">data_point</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">data_point</span>
+
+    <span class="n">data_point</span> <span class="o">=</span> <span class="n">data_point</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># if data_point==&#39;24&#39;:</span>
+    <span class="c1">#    data_point =&#39;00&#39;</span>
+
+    <span class="k">return</span> <span class="n">data_point</span></div>
+
+
+<div class="viewcode-block" id="make_datetime_from_xl"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.make_datetime_from_xl">[docs]</a><span class="k">def</span> <span class="nf">make_datetime_from_xl</span><span class="p">(</span><span class="n">data_df</span><span class="p">):</span>
+    <span class="c1"># drop nan value</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="o">~</span><span class="n">data_df</span><span class="p">[[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="c1"># preprocess date and hour columns</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">convert_year</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">convert_hour</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">]</span>
+    <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="n">data_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">-%H&#39;</span><span class="p">)</span>
+
+    <span class="c1"># drop old columns</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_df</span></div>
+
+
+<div class="viewcode-block" id="parse_1xl_sheet"><a class="viewcode-back" href="../../../src.data.html#src.data.read_data.parse_1xl_sheet">[docs]</a><span class="k">def</span> <span class="nf">parse_1xl_sheet</span><span class="p">(</span><span class="n">data_df</span><span class="p">):</span>
+
+    <span class="c1"># change column name</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;ปี/เดือน/วัน&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">)</span>
+    <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;ชั่วโมง&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">)</span>
+    <span class="n">to_drops</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">data_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;Unnamed&#39;</span><span class="p">)]</span>
+
+    <span class="c1"># drop nan value</span>
+    <span class="n">data_df</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[</span><span class="o">~</span><span class="n">data_df</span><span class="p">[[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">data_df</span><span class="p">[[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data_df</span><span class="p">[[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># preprocess date and hour columns to create datetime columns</span>
+        <span class="n">data_df</span> <span class="o">=</span> <span class="n">make_datetime_from_xl</span><span class="p">(</span><span class="n">data_df</span><span class="p">)</span>
+        <span class="n">data_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">to_drops</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">data_df</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">aqi_thailand2</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src.html">src package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
