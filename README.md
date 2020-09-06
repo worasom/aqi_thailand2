@@ -55,34 +55,34 @@ aqi_thailand2
 ├── data : <br>
 ├── docs : <br>
 ├── models : <br>
-│$\;\;\;\;\;\;$└── chiang_mai : <br>
+│└── chiang_mai : <br>
 ├── reports : <br>
-│   $\;\;\;\;\;\;$└── chiang_mai : <br>
+│   └── chiang_mai : <br>
 ├── notebooks : <br>
-│   $\;\;\;\;\;\;$├── 1_pollutions_data.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 1.1_vn_power_plants.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 2_analyze_pollution_data.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 5.0-ML_Chiang_mai.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 6.0_vis_ChiangMai.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 6.1_BKK.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 6.2_vis_Jarkata.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 6.3_Hanoi.ipynb : <br>
-│   $\;\;\;\;\;\;$└── 7_prediction.ipynb : <br>
+│   ├── 1_pollutions_data.ipynb : <br>
+│   ├── 1.1_vn_power_plants.ipynb : <br>
+│   ├── 2_analyze_pollution_data.ipynb : <br>
+│   ├── 5.0-ML_Chiang_mai.ipynb : <br>
+│   ├── 6.0_vis_ChiangMai.ipynb : <br>
+│   ├── 6.1_BKK.ipynb : <br>
+│   ├── 6.2_vis_Jarkata.ipynb : <br>
+│   ├── 6.3_Hanoi.ipynb : <br>
+│   └── 7_prediction.ipynb : <br>
 │   <br>
 └── src : <br>
-    $\;\;\;\;\;\;$├── imports.py : <br>
-    $\;\;\;\;\;\;$├── gen_functions.py : <br>
-    $\;\;\;\;\;\;$├── data : <br>
-    $\;\;\;\;\;\;$├── features : <br>
-$\;\;\;\;\;\;$│   $\;\;\;\;\;\;$├── build_features.py : <br>
-$\;\;\;\;\;\;$│   $\;\;\;\;\;\;$└── dataset.py : <br>
-    $\;\;\;\;\;\;$├── models : <br>
-$\;\;\;\;\;\;$│   $\;\;\;\;\;\;$├── predict_model.py : <br>
-$\;\;\;\;\;\;$│   $\;\;\;\;\;\;$└── train_model.py : <br>
-$\;\;\;\;\;\;$│   
-$\;\;\;\;\;\;$└── visualization : <br>
-        $\;\;\;\;\;\;$$\;\;\;\;\;\;$├── vis_data.py : <br>
-        $\;\;\;\;\;\;$$\;\;\;\;\;\;$└── vis_model.py : <br>
+    ├── imports.py : <br>
+    ├── gen_functions.py : <br>
+    ├── data : <br>
+    ├── features : <br>
+│   ├── build_features.py : <br>
+│   └── dataset.py : <br>
+    ├── models : <br>
+│   ├── predict_model.py : <br>
+│   └── train_model.py : <br>
+│   
+└── visualization : <br>
+        ├── vis_data.py : <br>
+        └── vis_model.py : <br>
 
 
 
