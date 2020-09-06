@@ -114,10 +114,9 @@ src.visualization.vis_data.compare_aqis(filename='../reports/chiang_mai/aqi.png'
 ```
 
 
-![png](output_10_0.png)
+![png](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/aqi.png)
 
 
-![compare_aqi](https://github.com/worasom/aqi_thailand2/reports/chiang_mai/aqi.png)
 
 
 ```python
