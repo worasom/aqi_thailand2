@@ -7,6 +7,7 @@ from .train_model import *
 from ..visualization.vis_data import *
 from ..visualization.vis_model import *
 
+
 def load_meta(meta_filename: str):
     """Read model_meta dictionary and return model_meta dicitonary
 
@@ -25,6 +26,7 @@ def load_meta(meta_filename: str):
         model_meta = {}
 
     return model_meta
+
 
 def load_model(
         city: str = 'Chiang Mai',
@@ -73,7 +75,12 @@ def load_model(
     dataset.load_()
     # build the first dataset
     #print('rolling_win', poll_meta['rolling_win'])
-    dataset.feature_no_fire(pollutant=pollutant, rolling_win=poll_meta['rolling_win'], fill_missing=poll_meta['fill_missing'], cat_hour=poll_meta['cat_hour'],group_hour=poll_meta['group_hour'])
+    dataset.feature_no_fire(
+        pollutant=pollutant,
+        rolling_win=poll_meta['rolling_win'],
+        fill_missing=poll_meta['fill_missing'],
+        cat_hour=poll_meta['cat_hour'],
+        group_hour=poll_meta['group_hour'])
     dataset.fire_dict = poll_meta['fire_dict']
     fire_cols, zone_list = dataset.merge_fire(dataset.fire_dict)
 
@@ -811,7 +818,7 @@ class Inferer():
     def features_effect_sum(
         self, features_list, q, red_list=[
             0, 0.1, 0.25, 0.5, 0.75, 0.9], time_range=[
-            0, -1], agg='mean',raw_filename=None):
+            0, -1], agg='mean', raw_filename=None):
         """Summarize effect of reduction in red_list of the features in the feature list.
 
         Calculate the summary value between time_range and use aggegration method specified by agg
@@ -839,10 +846,10 @@ class Inferer():
                 red_list=red_list)
 
             if raw_filename:
-                
-                sea_pred_all.to_csv(f'{raw_filename}_{i}.csv',index=True)
-            
-            # calculate the mean 
+
+                sea_pred_all.to_csv(f'{raw_filename}_{i}.csv', index=True)
+
+            # calculate the mean
             sea_pred_all_mean = sea_pred_all.loc[time_range[0]:time_range[1]].agg(
                 agg)
             columns_list.append(' & '.join(feature))

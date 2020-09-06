@@ -95,7 +95,7 @@ def wind_to_dummies(series):
             pass
     try:
         dummies.drop('VAR', axis=1, inplace=True)
-    except:
+    except BaseException:
         pass
     dummies.columns = ['wind_' + s for s in dummies.columns]
     return dummies
@@ -309,50 +309,62 @@ def sep_fire_zone(fire, fire_col, zone_list=[0, 100, 200, 400, 800, 1000]):
 
 
 def dummy_time_of_day(df, col='time_of_day', group_hour=3):
-    """One hot encode time_of_day columns. df must have datetime index. 
-    
-    Args: 
-        df: dataframe to add the encoded  
-        col: column name 
-        group_hour: integer of hour to group the data into this help reduce the number of variables 
-    
-    Returns: processed dataframe 
-    
+    """One hot encode time_of_day columns. df must have datetime index.
+
+    Args:
+        df: dataframe to add the encoded
+        col: column name
+        group_hour: integer of hour to group the data into this help reduce the number of variables
+
+    Returns: processed dataframe
+
     """
     # add time of day column
-    df[col] = df.index.hour 
+    df[col] = df.index.hour
 
     if group_hour == 1:
         df[col] = df[col].astype("category")
     else:
-        # turn the columns into catergory. Use group_hour to reduce the number 
-        df[col] = pd.cut(df[col], bins=np.arange(0,24+group_hour, group_hour),right=False) 
-    
-    
+        # turn the columns into catergory. Use group_hour to reduce the number
+        df[col] = pd.cut(
+            df[col],
+            bins=np.arange(
+                0,
+                24 + group_hour,
+                group_hour),
+            right=False)
+
     temp = pd.get_dummies(df[col], prefix=col)
-    df = pd.concat([df,temp], axis=1)
+    df = pd.concat([df, temp], axis=1)
     # drop old columns
     df = df.drop(col, axis=1)
-        
+
     return df
 
-def fill_missing_poll(df, limit:int=6):
-    """Fill missing pollution data. Only Work with one columns dataframe 
-    
+
+def fill_missing_poll(df, limit: int = 6):
+    """Fill missing pollution data. Only Work with one columns dataframe
+
     Args:
-        df: hourly pollution data with missing value 
-        limit(default): number of forward and backward filling 
-    
-    Returns: new dataframe 
-        
+        df: hourly pollution data with missing value
+        limit(default): number of forward and backward filling
+
+    Returns: new dataframe
+
     """
     min_date = df.index.min()
     max_date = df.index.max()
     new_index = pd.date_range(start=min_date, end=max_date, freq='h')
-    new_poll_df = df.merge(pd.DataFrame(index=new_index), right_index=True, left_index=True, how='right')
+    new_poll_df = df.merge(
+        pd.DataFrame(
+            index=new_index),
+        right_index=True,
+        left_index=True,
+        how='right')
     new_poll_df.index.name = 'datetime'
-    
+
     new_poll_df_f = new_poll_df.fillna(method='ffill', limit=limit).copy()
     new_poll_df_b = new_poll_df.fillna(method='bfill', limit=limit).copy()
-    
-    return pd.concat([new_poll_df_f, new_poll_df_b], axis=0).groupby(level=0).mean()
+
+    return pd.concat([new_poll_df_f, new_poll_df_b],
+                     axis=0).groupby(level=0).mean()

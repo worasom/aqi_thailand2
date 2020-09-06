@@ -2,9 +2,6 @@
 /reports/*.pptx
 /reports/*.docx
 /reports/figures
-/reports/chiang_mai
-/reports/bangkok
-/reports/jakarta
 /reports/hanoi
 /reports/*.png
 /report/ani_plot

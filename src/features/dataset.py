@@ -52,7 +52,7 @@ class Dataset():
     city_wea_dict = {'Chiang Mai': 'Mueang Chiang Mai',
                      'Bangkok': 'Bangkok',
                      'Hanoi': 'Soc Son',
-                     'Jakarta':'East Jakarta'}
+                     'Jakarta': 'East Jakarta'}
 
     transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
                        'PM10': [0, 155, 254, 354, 1e3],
@@ -154,49 +154,49 @@ class Dataset():
                 station_info_list.append(stations)
 
         return station_ids, station_info_list
-    
-    @staticmethod 
+
+    @staticmethod
     def parse_th_station(folder, station_id):
-        """Parse raw station data into .csv file in the form, which is ready to merge with the newly parse data. 
-        
-        Look for all the files containing station_id in the filename. 
-        Create the folder to save the file if doesn't exist. 
-        
+        """Parse raw station data into .csv file in the form, which is ready to merge with the newly parse data.
+
+        Look for all the files containing station_id in the filename.
+        Create the folder to save the file if doesn't exist.
+
         Args:
             folder: folder where the raw data file is saved
-            station_id: station_id  
-            save_filename: filename to save the data as 
-        
+            station_id: station_id
+            save_filename: filename to save the data as
+
         """
-        # look for all files containing station_id in the filename 
+        # look for all files containing station_id in the filename
         p = Path(folder)
         filenames = []
         for i in p.glob('**/*.xlsx'):
             if station_id in i.name:
                 filenames.append(str(i))
-            
+
         # if filename exist load that file
-        if len(filenames) >0:
-        
+        if len(filenames) > 0:
+
             save_filename = folder + 'process/' + station_id + '.csv'
-        
+
             if not os.path.exists(folder + 'process/'):
                 os.mkdir(folder + 'process/')
             print('save data as', save_filename)
-        
+
             station_data = []
-            for f in filenames: 
+            for f in filenames:
                 try:
                     station_data.append(read_his_xl(f))
-                except:
+                except BaseException:
                     pass
-            
+
             station_data = pd.concat(station_data).drop_duplicates()
-        
+
             # save the data if the dataframe is not empty
-            if len(station_data)> 0:
-                station_data.to_csv(save_filename,index=True)                                
-    
+            if len(station_data) > 0:
+                station_data.to_csv(save_filename, index=True)
+
     def merge_new_old_pollution(
             self,
             station_ids: list,
@@ -214,16 +214,18 @@ class Dataset():
             parse(optional): if True, also parse the stations data from the excel files
         """
         for station_id in station_ids:
-            
+
             old_data_list = []
-            # extract data from both folder 
+            # extract data from both folder
             for hist_folder in hist_folders:
                 # load old data if exist
-                old_filename = f'{self.main_folder}{hist_folder}' + 'process/' + station_id + '.csv'
+                old_filename = f'{self.main_folder}{hist_folder}' + \
+                    'process/' + station_id + '.csv'
                 if not os.path.exists(old_filename):
-                    # data not exists parse data from raw excel file 
-                    self.parse_th_station(f'{self.main_folder}{hist_folder}', station_id)
-            
+                    # data not exists parse data from raw excel file
+                    self.parse_th_station(
+                        f'{self.main_folder}{hist_folder}', station_id)
+
                 try:
                     old_data = pd.read_csv(old_filename)
                 except BaseException:
@@ -232,15 +234,16 @@ class Dataset():
                     old_data['datetime'] = pd.to_datetime(old_data['datetime'])
                     old_data = old_data.set_index('datetime')
                     # keep only the gass columns
-                    gas_list = [s for s in self.gas_list if s in old_data.columns]
+                    gas_list = [
+                        s for s in self.gas_list if s in old_data.columns]
                     old_data = old_data[gas_list]
                     old_data_list.append(old_data)
 
             old_data = pd.concat(old_data_list)
             old_data.index = pd.to_datetime(old_data.index)
             old_data = old_data.sort_index()
-            old_data = old_data[~old_data.index.duplicated(keep='first')] 
-            
+            old_data = old_data[~old_data.index.duplicated(keep='first')]
+
             # read data parse from the website
             new_data = pd.read_csv(
                 f'{self.main_folder}{new_folder}' +
@@ -374,12 +377,12 @@ class Dataset():
         """
         print('Loading all hotspots data. This might take sometimes')
 
-        if self.city_name=='Hanoi':
+        if self.city_name == 'Hanoi':
             distance = 1200
 
-        #else self.city_name == 'Bangkok':
+        # else self.city_name == 'Bangkok':
         #    distance = 600
-        
+
         # the instrument is either MODIS or VIIRS
         if instr == 'MODIS':
             folder = self.main_folder + fire_data_folder + 'M6/*.csv'
@@ -469,7 +472,7 @@ class Dataset():
 
         Args:
             wea_data_folder(optional): weather data folder[default:'weather_cities/']
-        
+
         """
 
         filename = self.city_wea_dict[self.city_name]
@@ -540,7 +543,13 @@ class Dataset():
 
         self.save_()
 
-    def feature_no_fire(self, pollutant: str = 'PM2.5', rolling_win=24, fill_missing=False, cat_hour=False, group_hour=2):
+    def feature_no_fire(
+            self,
+            pollutant: str = 'PM2.5',
+            rolling_win=24,
+            fill_missing=False,
+            cat_hour=False,
+            group_hour=2):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data
@@ -550,9 +559,9 @@ class Dataset():
         Args:
             pollutant(optional): name of the pollutant [default:'PM2.5']
             rolling_win(optional): rolling windows size [defaul:24]. This does not do anything.
-            fill_missing(optional): if True, fill the missing pollution data 
+            fill_missing(optional): if True, fill the missing pollution data
             cat_hour(optional): if true, one hot encode the time_of_day column
-            group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True 
+            group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -598,8 +607,8 @@ class Dataset():
 
         if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
             data = data.loc['2010':]
-        elif self.city_name=='Hanoi':
-            data = data.loc['2016-03-21':] 
+        elif self.city_name == 'Hanoi':
+            data = data.loc['2016-03-21':]
 
         # add lag information
         # data = add_lags(data, pollutant)
@@ -612,9 +621,10 @@ class Dataset():
             data, holiday_file=self.data_folder + 'holiday.csv')
 
         if cat_hour:
-            # one hot encode the time of day columns 
-            data = dummy_time_of_day(data, col='time_of_day', group_hour=group_hour)
-        
+            # one hot encode the time of day columns
+            data = dummy_time_of_day(
+                data, col='time_of_day', group_hour=group_hour)
+
         try:
             data = data.astype(float)
         except BaseException:
@@ -642,7 +652,7 @@ class Dataset():
 
         if self.city_name == 'Chiang Mai':
             zone_list = [0, 100, 200, 400, 700, 1000]
-        elif self.city_name =='Hanoi':
+        elif self.city_name == 'Hanoi':
             zone_list = [0, 120, 400, 700, 1200]
         elif self.city_name == 'Bangkok':
             zone_list = [0, 100, 200, 400, 600, 800, 1000]
@@ -858,10 +868,11 @@ class Dataset():
             # add pollution list
             self.gas_list = self.poll_df.columns.to_list()
 
-            if (self.city_name == 'Chiang Mai') or (self.city_name == 'Bangkok') :
+            if (self.city_name == 'Chiang Mai') or (
+                    self.city_name == 'Bangkok'):
                 # for Chiang Mai, delete all PM2.5 record before 2010
                 self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
-            
+
         else:
             print('no pollution data. Call self.build_pollution first')
 

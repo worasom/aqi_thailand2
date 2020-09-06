@@ -33,28 +33,28 @@ import time
 from datetime import datetime, date, timedelta
 
 
-from bokeh.io import output_file, output_notebook, show, reset_output, export_png 
+from bokeh.io import output_file, output_notebook, show, reset_output, export_png
 from bokeh.models import (Span, Div, Label,
-    GMapPlot,
-    GMapOptions,
-    ColumnDataSource,
-    Circle,
-    LogColorMapper,
-    BasicTicker,
-    ColorBar,
-    DataRange1d,
-    PanTool,
-    WheelZoomTool,
-    BoxSelectTool,
-    CategoricalColorMapper,
-    Slider,
-    DateRangeSlider,
-    DateSlider,
-    SingleIntervalTicker,
-    LinearAxis,
-    Legend,
-    LegendItem,
-    GeoJSONDataSource, FuncTickFormatter)
+                          GMapPlot,
+                          GMapOptions,
+                          ColumnDataSource,
+                          Circle,
+                          LogColorMapper,
+                          BasicTicker,
+                          ColorBar,
+                          DataRange1d,
+                          PanTool,
+                          WheelZoomTool,
+                          BoxSelectTool,
+                          CategoricalColorMapper,
+                          Slider,
+                          DateRangeSlider,
+                          DateSlider,
+                          SingleIntervalTicker,
+                          LinearAxis,
+                          Legend,
+                          LegendItem,
+                          GeoJSONDataSource, FuncTickFormatter)
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.models.tickers import FixedTicker
 from bokeh.palettes import Viridis5
@@ -75,7 +75,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split, KFold, TimeSeriesSplit
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
-from scipy.stats import linregress  
+from scipy.stats import linregress
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor

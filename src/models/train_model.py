@@ -390,7 +390,7 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
 def train_city_s1(
         city: str = 'Chiang Mai',
         pollutant: str = 'PM2.5',
-        build=False, 
+        build=False,
         model=None,
         fire_dict=None,
         x_cols_org=[],
@@ -432,21 +432,25 @@ def train_city_s1(
         # build data from scratch
         dataset.build_all_data(build_fire=True, build_holiday=False)
 
-    # load model meta to setup parameters 
+    # load model meta to setup parameters
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
     split_lists = poll_meta['split_lists']
-    
 
     # load raw data
     dataset.load_()
-    #if rolling_win:
+    # if rolling_win:
     #    rolling_win = dataset.roll_dict[pollutant]
-    #else:
+    # else:
     #rolling_win = 1
 
     # build the first dataset
-    dataset.feature_no_fire(pollutant=pollutant, rolling_win=poll_meta['rolling_win'], fill_missing=poll_meta['fill_missing'], cat_hour=poll_meta['cat_hour'],group_hour=poll_meta['group_hour'])
+    dataset.feature_no_fire(
+        pollutant=pollutant,
+        rolling_win=poll_meta['rolling_win'],
+        fill_missing=poll_meta['fill_missing'],
+        cat_hour=poll_meta['cat_hour'],
+        group_hour=poll_meta['group_hour'])
     if fire_dict is None:
         # use default fire feature
         fire_cols, *args = dataset.merge_fire()
@@ -461,8 +465,10 @@ def train_city_s1(
         # split the data into 3 set
         print('=================optimize 1: find the best RF model=================')
         dataset.split_data(split_ratio=split_lists[0])
-        xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0])
-        xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1])
+        xtrn, ytrn, x_cols = dataset.get_data_matrix(
+            use_index=dataset.split_list[0])
+        xval, yval, _ = dataset.get_data_matrix(
+            use_index=dataset.split_list[1])
         dataset.x_cols = x_cols
 
         model = do_rf_search(xtrn, ytrn, cv_split='other')
@@ -486,7 +492,7 @@ def train_city_s1(
         # columns to consider droping are columns with low importance
         to_drop = feat_imp['index'].to_list()
         #to_drop = [a for a in to_drop if 'fire' not in a]
-        #for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
+        # for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
         #    to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
@@ -548,9 +554,9 @@ def train_city_s1(
 
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
-        #no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + \
+        # no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + \
         #    [a for a in dataset.x_cols_org if 'fire' in a]
-        #for s in no_drop:
+        # for s in no_drop:
         #    to_drop.remove(s)
         to_drop.reverse()
         model, dataset.x_cols = reduce_cols(
@@ -639,7 +645,8 @@ def train_city_s1(
         #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
     except BaseException:
         # custom feature of importance
-        feat_imp = feat_importance(model, xtrn, ytrn, dataset.x_cols, n_iter=50)
+        feat_imp = feat_importance(
+            model, xtrn, ytrn, dataset.x_cols, n_iter=50)
         #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(shuffle)')
 
     # obtain feature of importance without lag
@@ -650,16 +657,15 @@ def train_city_s1(
     show_fea_imp(feat_imp, filename=dataset.report_folder +
                  f'{poll_name}_rf_fea_op2_nolag.png', title='')
 
-    poll_meta.update( {'x_cols_org': dataset.x_cols_org,
-                 'x_cols': dataset.x_cols,
-                 'fire_cols': fire_cols,
-                 'fire_dict': dataset.fire_dict,
-                 'lag_dict': dataset.lag_dict,
-                 'rf_score': score_dict,
-                 'rf_params': model.get_params(),
-                 })
+    poll_meta.update({'x_cols_org': dataset.x_cols_org,
+                      'x_cols': dataset.x_cols,
+                      'fire_cols': fire_cols,
+                      'fire_dict': dataset.fire_dict,
+                      'lag_dict': dataset.lag_dict,
+                      'rf_score': score_dict,
+                      'rf_params': model.get_params(),
+                      })
 
-     
     model_meta[pollutant] = poll_meta
     save_meta(dataset.model_folder + 'model_meta.json', model_meta)
 

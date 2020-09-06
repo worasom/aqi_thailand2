@@ -214,11 +214,10 @@ def plot_all_pollutions(
     print(gas_list)
     len_gas = len(gas_list)
 
-     
     _, ax = plt.subplots(len_gas, 1, figsize=(10, 3 * len_gas), sharex=True)
 
-    if len_gas >1:
-        # obtain daily avg to plot 
+    if len_gas > 1:
+        # obtain daily avg to plot
         d_avg = poll_df.resample('d').mean()
 
         for i, a in enumerate(ax):
@@ -240,13 +239,13 @@ def plot_all_pollutions(
                     label=legend,
                     alpha=0.7)
 
-            if col in ['PM2.5']: 
-                a.set_ylabel(col + r'($\mu g/m^3$)')         
+            if col in ['PM2.5']:
+                a.set_ylabel(col + r'($\mu g/m^3$)')
                 a.axhline(transition_dict[col][2], color='red')
                 a.axhline(transition_dict[col][3], color='purple')
 
             elif col in ['PM10']:
-                a.set_ylabel(col + r'($\mu g/m^3$)')         
+                a.set_ylabel(col + r'($\mu g/m^3$)')
                 a.axhline(transition_dict[col][2], color='red')
             elif col in ['O3']:
                 a.set_ylabel(col + '(ppb)')
@@ -259,27 +258,27 @@ def plot_all_pollutions(
 
             a.axhline(transition_dict[col][1], color='orange')
 
-            a.plot(d_avg[col],label='avg'+col,color='black', alpha=0.7)
+            a.plot(d_avg[col], label='avg' + col, color='black', alpha=0.7)
             a.legend(loc='upper left')
-                #if i in [0, 1, 2]:
-                #    a.axhline(transition_dict[col][2], color='red')
-                #if i in [0, 1, 2]:
-                #    a.axhline(transition_dict[col][3], color='purple')
+            # if i in [0, 1, 2]:
+            #    a.axhline(transition_dict[col][2], color='red')
+            # if i in [0, 1, 2]:
+            #    a.axhline(transition_dict[col][3], color='purple')
 
         #ax[0].legend(loc='upper left')
         ax[0].set_xlim([poll_df.index.min(), poll_df.index.max()])
         ax[0].set_title(
-        f'Pollutants Data for {city_name} Averaged from All Staions')
+            f'Pollutants Data for {city_name} Averaged from All Staions')
         ax[-1].set_xlabel('date')
-    
+
     else:
         col = gas_list[0]
         a = ax
 
         poll_data = poll_df[[col]].dropna()
         poll_data['color'] = pd.cut(poll_data[col],
-            bins=transition_dict[col],
-            labels=color_labels)
+                                    bins=transition_dict[col],
+                                    labels=color_labels)
 
         for color, legend in zip(color_labels, level_names):
             temp = poll_data[poll_data['color'] == color]
@@ -293,15 +292,20 @@ def plot_all_pollutions(
                 alpha=0.7)
 
         temp = poll_df.resample('d').mean()
-        a.plot(temp.index, temp[col], label='avg'+col,color='black',alpha=0.7)
+        a.plot(
+            temp.index,
+            temp[col],
+            label='avg' + col,
+            color='black',
+            alpha=0.7)
         a.legend(loc='upper left')
 
-        if col in ['PM2.5']: 
-            a.set_ylabel(col + r'($\mu g/m^3$)')            
+        if col in ['PM2.5']:
+            a.set_ylabel(col + r'($\mu g/m^3$)')
             a.axhline(transition_dict[col][2], color='red')
             a.axhline(transition_dict[col][3], color='purple')
         elif col in ['PM10']:
-            a.set_ylabel(col + r'($\mu g/m^3$)')         
+            a.set_ylabel(col + r'($\mu g/m^3$)')
             a.axhline(transition_dict[col][2], color='red')
         elif col in ['O3']:
             a.set_ylabel(col + '(ppb)')
@@ -311,7 +315,7 @@ def plot_all_pollutions(
         elif col == 'CO':
             a.set_ylabel(col + '(ppm)')
 
-        a.axhline(transition_dict[col][1], color='orange') 
+        a.axhline(transition_dict[col][1], color='orange')
 
     plt.tight_layout()
 
@@ -370,7 +374,7 @@ def plot_polls_aqi(
         axis=0).sort_values(
         ascending=False).index.to_list()
     poll_df = poll_df[new_cols]
-    if len(new_cols)>1:
+    if len(new_cols) > 1:
         length = int(len(new_cols) / 2)
 
     levels = [50, 100, 150, 200, 300]
@@ -382,14 +386,15 @@ def plot_polls_aqi(
         ' very unhealthy']
     #data_colors = get_color(color_length=len(new_cols), cmap=cm.brg)
     data_colors = get_gas_color_list(new_cols)
-    
-    if len(new_cols)>1:
+
+    if len(new_cols) > 1:
         # more than one data, plot in two subplots
         _, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
         for i, a in enumerate(ax):
             temp = poll_df[new_cols[length * i:length * (i + 1)]]
             colors = data_colors[length * i:length * (i + 1)]
-            for col, color in zip(new_cols[length * i:length * (i + 1)], colors):
+            for col, color in zip(
+                    new_cols[length * i:length * (i + 1)], colors):
                 a.plot(
                     temp[col],
                     marker='.',
@@ -408,7 +413,8 @@ def plot_polls_aqi(
             ymax = temp.max().max()
             idx = np.where(levels < ymax)[0][-1] + 1
             # make horizontal line
-            for l, c, n in zip(levels[:idx], color_labels[:idx], level_names[:idx]):
+            for l, c, n in zip(
+                    levels[:idx], color_labels[:idx], level_names[:idx]):
                 a.axhline(l, color=c, label=n)
                 a.text(temp.index.max(), l, n, horizontalalignment='left')
 
@@ -416,24 +422,25 @@ def plot_polls_aqi(
             a.set_ylim([0, ymax])
             a.set_ylabel('AQI')
     else:
-        # only one data only one subplots 
+        # only one data only one subplots
         # more than one data, plot in two subplots
         _, a = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
         a.plot(poll_df, color=data_colors[0])
         a.legend(poll_df.columns, loc='upper left')
-        a.set_title(f'Daily Average AQI in {city_name} for different pollutants')
+        a.set_title(
+            f'Daily Average AQI in {city_name} for different pollutants')
         a.set_xlabel('date')
         # make horizontal line
         ymax = poll_df.max().values[0]
         idx = np.where(levels < ymax)[0][-1] + 1
-        for l, c, n in zip(levels[:idx], color_labels[:idx], level_names[:idx]):
+        for l, c, n in zip(
+                levels[:idx], color_labels[:idx], level_names[:idx]):
             a.axhline(l, color=c, label=n)
             a.text(poll_df.index.max(), l, n, horizontalalignment='left')
         a.set_xlim([poll_df.index.min(), poll_df.index.max()])
         a.set_ylim([0, ymax])
         a.set_ylabel('AQI')
         a.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
-
 
     plt.tight_layout()
 
@@ -470,18 +477,18 @@ def plot_season_aqi(
         ax.text(365, 150, ' unhealthy', horizontalalignment='left')
 
     temp = mean_day[mean_day > 100]
-    if len(temp)>0:
+    if len(temp) > 0:
         print('aqi 100 in ',
-            winter_day_dict[str(temp.index.min())],
-            'to',
-            winter_day_dict[str(temp.index.max())])
+              winter_day_dict[str(temp.index.min())],
+              'to',
+              winter_day_dict[str(temp.index.max())])
 
     temp = mean_day[mean_day > 150]
-    if len(temp)>0:
+    if len(temp) > 0:
         print('aqi 150 in ',
-            winter_day_dict[str(temp.index.min())],
-            'to',
-            winter_day_dict[str(temp.index.max())])
+              winter_day_dict[str(temp.index.min())],
+              'to',
+              winter_day_dict[str(temp.index.max())])
 
     if filename:
         plt.savefig(filename)
@@ -527,9 +534,9 @@ def add_ln_trend_line(
     """
     # linear fit the data
     x = series.index.values
-    y = series.values 
+    y = series.values
 
-    slope, intercept, *args = linregress(x,y)
+    slope, intercept, *args = linregress(x, y)
     z = np.array([slope, intercept])
     #z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
@@ -550,26 +557,39 @@ def add_ln_trend_line(
 
     return x, y
 
-def plot_chem_print(sum_df, city_name, color_list=None,ylim=[0,90],filename=None):
-    """Bar plot the average (or max) AQI of each gas to show the AQI Fingerprint of that city. 
-    
+
+def plot_chem_print(
+        sum_df,
+        city_name,
+        color_list=None,
+        ylim=[
+            0,
+            90],
+        filename=None):
+    """Bar plot the average (or max) AQI of each gas to show the AQI Fingerprint of that city.
+
     Args:
         sum_df: a series of satistical summary. For example poll_df.mean(axis=0)
-        city_name: city name for title 
-        color_list:a list of color to use. If None, use the 
-        ylim: yaxis range 
+        city_name: city name for title
+        color_list:a list of color to use. If None, use the
+        ylim: yaxis range
         filename(optional): filename to save data
-        
+
     """
     gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
     gas_list = [g for g in gas_list if g in sum_df.index]
     sum_df = sum_df.loc[gas_list]
-    
-    if color_list==None:
+
+    if color_list is None:
         color_list = get_gas_color_list(gas_list)
-  
-    plt.figure(figsize=(7,4))
-    plt.bar(sum_df.index, sum_df, edgecolor='black',color=color_list, width=0.6)
+
+    plt.figure(figsize=(7, 4))
+    plt.bar(
+        sum_df.index,
+        sum_df,
+        edgecolor='black',
+        color=color_list,
+        width=0.6)
     plt.ylim(ylim)
     plt.title(f'AQI Fingerprint for {city_name}')
     plt.xlabel('pollutant')
@@ -578,121 +598,152 @@ def plot_chem_print(sum_df, city_name, color_list=None,ylim=[0,90],filename=None
     if filename:
         plt.savefig(filename)
 
+
 def plot_yearly_ln(dataset, min_year=None, filename=None):
-    """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends. 
-    
+    """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.
+
     Args:
-        dataset: dataset object with all data 
+        dataset: dataset object with all data
         filename(optional): filename to save data
-    
+
     """
-    year_fire = cal_sea_yr(dataset.fire.resample('d').sum()[['count']].copy(), agg='mean')
+    year_fire = cal_sea_yr(
+        dataset.fire.resample('d').sum()[
+            ['count']].copy(), agg='mean')
     year_fire.columns = ['number of hotspots']
-     
-    year_temp = cal_sea_yr(dataset.wea[['Temperature(C)']].resample('d').mean().copy())
-    
+
+    year_temp = cal_sea_yr(
+        dataset.wea[['Temperature(C)']].resample('d').mean().copy())
+
     if 'PM10' in dataset.poll_df.columns:
-        poll_col = ['PM2.5','PM10']
-        y_labels = ['$\mu g/m^3$', '$\mu g/m^3$', 'counts/day', '($^o$C)' ]
-        colors = ['royalblue', 'green', 'red' ,'orange']
+        poll_col = ['PM2.5', 'PM10']
+        y_labels = [r'$\mu g/m^3$', r'$\mu g/m^3$', 'counts/day', '($^o$C)']
+        colors = ['royalblue', 'green', 'red', 'orange']
     else:
         poll_col = ['PM2.5']
-        y_labels = ['$\mu g/m^3$', 'counts/day', '($^o$C)' ]
-        colors = ['royalblue', 'red' ,'orange']
+        y_labels = [r'$\mu g/m^3$', 'counts/day', '($^o$C)']
+        colors = ['royalblue', 'red', 'orange']
 
-    year_poll = cal_sea_yr(dataset.poll_df.resample('d').mean().copy())[poll_col]
-    if min_year==None:
+    year_poll = cal_sea_yr(
+        dataset.poll_df.resample('d').mean().copy())[poll_col]
+    if min_year is None:
         min_year = year_fire.index.min()
 
-    year_avg = pd.concat([ year_poll.loc[min_year:], year_fire, year_temp.loc[min_year:]],axis=1)
-    
-    _, ax = plt.subplots(len(y_labels), 1, figsize=(10,3*len(y_labels)),sharex=True)
+    year_avg = pd.concat(
+        [year_poll.loc[min_year:], year_fire, year_temp.loc[min_year:]], axis=1)
 
-    for i, (a, col,y_label,color) in enumerate(zip(ax, year_avg.columns, y_labels,colors)):
-        a.plot(year_avg[col],marker='*',label=col,color=color)
+    _, ax = plt.subplots(
+        len(y_labels), 1, figsize=(
+            10, 3 * len(y_labels)), sharex=True)
+
+    for i, (a, col, y_label, color) in enumerate(
+            zip(ax, year_avg.columns, y_labels, colors)):
+        a.plot(year_avg[col], marker='*', label=col, color=color)
         a.set_ylabel(y_label)
-        
+
         try:
-            # add linear trend line an display equation 
-            x, _ = add_ln_trend_line(year_avg[col].dropna(), a, color=color )
-        except:
+            # add linear trend line an display equation
+            x, _ = add_ln_trend_line(year_avg[col].dropna(), a, color=color)
+        except BaseException:
             pass
         a.legend(loc='upper left')
-    
-        if i==0:
-            a.set_title('Trend of Pollutions, Fire Activities, and Tempearatures')
-            
+
+        if i == 0:
+            a.set_title(
+                'Trend of Pollutions, Fire Activities, and Tempearatures')
+
     a.set_xlabel('year(pollution season)')
     a.xaxis.set_major_locator(MaxNLocator(integer=True))
-    
+
     if filename:
         plt.savefig(filename)
 
     return ax, year_avg
 
-def compare_seson_avg(dataset, poll='PM2.5', wea_col=['Temperature(C)', 'Wind Speed(kmph)'], agg='mean',filename=None):
+
+def compare_seson_avg(
+        dataset,
+        poll='PM2.5',
+        wea_col=[
+            'Temperature(C)',
+            'Wind Speed(kmph)'],
+    agg='mean',
+        filename=None):
     """Compare seasonal pattern of pollution data, fire and weather pattern.
 
     Args:
         dataset: dataset object
         poll(optional): pollutant name
-        wea_col(optional): a list of weather columns For example 
-        agg(optional): aggegration method for pollution 
+        wea_col(optional): a list of weather columns For example
+        agg(optional): aggegration method for pollution
         filename(optional): filename to save data
 
     """
-    plot_length =  len(wea_col) + 2
+    plot_length = len(wea_col) + 2
 
-    _, ax = plt.subplots(plot_length,1, figsize=(10,3*plot_length),sharex=True)
+    _, ax = plt.subplots(
+        plot_length, 1, figsize=(
+            10, 3 * plot_length), sharex=True)
 
-    winter_day_dict, mean_day = plot_season_avg(dataset.poll_df.copy(), poll, ax[0], plot_error=True, roll=True, agg=agg,linewidth=2 )
+    winter_day_dict, mean_day = plot_season_avg(dataset.poll_df.copy(
+    ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2)
     ax[0].set_ylabel(get_unit(poll))
-    # aqiline 
+    # aqiline
     ax[0].axhline(35.4, color='orange')
     ax[0].axhline(55.4, color='red')
-    ax[0].text(365, 35.5, ' moderate',  horizontalalignment='left')
-    ax[0].text(365, 55.4, ' unhealthy',  horizontalalignment='left')
+    ax[0].text(365, 35.5, ' moderate', horizontalalignment='left')
+    ax[0].text(365, 55.4, ' unhealthy', horizontalalignment='left')
 
     fire_hour = dataset.fire[['count']].resample('d').sum()
     fire_hour.columns = ['number of hotspots']
-    winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.copy(), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean',color='red',linestyle='solid',linewidth=2)
+    winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.copy(
+    ), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean', color='red', linestyle='solid', linewidth=2)
     ax[1].set_ylabel('number of hotspot')
 
     t_hour = dataset.wea[wea_col].resample('d').mean().copy()
 
     for i, col in enumerate(wea_col):
 
-        winter_day_dict, temperature = plot_season_avg(t_hour.copy(), col, ax[i+2], plot_error=True, roll=False, agg='mean', color='orange',linestyle='solid',linewidth=2)
-        ax[i+2].set_ylabel('($^o$C)')
+        winter_day_dict, temperature = plot_season_avg(t_hour.copy(
+        ), col, ax[i + 2], plot_error=True, roll=False, agg='mean', color='orange', linestyle='solid', linewidth=2)
+        ax[i + 2].set_ylabel('($^o$C)')
 
     for a in ax:
         a.legend(loc='upper left')
-    
+
     plt.tight_layout()
 
     if filename:
         plt.savefig(filename)
 
-def plot_hour_avg(df, col, ax,  color='blue'):
-    """Plot average hourly behavior. Must have datetime index. 
-    
-    Args: 
+
+def plot_hour_avg(df, col, ax, color='blue'):
+    """Plot average hourly behavior. Must have datetime index.
+
+    Args:
         df: dataframe containing the column to plot
         col: name of the columns to plot
-        ax: axis to plot the data on 
+        ax: axis to plot the data on
         color(optional): color of the plot
-         
+
     """
     df = df.resample('h').mean()
     # add hour of day from the index.
     df['time_of_day'] = df.index.hour
-    
-    sns.lineplot(data=df,x='time_of_day',y=col,color=color,ax=ax,legend='brief', label=col)
+
+    sns.lineplot(
+        data=df,
+        x='time_of_day',
+        y=col,
+        color=color,
+        ax=ax,
+        legend='brief',
+        label=col)
     ax.set_ylabel(col)
     ax.set_xlabel('hour')
     #ax[2].set_title('hourly fire activities')
     ax.legend(loc='upper left')
-    
+
 
 def compare_us_thai_aqi():
     """Plot the different between US and Thailand aqi conversion.

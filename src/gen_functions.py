@@ -99,29 +99,30 @@ def get_color(
     color_list = [str(cm.colors.to_hex(color)) for color in color_list]
     return color_list
 
+
 def get_gas_color_list(gas_list, gas_color_dict=None):
-    """Map the gas name to preset color in gas_color_dict. 
-    
+    """Map the gas name to preset color in gas_color_dict.
+
     Use the same color for the gas to make it consistence
-    
+
     Args:
         gas_list: a name of the gas
         gas_color_dict(optional): color dictionary to map the gas to
-    
+
     Returns: list
-        a lit of color value 
-    
+        a lit of color value
+
     """
-    if gas_color_dict==None:
+    if gas_color_dict is None:
         gas_color_dict = {'PM2.5': '#0000ff',
-                        'PM10': '#660099',
-                         'O3': '#cc0033',
-                         'CO': '#cc3300',
-                         'NO2': '#669900',
-                         'SO2': '#00ff00'}
-        
-    return [gas_color_dict[gas] if gas in gas_color_dict.keys() else 'royalblue' for gas in gas_list ]
-    
+                          'PM10': '#660099',
+                          'O3': '#cc0033',
+                          'CO': '#cc3300',
+                          'NO2': '#669900',
+                          'SO2': '#00ff00'}
+
+    return [gas_color_dict[gas] if gas in gas_color_dict.keys()
+            else 'royalblue' for gas in gas_list]
 
 
 def cal_scores(
@@ -317,13 +318,14 @@ def to_aqi(value, pollutant):
 
     return aqi
 
+
 def get_unit(pollutant):
     """Obtain the unit of the pollutant for plot label.
 
     """
-    
+
     unit_dict = {'PM2.5': '$\mu g/m^3$',
-                 'PM10': '$\mu g/m^3$',
+                 'PM10': r'$\mu g/m^3$',
                  'O3': 'ppb',
                  'NO2': 'ppb',
                  'SO2': 'ppb',
