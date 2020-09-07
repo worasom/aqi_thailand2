@@ -220,13 +220,22 @@ I have two handy functions to convert logtitude, latitude coordinates to Mercato
 
 ### PM2.5 Pollution
 
+Compare the AQI for different pollution. PM2.5 has the worse AQI, follow by O$_3# and PM10. These three pollution are highly correlated and shows clear seasonal pattern. Since data for PM2.5 does not go back as far, I will later use PM10 to infer the trend of PM2.5. 
+
+
 ![different pollutants](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/all_pol_aqi.png)
 
-Seasonal patterns of PM2.5 level(top), number of hotspots within 1000 km from Chiang Mai(middle), and temperature(bottom). The shaded regions are 95% confident interval from different years. (top) the horizontal lines indicate the values corresponded to AQI 100 (moderate) and 150 (unhealthy) accordingly. The number of hotspots has a similar seasonal pattern as the PM2.5’s.
+In the figure below, Seasonal patterns of PM2.5 level(top), number of hotspots within 1000 km from Chiang Mai(middle), and temperature(bottom). The shaded regions are 95% confident interval from different years. (top) the horizontal lines indicate the values corresponded to AQI 100 (moderate) and 150 (unhealthy) accordingly. The number of hotspots has a similar seasonal pattern as the PM2.5’s.
 
 ![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_t_season.png)
 
+When overlaying the seasonal pattern plots of the PM2.5 and the number of hotspots, they have almost exactly the same pattern. This highly suggest that the burning activities is the causes of high PM2.5 in Chiang Mai. 
+
 ![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season.png)
+
+Yearly trend rule out indirect and direct effect of global warming. The rising temperature is in the upward trend, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can de
+
+![linear trend](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/compare_ln_trends.png)
 
 ### Agricultural Burning 
 
@@ -341,7 +350,7 @@ average pollution level in December-April upon reducing the burning activities t
 
 Putting togehter, this animation summarized the effect of fire reduction as the radius of fire reduction policy increases.
 
-![animation](https://github.com/worasom/aqi_thailand2/blob/master/reports/ani_plot/eff_reduced_fire1.png)
+![animation](https://github.com/worasom/aqi_thailand2/blob/master/reports/ani_plot/eff_reduced_fire1.gif)
 
 
 ```python
