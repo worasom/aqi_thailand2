@@ -105,4 +105,8 @@ target/
 /references/
 
 *Untitled*
-/models/*
+/models/bangkok/
+/models/chiang_mai_back/
+/models/hanoi/
+/models/jakarta/
+/models/*.json
