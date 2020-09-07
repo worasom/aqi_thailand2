@@ -133,7 +133,7 @@ src.visualization.vis_data.compare_aqis(filename='../reports/chiang_mai/aqi.png'
 
 ## Casual Diagram
 
-![Casual Diagram](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/casual_di.PNG)
+<img src="https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/casual_di.PNG" width="200" height="200" />
 
 ## Exploratory Data Analysis
 
