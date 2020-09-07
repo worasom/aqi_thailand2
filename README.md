@@ -52,7 +52,7 @@ Sphinx>=1.6.0<br>
 │   ├── 6.3_Hanoi.ipynb : 
 │   └── 7_prediction.ipynb : 
 │   
-└── src  
+└── src : the source codes are meant to be ran as a module not as .py (except for vn_data.py) 
     ├── imports.py : 
     ├── gen_functions.py : general purpose functions such as color setting, AQI conversion and coordinate Conversion
     ├── data : download and preprocess data 
@@ -92,8 +92,10 @@ Quality Project](https://aqicn.org/) has pollutions data from many cities, but o
 
 Weather data is from two sources. 
 
-- [OpenWeathermap](https://openweathermap.org/history) provides a bulk historial data to purchase 
-- Additional weather data is constantly scraped from [Weather Underground)(https://www.wunderground.com/)
+- [OpenWeathermap](https://openweathermap.org/history) provides a bulk historial data to purchase. The data is processed using `src.data.weather_data.proc_open_weather()`
+- Additional weather data is constantly scraped from [Weather Underground)(https://www.wunderground.com/) `src.data.weather_data.update_weather()` 
+
+Both the pollution data and weather data are can be downloaded using one single command `src.data.download_data.main()`
 
 
 ## Hotspot Data 
