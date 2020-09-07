@@ -1,5 +1,5 @@
 <h1>Table of Contents<span class="tocSkip"></span></h1>
-<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Convention" data-toc-modified-id="AQI-Convention-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Convention</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Casual-Diagram" data-toc-modified-id="Casual-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Casual Diagram</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span></li></ul></li></ul></div>
+<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Convention" data-toc-modified-id="AQI-Convention-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Convention</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Casual-Diagram" data-toc-modified-id="Casual-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Casual Diagram</a></span></li><li><span><a href="#A-Dataset-Object" data-toc-modified-id="A-Dataset-Object-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>A Dataset Object</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.3"><span class="toc-item-num">6.3&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span><ul class="toc-item"><li><span><a href="#Geography" data-toc-modified-id="Geography-6.3.1"><span class="toc-item-num">6.3.1&nbsp;&nbsp;</span>Geography</a></span></li></ul></li></ul></li><li><span><a href="#Machine-Learning-Model" data-toc-modified-id="Machine-Learning-Model-7"><span class="toc-item-num">7&nbsp;&nbsp;</span>Machine Learning Model</a></span><ul class="toc-item"><li><span><a href="#Training" data-toc-modified-id="Training-7.1"><span class="toc-item-num">7.1&nbsp;&nbsp;</span>Training</a></span></li><li><span><a href="#Model-Performance" data-toc-modified-id="Model-Performance-7.2"><span class="toc-item-num">7.2&nbsp;&nbsp;</span>Model Performance</a></span></li></ul></li></ul></div>
 
 # Model Air Pollution Thailand and South East Asian Countries
 
@@ -133,11 +133,289 @@ src.visualization.vis_data.compare_aqis(filename='../reports/chiang_mai/aqi.png'
 
 ## Casual Diagram
 
-<img src="https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/casual_di.PNG" width="300"/>
+There are four possible sources of air pollution: local traffic, power plants, industrial activities, and agricultural burning. For the latter three sources, the pollution is generated from the other provinces. In all of these sources, the local weather (temperature, humidity, and wind speed) decides how long the pollution stays in the air, and thus the pollution level. 
+
+Since each pollution source results in different seasonal pollution patterns and chemical characteristics(chemical finger print), inspecting the pollutions data, weather, and several burning hotspots seen from the satellite images and the patterns could help identify or rule out air pollution contribution factors. This is done in [exploratory data analysis section](#Exploratory-Data-Analysis-6.2).
+
+
+<img src="https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/casual_di.PNG" width="500"/>
+
+## A Dataset Object
+
+It is more convenience to have a `Dataset` object that keep tracks of all relavant data for a city along with necessary meta information such as city location etc. This is object is under `src.features.dataset.py`.
+
+The `Dataset` object is also in charge of compile raw pollution, weather, fire data from the data folder into a ready-to-use format. The processed data are saved under ../data/city_name/. The code below illustrates how to `Dataset` object compile the data using a build_all_data command.
+
+
+```python
+# init a dataset object and build the data from scratch 
+# only perform this when new data files are added 
+dataset = src.features.dataset.Dataset('Chiang Mai')
+
+# build pollution,  weather data and (optional) fire data
+dataset.build_all_data( build_fire=True, build_holiday=True)
+```
+
+After the building process, which might take sometimes because of the size of the fire data (building the fire data is optional and can be set to false (`build_fire=False`). The complied data can be loaded using `_load()` command.
+
+
+```python
+# reinit the data and load saved process data 
+dataset = src.features.dataset.Dataset('Chiang Mai')
+dataset.load_()
+```
+
+The pollution data is under `poll_df` attribute
+
+
+```python
+dataset.poll_df.tail(2)
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>PM2.5</th>
+      <th>PM10</th>
+      <th>O3</th>
+      <th>CO</th>
+      <th>NO2</th>
+      <th>SO2</th>
+    </tr>
+    <tr>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2020-06-17 15:00:00</th>
+      <td>8.5</td>
+      <td>19.5</td>
+      <td>15.0</td>
+      <td>0.40</td>
+      <td>5.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>2020-06-17 16:00:00</th>
+      <td>7.5</td>
+      <td>16.5</td>
+      <td>11.0</td>
+      <td>0.43</td>
+      <td>5.0</td>
+      <td>1.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+The weather data is under `wea` attribute
+
+
+```python
+dataset.wea.tail(2)
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Temperature(C)</th>
+      <th>Humidity(%)</th>
+      <th>Wind</th>
+      <th>Wind Speed(kmph)</th>
+      <th>Condition</th>
+    </tr>
+    <tr>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2020-06-17 23:00:00</th>
+      <td>25.0</td>
+      <td>94.0</td>
+      <td>VAR</td>
+      <td>3.0</td>
+      <td>Partly Cloudy</td>
+    </tr>
+    <tr>
+      <th>2020-06-17 23:30:00</th>
+      <td>25.0</td>
+      <td>94.0</td>
+      <td>VAR</td>
+      <td>3.0</td>
+      <td>Partly Cloudy</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+The weather data is under `fire` attribute
+
+
+```python
+dataset.fire.tail(2)
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>latitude</th>
+      <th>longitude</th>
+      <th>confidence</th>
+      <th>lat_km</th>
+      <th>long_km</th>
+      <th>distance</th>
+      <th>power</th>
+      <th>count</th>
+      <th>country</th>
+    </tr>
+    <tr>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2020-06-12 22:25:00</th>
+      <td>26.620</td>
+      <td>101.59</td>
+      <td>81</td>
+      <td>3057</td>
+      <td>11309</td>
+      <td>983.717439</td>
+      <td>6.1</td>
+      <td>1</td>
+      <td>China</td>
+    </tr>
+    <tr>
+      <th>2020-06-12 22:25:00</th>
+      <td>26.621</td>
+      <td>101.60</td>
+      <td>83</td>
+      <td>3057</td>
+      <td>11310</td>
+      <td>984.012703</td>
+      <td>6.8</td>
+      <td>1</td>
+      <td>China</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Additionally the dataset also has city information under `city_info` attribute
+
+
+```python
+dataset.city_info
+```
+
+
+
+
+    {'Country': 'Thailand',
+     'City': 'Chiang Mai',
+     'City (ASCII)': 'Chiang Mai',
+     'Region': 'Chiang Mai',
+     'Region (ASCII)': 'Chiang Mai',
+     'Population': '200952',
+     'Latitude': '18.7904',
+     'Longitude': '98.9847',
+     'Time Zone': 'Asia/Bangkok',
+     'lat_km': 2117.0,
+     'long_km': 11019.0}
+
+
 
 ## Exploratory Data Analysis
 
 The first step before any machine learning model is to understand the data. The file `src.visualization.vis_data.py` contains many useful functions for quick data visualization. Here, pollution data in Chiang Mai is used to illustrate visualization functions. 
+
+### Geography
+
+It is important to understand the geography of the city. The picture belows show a map of Chiang Mai. It is a medium size surrounded by high mountains. Locations of the monitoring stations, near by industrial complex and power plants are also shown.
+
+I have two handy functions to convert logtitude, latitude coordinates to Mercator projection and vice versa. They are `src.gen_functions.merc_x`, `src.gen_functions.merc_y`, and `src.gen_functions.to_latlon`
 
 ![map of Chiang Mai](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/cm_map.png)
 
@@ -149,10 +427,28 @@ Seasonal patterns of PM2.5 level(top), number of hotspots within 1000 km from Ch
 
 ![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season.png)
 
+# Machine Learning Model
+
+## Training
+
+Model Optimization breakdown into the following steps
+
+1. Build dataset using default fire parameter. Split the data into train, validation and test set. Optimize for a reasonable RandomForestRegressor model  
+2. Remove lower importance features from the model  
+3. Optimize for the best fire features
+4. Improve model performance by adding lag columns (of weather and fire)
+5. Remove lower importance lag columns 
+6. Optimize for better model parameters again  
+7. Save model and model meta information 
+
+These steps are carried out in a single line of code. The entire optimization tooks about 3 hours to complete in my computer.
+
 
 ```python
-
+dataset, rf_model, model_meta = src.models.train_model.train_city_s1(city='Chiang Mai', pollutant='PM2.5')
 ```
+
+## Model Performance
 
 
 ```python
