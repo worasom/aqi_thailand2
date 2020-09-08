@@ -266,9 +266,16 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
 
     ax.axhline(35.4, color='orange')
     ax.axhline(55.4, color='red')
-    ax.text(365, 35.5, ' moderate', horizontalalignment='left')
-    ax.text(365, 55.4, ' unhealthy', horizontalalignment='left')
-    ax.text(365, 150.4, ' very unhealthy', horizontalalignment='left')
+
+    ax.axhline(12, color='green', linestyle='dashed')
+    ax.axhline(35.4, color='orange', linestyle='dashed')
+    #ax.axhline(55.4, color='red', linestyle='dashed')
+    ax.axhline(150.4, color='red', linestyle='dashed')
+
+    ax.text(365, 6, ' good', horizontalalignment='left')
+    ax.text(365, 20, ' moderate', horizontalalignment='left')
+    ax.text(365, 100.4, ' unhealthy', horizontalalignment='left')
+
     ax.set_ylim([0, 155])
     plt.tight_layout()
 

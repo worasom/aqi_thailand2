@@ -805,10 +805,14 @@ class Inferer():
         ax.set_ylabel(r'$\mu g/m^3$')
         ax.set_ylim([0, 110])
 
-        ax.axhline(35.4, color='orange')
-        ax.axhline(55.4, color='red')
-        ax.text(365, 35.5, ' moderate', horizontalalignment='left')
-        ax.text(365, 55.4, ' unhealthy', horizontalalignment='left')
+        ax.axhline(12, color='green', linestyle='dashed')
+        ax.axhline(35.4, color='orange', linestyle='dashed')
+        #ax.axhline(55.4, color='red')
+        ax.text(365, 6, ' good', horizontalalignment='left')
+        ax.text(365, 20, ' moderate', horizontalalignment='left')
+        ax.text(365, 100.4, ' unhealthy', horizontalalignment='left')
+        #ax.text(365, 35.5, ' moderate', horizontalalignment='left')
+        #ax.text(365, 55.4, ' unhealthy', horizontalalignment='left')
 
         if save:
             plt.savefig(self.report_folder + 'effect_of_' + title_str + '.png')
