@@ -193,7 +193,7 @@ def plot_all_pollutions(
 
     """
     if transition_dict is None:
-        transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
+        transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
                            'PM10': [0, 154, 254, 354, 504],
                            'O3': [0, 70, 85, 105, 1e3],
                            'SO2': [0, 75, 185, 304, 1e3],

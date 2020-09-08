@@ -54,7 +54,7 @@ class Dataset():
                      'Hanoi': 'Soc Son',
                      'Jakarta': 'East Jakarta'}
 
-    transition_dict = {'PM2.5': [0, 35.5, 55.4, 150.4, 1e3],
+    transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
                        'PM10': [0, 155, 254, 354, 1e3],
                        'O3': [0, 70, 85, 105, 1e3],
                        'SO2': [0, 75, 185, 304, 1e3],

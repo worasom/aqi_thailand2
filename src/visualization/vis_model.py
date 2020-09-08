@@ -264,13 +264,13 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
     ax.set_ylabel(r'$\mu g/m^3$')
     plt.title('Seasonal Pattern of Actual Data and Statistical Prediction')
 
-    ax.axhline(35.4, color='orange')
-    ax.axhline(55.4, color='red')
+    #ax.axhline(35.4, color='orange')
+    #ax.axhline(55.4, color='red')
 
-    ax.axhline(12, color='green', linestyle='dashed')
-    ax.axhline(35.4, color='orange', linestyle='dashed')
+    #ax.axhline(12, color='green', linestyle='dashed')
+    #ax.axhline(35.4, color='orange', linestyle='dashed')
     #ax.axhline(55.4, color='red', linestyle='dashed')
-    ax.axhline(150.4, color='red', linestyle='dashed')
+    #ax.axhline(150.4, color='red', linestyle='dashed')
 
     ax.text(365, 6, ' good', horizontalalignment='left')
     ax.text(365, 20, ' moderate', horizontalalignment='left')
@@ -280,7 +280,7 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
     plt.tight_layout()
 
     for l, c in color_zip:
-        ax.axhline(l, color=c)
+        ax.axhline(l, color=c, linestyle='dashed')
 
     if filename:
         plt.savefig(filename)

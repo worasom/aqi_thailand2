@@ -656,7 +656,7 @@ class Inferer():
             self.report_folder = self.dataset.report_folder
 
             levels = self.dataset.transition_dict[pollutant][1:4]
-            colors = ['orange', 'red', 'purple']
+            colors = ['green','orange', 'red', 'purple']
             self.color_zip = [*zip(levels, colors)]
 
     def cal_error(self):
@@ -674,7 +674,7 @@ class Inferer():
             self.trn_error, roll_win=14, agg='mean')
         print('max error', np.max(self.sea_error.values))
 
-    def _get_data_sample(self, n_samples=100, step=1, day_err=10, hour_err=2):
+    def get_data_sample_(self, n_samples=100, step=1, day_err=10, hour_err=2):
         """Sample the possible test data from train data. Add as data_samples attribute
 
         Args:
@@ -687,7 +687,7 @@ class Inferer():
 
         """
 
-        print('obtaining inference samples. This will take about 20 mins')
+        print('obtaining inference samples. This will take about 15 mins')
         self.data_samples = get_data_samples(
             dataset=self.dataset,
             n_samples=n_samples,
