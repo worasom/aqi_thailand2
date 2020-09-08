@@ -377,10 +377,11 @@ def plot_polls_aqi(
     if len(new_cols) > 1:
         length = int(len(new_cols) / 2)
 
-    levels = [50, 100, 150, 200, 300]
+    levels = [50, 100, 200, 300]
+    text_pos = [25, 75, 150, 250]
     color_labels = ['green', 'orange', 'red', 'purple']
     level_names = [
-        ' satisfactory',
+        ' good',
         ' moderate',
         ' unhealthy',
         ' very unhealthy']
@@ -413,10 +414,10 @@ def plot_polls_aqi(
             ymax = temp.max().max()
             idx = np.where(levels < ymax)[0][-1] + 1
             # make horizontal line
-            for l, c, n in zip(
-                    levels[:idx], color_labels[:idx], level_names[:idx]):
-                a.axhline(l, color=c, label=n)
-                a.text(temp.index.max(), l, n, horizontalalignment='left')
+            for l, c, n, p in zip(
+                    levels[:idx], color_labels[:idx], level_names[:idx], text_pos):
+                a.axhline(l, color=c, label=n, linestyle='dashed')
+                a.text(temp.index.max(), p, n, horizontalalignment='left')
 
             a.set_xlim([temp.index.min(), temp.index.max()])
             a.set_ylim([0, ymax])
@@ -465,16 +466,23 @@ def plot_season_aqi(
 
     """
     _, ax = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
+
+    if aqi_line:
+        # aqiline
+        ax.axhline(50, color='green', linestyle='dashed')
+        ax.axhline(100, color='orange', linestyle='dashed')
+        ax.axhline(200, color='red', linestyle='dashed')
+        #ax.text(365, 100, ' moderate', horizontalalignment='left')
+        #ax.text(365, 150, ' unhealthy', horizontalalignment='left')
+        ax.text(365, 40, ' good', horizontalalignment='left')
+        ax.text(365, 75, ' moderate', horizontalalignment='left')
+        ax.text(365, 150, ' unhealthy', horizontalalignment='left')
+
     poll_aqi = poll_to_aqi(poll_df, roll_dict)
     winter_day_dict, mean_day = plot_season_avg(
         poll_aqi, pollutant, ax, plot_error=True, roll=False)
 
-    if aqi_line:
-        # aqiline
-        ax.axhline(100, color='orange')
-        ax.axhline(150, color='red')
-        ax.text(365, 100, ' moderate', horizontalalignment='left')
-        ax.text(365, 150, ' unhealthy', horizontalalignment='left')
+    ax.set_ylabel('AQI')
 
     temp = mean_day[mean_day > 100]
     if len(temp) > 0:
@@ -489,6 +497,8 @@ def plot_season_aqi(
               winter_day_dict[str(temp.index.min())],
               'to',
               winter_day_dict[str(temp.index.max())])
+
+    plt.tight_layout()
 
     if filename:
         plt.savefig(filename)
@@ -689,10 +699,15 @@ def compare_seson_avg(
     ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2)
     ax[0].set_ylabel(get_unit(poll))
     # aqiline
-    ax[0].axhline(35.4, color='orange')
-    ax[0].axhline(55.4, color='red')
-    ax[0].text(365, 35.5, ' moderate', horizontalalignment='left')
-    ax[0].text(365, 55.4, ' unhealthy', horizontalalignment='left')
+    ax[0].axhline(12, color='green', linestyle='dashed')
+    ax[0].axhline(35.4, color='orange', linestyle='dashed')
+    #ax[0].axhline(55.4, color='red', linestyle='dashed')
+    ax[0].axhline(150.4, color='red', linestyle='dashed')
+    #ax[0].text(365, 35.4, ' moderate', horizontalalignment='left')
+    #ax[0].text(365, 55.4, ' unhealthy', horizontalalignment='left')
+    ax[0].text(365, 6, ' good', horizontalalignment='left')
+    ax[0].text(365, 20, ' moderate', horizontalalignment='left')
+    ax[0].text(365, 100.4, ' unhealthy', horizontalalignment='left')
 
     fire_hour = dataset.fire[['count']].resample('d').sum()
     fire_hour.columns = ['number of hotspots']

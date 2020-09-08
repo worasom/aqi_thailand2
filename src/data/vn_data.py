@@ -37,8 +37,14 @@ def extract_vn_data(browser, wait_time=10):
     xpath_list = ['//*[@id="custom_datatable_1_paginate"]/ul/li[3]/a',
                   '//*[@id="custom_datatable_1_paginate"]/ul/li[4]/a']
     for xpath in xpath_list:
-        browser.find_elements_by_xpath(xpath)[0].click()
-        time.sleep(wait_time)
+        try:
+            # sometimes the page load slowly resulting in a crash. 
+            # If the first attemp fail, try again.
+            browser.find_elements_by_xpath(xpath)[0].click()
+            time.sleep(wait_time)
+        except:
+            browser.find_elements_by_xpath(xpath)[0].click()
+            time.sleep(wait_time)
         # find number of pages to click
         page = browser.page_source
         soup = BeautifulSoup(page, features="lxml")
