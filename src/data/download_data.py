@@ -317,14 +317,13 @@ def download_cdc_data(
 
 def download_us_emb_data(
         data_folder: str = '../data/us_emb/',
-        year: int = None):
+        year: int = None, city_list= ['Hanoi', 'JakartaSouth', 'JakartaCentral']):
     """Download pollution data taken at the US Embabby in Hanoi and Jakata
 
     """
     if year is None:
         year = datetime.now().year
 
-    city_list = ['Hanoi', 'JakartaSouth', 'JakartaCentral']
     print(f'\n Download us embassy data for Hanoi and Jakata for {year}')
 
     for city in city_list:
