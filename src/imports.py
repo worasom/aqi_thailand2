@@ -107,7 +107,6 @@ from skopt.space import Real, Categorical, Integer
 import joblib
 from joblib import Parallel, delayed
 import pickle
-from dask.distributed import Client
 
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import pacf
