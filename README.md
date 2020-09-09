@@ -111,11 +111,12 @@ Satellite data showing location of burning activities(hotspots) from NASA https:
 
 Countries have different standards, which convert the raw polution readings into air quality index(AQI) and interpret the harmful levels. The maximum AQIs for each pollutants (PM2.5, Pm10, SO2 etc) is reported at a single AQI. The figure belows compare US and Thailand AQI. The standards are comparable except for SO$_2$, where the US has a stricker standard. This study use US AQI conversion standard for calculating AQI for different pollutants. For example, in the PM2.5 case 
 - 0 - 50 AQI is in a good/satisfactory range. This corresponds to PM2.5 level between 0 - 12 $\mu g/m^3$ (green). 
-- 50 - 100 AQI is a moderate range, corresponding to PM2.5 12- 35.4  $\mu g/m^3$ (orange)
-- 100 - 150 AQI is a unhealthy for sensitive group, corresponding to PM2.5 35.5- 55.4  $\mu g/m^3$ (red)
-- 150 - 200 AQI is a unhealthy range, corresponding to PM2.5 55.5- 150.4  $\mu g/m^3$ (red)
+- 51 - 100 AQI is a moderate range, corresponding to PM2.5 12.1- 35.4  $\mu g/m^3$ (darkyellow)
+- 101 - 150 AQI is a unhealthy for sensitive group, corresponding to PM2.5 35.5- 55.4  $\mu g/m^3$ (orange)
+- 151 - 200 AQI is a unhealthy range, corresponding to PM2.5 55.5- 150.4  $\mu g/m^3$ (red)
+- 200+ AQI is a very unhealthy range, corresponding to PM2.5 > 150.5  $\mu g/m^3$ (purple)
 
-For simplicity, the color code in this study groups the  100 - 150 and 150 - 200 as unhealthy range(red). 
+
 
 
 ```python
@@ -232,7 +233,7 @@ In the figure below, Seasonal patterns of PM2.5 level(top), number of hotspots w
 
 When overlaying the seasonal pattern plots of the PM2.5 and the number of hotspots, they have almost exactly the same pattern. This highly suggest that the burning activities is the causes of high PM2.5 in Chiang Mai. 
 
-![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season.png)
+![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season_aqi.png)
 
 Yearly trend rule out indirect and direct effect of global warming. The rising temperature is in the upward trend, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can de
 

@@ -274,8 +274,8 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
 
     ax.text(365, 6, ' good', horizontalalignment='left')
     ax.text(365, 20, ' moderate', horizontalalignment='left')
+    ax.text(365, 45, ' unhealthy(sen)', horizontalalignment='left')
     ax.text(365, 100.4, ' unhealthy', horizontalalignment='left')
-
     ax.set_ylim([0, 155])
     plt.tight_layout()
 
