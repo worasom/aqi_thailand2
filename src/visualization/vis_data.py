@@ -194,19 +194,20 @@ def plot_all_pollutions(
     """
     if transition_dict is None:
         transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
-                           'PM10': [0, 154, 254, 354, 504],
-                           'O3': [0, 70, 85, 105, 1e3],
-                           'SO2': [0, 75, 185, 304, 1e3],
-                           'NO2': [0, 100, 360, 649, 1e3],
-                           'CO': [0, 6.4, 12.5, 15.4, 1e3]}
+                           'PM10': [0, 54, 154, 254, 354, 504],
+                           'O3': [0, 54, 70, 85, 105, 200],
+                           'SO2': [0, 35, 75, 185, 304, 1e3],
+                           'NO2': [0, 53, 100, 360, 649, 1e3],
+                           'CO': [0, 4.4, 9.4, 12.5, 15.4, 1e3]}
 
     if color_labels is None:
-        color_labels = ['green', 'orange', 'red', 'purple']
+        color_labels = ['green', 'goldenrod','orange', 'red', 'purple']
 
     if level_name is None:
         level_names = [
-            'satisfactory',
-            'moderate',
+            'good',
+            'moderate', 
+            'unhealthy(sen)',
             'unhealthy',
             'very unhealthy']
 
@@ -241,22 +242,25 @@ def plot_all_pollutions(
 
             if col in ['PM2.5']:
                 a.set_ylabel(col + r'($\mu g/m^3$)')
-                a.axhline(transition_dict[col][2], color='red')
-                a.axhline(transition_dict[col][3], color='purple')
+                a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+                a.axhline(transition_dict[col][4], color='purple', linestyle='dashed' )
 
             elif col in ['PM10']:
                 a.set_ylabel(col + r'($\mu g/m^3$)')
-                a.axhline(transition_dict[col][2], color='red')
+                a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+                a.axhline(transition_dict[col][4], color='purple', linestyle='dashed' )
             elif col in ['O3']:
                 a.set_ylabel(col + '(ppb)')
-                a.axhline(transition_dict[col][2], color='red')
+                a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+                a.axhline(transition_dict[col][4], color='purple', linestyle='dashed' )
 
             elif col in ['NO2', 'SO2']:
                 a.set_ylabel(col + '(ppb)')
             elif col == 'CO':
                 a.set_ylabel(col + '(ppm)')
 
-            a.axhline(transition_dict[col][1], color='orange')
+            a.axhline(transition_dict[col][2], color='orange', linestyle='dashed')
+            a.axhline(transition_dict[col][1], color='goldenrod', linestyle='dashed')
 
             a.plot(d_avg[col], label='avg' + col, color='black', alpha=0.7)
             a.legend(loc='upper left')
@@ -302,20 +306,25 @@ def plot_all_pollutions(
 
         if col in ['PM2.5']:
             a.set_ylabel(col + r'($\mu g/m^3$)')
-            a.axhline(transition_dict[col][2], color='red')
-            a.axhline(transition_dict[col][3], color='purple')
+            a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+            a.axhline(transition_dict[col][4], color='purple', linestyle='dashed' )
+            #a.axhline(transition_dict[col][5], color='purple', linestyle='dashed')
         elif col in ['PM10']:
             a.set_ylabel(col + r'($\mu g/m^3$)')
-            a.axhline(transition_dict[col][2], color='red')
+            a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+            a.axhline(transition_dict[col][4], color='purple', linestyle='dashed')
         elif col in ['O3']:
             a.set_ylabel(col + '(ppb)')
-            a.axhline(transition_dict[col][2], color='red')
+            a.axhline(transition_dict[col][3], color='red', linestyle='dashed')
+            a.axhline(transition_dict[col][4], color='purple', linestyle='dashed')
+
         elif col in ['NO2', 'SO2']:
             a.set_ylabel(col + '(ppb)')
         elif col == 'CO':
             a.set_ylabel(col + '(ppm)')
 
-        a.axhline(transition_dict[col][1], color='orange')
+        a.axhline(transition_dict[col][2], color='orange', linestyle='dashed')
+        a.axhline(transition_dict[col][1], color='goldenrod', linestyle='dashed')
 
     plt.tight_layout()
 
@@ -377,12 +386,12 @@ def plot_polls_aqi(
     if len(new_cols) > 1:
         length = int(len(new_cols) / 2)
 
-    levels = [50, 100, 200, 300]
-    text_pos = [25, 75, 150, 250]
-    color_labels = ['green', 'orange', 'red', 'purple']
+    levels = [50, 100, 150, 200, 300]
+    text_pos = [25, 75, 125, 175, 250]
+    color_labels = [ 'goldenrod', 'orange', 'red', 'purple', 'purple']
     level_names = [
         ' good',
-        ' moderate',
+        ' moderate', ' unhealthy(sen)',
         ' unhealthy',
         ' very unhealthy']
     #data_colors = get_color(color_length=len(new_cols), cmap=cm.brg)
@@ -469,14 +478,16 @@ def plot_season_aqi(
 
     if aqi_line:
         # aqiline
-        ax.axhline(50, color='green', linestyle='dashed')
+        ax.axhline(50, color='goldenrod', linestyle='dashed')
         ax.axhline(100, color='orange', linestyle='dashed')
-        ax.axhline(200, color='red', linestyle='dashed')
+        ax.axhline(150, color='red', linestyle='dashed')
+        ax.axhline(200, color='purple', linestyle='dashed')
         #ax.text(365, 100, ' moderate', horizontalalignment='left')
         #ax.text(365, 150, ' unhealthy', horizontalalignment='left')
         ax.text(365, 40, ' good', horizontalalignment='left')
         ax.text(365, 75, ' moderate', horizontalalignment='left')
-        ax.text(365, 150, ' unhealthy', horizontalalignment='left')
+        ax.text(365, 125, ' unhealthy(sen)', horizontalalignment='left')
+        ax.text(365, 175, ' unhealthy', horizontalalignment='left')
 
     poll_aqi = poll_to_aqi(poll_df, roll_dict)
     winter_day_dict, mean_day = plot_season_avg(
@@ -699,14 +710,16 @@ def compare_seson_avg(
     ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2)
     ax[0].set_ylabel(get_unit(poll))
     # aqiline
-    ax[0].axhline(12, color='green', linestyle='dashed')
+    ax[0].axhline(12, color='goldenrod', linestyle='dashed')
     ax[0].axhline(35.4, color='orange', linestyle='dashed')
     #ax[0].axhline(55.4, color='red', linestyle='dashed')
+    ax[0].axhline(55.4, color='red', linestyle='dashed')
     ax[0].axhline(150.4, color='red', linestyle='dashed')
     #ax[0].text(365, 35.4, ' moderate', horizontalalignment='left')
     #ax[0].text(365, 55.4, ' unhealthy', horizontalalignment='left')
     ax[0].text(365, 6, ' good', horizontalalignment='left')
     ax[0].text(365, 20, ' moderate', horizontalalignment='left')
+    ax[0].text(365, 45, ' unhealthy(sen)', horizontalalignment='left')
     ax[0].text(365, 100.4, ' unhealthy', horizontalalignment='left')
 
     fire_hour = dataset.fire[['count']].resample('d').sum()

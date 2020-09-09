@@ -656,9 +656,8 @@ class Inferer():
             self.report_folder = self.dataset.report_folder
 
             #levels = self.dataset.transition_dict[pollutant][1:4]
-            levels = self.dataset.transition_dict[pollutant][1:3]
-            levels.append(self.dataset.transition_dict[pollutant][4])
-            colors = ['green','orange', 'red', 'purple']
+            levels = self.dataset.transition_dict['PM2.5'][1:4]
+            colors = ['green','goldenrod','orange', 'red', 'purple']
             self.color_zip = [*zip(levels, colors)]
 
     def cal_error(self):
@@ -808,10 +807,12 @@ class Inferer():
         ax.set_ylim([0, 110])
 
         ax.axhline(12, color='green', linestyle='dashed')
-        ax.axhline(35.4, color='orange', linestyle='dashed')
+        ax.axhline(35.4, color='goldenrod', linestyle='dashed')
+        ax.axhline(55.4, color='orange', linestyle='dashed')
         #ax.axhline(55.4, color='red')
         ax.text(365, 6, ' good', horizontalalignment='left')
         ax.text(365, 20, ' moderate', horizontalalignment='left')
+        ax.text(365, 45, ' unhealthy(sen)', horizontalalignment='left')
         ax.text(365, 100.4, ' unhealthy', horizontalalignment='left')
         #ax.text(365, 35.5, ' moderate', horizontalalignment='left')
         #ax.text(365, 55.4, ' unhealthy', horizontalalignment='left')
