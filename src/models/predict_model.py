@@ -499,7 +499,7 @@ def make_senario(model, data_samples, features, per_cut):
         cols_to_cut = cols_to_cut + \
             data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
 
-    print(cols_to_cut)
+    #print(cols_to_cut)
     data_senario = data_samples.copy()
     data_senario[cols_to_cut] = data_samples[cols_to_cut] * (1 - per_cut)
     x = data_senario.values
@@ -655,7 +655,9 @@ class Inferer():
             self.cal_error()
             self.report_folder = self.dataset.report_folder
 
-            levels = self.dataset.transition_dict[pollutant][1:4]
+            #levels = self.dataset.transition_dict[pollutant][1:4]
+            levels = self.dataset.transition_dict[pollutant][1:3]
+            levels.append(self.dataset.transition_dict[pollutant][4])
             colors = ['green','orange', 'red', 'purple']
             self.color_zip = [*zip(levels, colors)]
 
@@ -704,7 +706,7 @@ class Inferer():
 
         """
 
-        # get data sample
+         
         plot_sea_error(
             self.trn_error,
             self.sea_error,
