@@ -1,5 +1,5 @@
 <h1>Table of Contents<span class="tocSkip"></span></h1>
-<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Standards" data-toc-modified-id="AQI-Standards-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Standards</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Causal-Diagram" data-toc-modified-id="Causal-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Causal Diagram</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span><ul class="toc-item"><li><span><a href="#Geography" data-toc-modified-id="Geography-6.2.1"><span class="toc-item-num">6.2.1&nbsp;&nbsp;</span>Geography</a></span></li><li><span><a href="#PM2.5-Pollution" data-toc-modified-id="PM2.5-Pollution-6.2.2"><span class="toc-item-num">6.2.2&nbsp;&nbsp;</span>PM2.5 Pollution</a></span></li><li><span><a href="#Agricultural-Burning" data-toc-modified-id="Agricultural-Burning-6.2.3"><span class="toc-item-num">6.2.3&nbsp;&nbsp;</span>Agricultural Burning</a></span></li></ul></li><li><span><a href="#Model-Optimization" data-toc-modified-id="Model-Optimization-6.3"><span class="toc-item-num">6.3&nbsp;&nbsp;</span>Model Optimization</a></span><ul class="toc-item"><li><span><a href="#Fire-Features" data-toc-modified-id="Fire-Features-6.3.1"><span class="toc-item-num">6.3.1&nbsp;&nbsp;</span>Fire Features</a></span></li><li><span><a href="#Training" data-toc-modified-id="Training-6.3.2"><span class="toc-item-num">6.3.2&nbsp;&nbsp;</span>Training</a></span></li><li><span><a href="#Model-Performance" data-toc-modified-id="Model-Performance-6.3.3"><span class="toc-item-num">6.3.3&nbsp;&nbsp;</span>Model Performance</a></span></li></ul></li><li><span><a href="#Simulation" data-toc-modified-id="Simulation-6.4"><span class="toc-item-num">6.4&nbsp;&nbsp;</span>Simulation</a></span></li></ul></li><li><span><a href="#Conclusions" data-toc-modified-id="Conclusions-7"><span class="toc-item-num">7&nbsp;&nbsp;</span>Conclusions</a></span></li></ul></div>
+<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Standards" data-toc-modified-id="AQI-Standards-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Standards</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Causal-Diagram" data-toc-modified-id="Causal-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Causal Diagram</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span><ul class="toc-item"><li><span><a href="#Geography" data-toc-modified-id="Geography-6.2.1"><span class="toc-item-num">6.2.1&nbsp;&nbsp;</span>Geography</a></span></li><li><span><a href="#PM2.5-Pollution" data-toc-modified-id="PM2.5-Pollution-6.2.2"><span class="toc-item-num">6.2.2&nbsp;&nbsp;</span>PM2.5 Pollution</a></span></li><li><span><a href="#Agricultural-Burning" data-toc-modified-id="Agricultural-Burning-6.2.3"><span class="toc-item-num">6.2.3&nbsp;&nbsp;</span>Agricultural Burning</a></span></li></ul></li><li><span><a href="#Model-Optimization" data-toc-modified-id="Model-Optimization-6.3"><span class="toc-item-num">6.3&nbsp;&nbsp;</span>Model Optimization</a></span><ul class="toc-item"><li><span><a href="#Fire-Features" data-toc-modified-id="Fire-Features-6.3.1"><span class="toc-item-num">6.3.1&nbsp;&nbsp;</span>Fire Features</a></span></li><li><span><a href="#Training" data-toc-modified-id="Training-6.3.2"><span class="toc-item-num">6.3.2&nbsp;&nbsp;</span>Training</a></span></li><li><span><a href="#Model-Performance" data-toc-modified-id="Model-Performance-6.3.3"><span class="toc-item-num">6.3.3&nbsp;&nbsp;</span>Model Performance</a></span></li></ul></li><li><span><a href="#Model-Feature-of-Importances" data-toc-modified-id="Model-Feature-of-Importances-6.4"><span class="toc-item-num">6.4&nbsp;&nbsp;</span>Model Feature of Importances</a></span></li><li><span><a href="#Simulation" data-toc-modified-id="Simulation-6.5"><span class="toc-item-num">6.5&nbsp;&nbsp;</span>Simulation</a></span></li><li><span><a href="#Effect-of-Reduced-Burning-Activities" data-toc-modified-id="Effect-of-Reduced-Burning-Activities-6.6"><span class="toc-item-num">6.6&nbsp;&nbsp;</span>Effect of Reduced Burning Activities</a></span></li></ul></li><li><span><a href="#Conclusions" data-toc-modified-id="Conclusions-7"><span class="toc-item-num">7&nbsp;&nbsp;</span>Conclusions</a></span></li></ul></div>
 
 # Model Air Pollution Thailand and South East Asian Countries
 
@@ -123,7 +123,7 @@ Countries have different standards, which convert the raw pollution readings int
 
 #  Modeling Air Pollution in Chiang Mai Data : A Case Study
 
-For command used in this analysis, please refer to [EPA notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/4.0_vis_ChiangMai.ipynb) for data analysis, [model optimization notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/5.0-ML_ChiangMai.ipynb) for training, and [prediction notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/6_prediction.ipynb) for statistical prediction.
+For command used in this analysis, please refer to [EPA notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/4.0_vis_ChiangMai.ipynb) for data analysis, [model optimization notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/5.0-ML_ChiangMai.ipynb) for training, and [simulation notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/6_prediction.ipynb) for simulation.
 
 ## Causal Diagram
 
@@ -146,7 +146,7 @@ It is important to understand the geography of the city. The picture below shows
 
 ### PM2.5 Pollution
 
-Compare the AQI for different pollutions. PM2.5 has the higest AQI, follow by O$_3# and PM10. NO$_2$, CO and SO$_2$ are in the good AQI range.
+Compare the AQI for different pollutions. PM2.5 has the higest AQI, follow by O$_3$ and PM10. NO$_2$, CO and SO$_2$ are in the good AQI range.
 
 ![different pollutants](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/all_pol_aqi.png)
 
@@ -163,7 +163,7 @@ On average, the PM2.5 level significantly increases in the winter season. The av
 
 ![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season_aqi.png)
 
-When yearly trends of pollutions, and temperature, I can rule out the direct and indirect effects of global warming. In the figure below, the rising temperature is in the upward trend, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can infer that the trend for PM2.5 is the same. 
+The figure below compares the yearly average of PM2.5, PM10, number of hotspots, and the temperature. Only the values in the pollution season (between Dec 1 and April 30) are used for calculating the average. The rising temperature due to climate change is visible, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can infer that the trend for PM2.5 is the same. Since the yearly trends of pollutions and temperature are in the opposite direction, I can rule out the direct and indirect effects of global warming toward high air pollution.
 
 Again, the yearly trends of both kinds of particle pollutions and the number of hotspots are highly correlated. Moreover, in the years with a particularly low number of hotspots, the both PM2.5 and PM10 are also low, for example, in the pollution season year 2010 (between December 2010 – April 2011), and year 2016 (between December 2016 – April 2017). 
 
@@ -183,11 +183,11 @@ When divided by the area, Cambodia has the highest concentration hotspots, follo
 
 ## Model Optimization
 
-The commands used here can be found in [model optimization notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/5.0-ML_ChiangMai.ipynb)
+The commands used for optimization can be found in [model optimization notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/5.0-ML_ChiangMai.ipynb)
 
 ### Fire Features
 
-Since the concentration of hotspots differs at various distances from Chiang Mai, it is important to divide the burning activity into distance-based zones. Figure below shows four fire zone. The first zone is within 100 km from Chiang Mai within the Thailand border. The second and third zone is 100 - 200 km and 200 - 400 km from Chiang Mai. A lot of fire activities in this zone are in Myanmar and Laos(red spots). The third zone is between 400 and 700 km from Chiang Mai. Most burning activities here are in Laos.  The last zone is between 700 and 1000 km. This zone also not only includes the burning activities in Myanmar, Laos, and Vietnam but also those in Cambodia. However, most fire activities in Cambodia, which is much further away and the burning activities concentrate in December(blue spots), which is not the month with the highest pollution in Chiang Mai. 
+Since the concentration of hotspots differs at various distances from Chiang Mai, it is important to divide the burning activity into distance-based zones. The figure below shows four fire zone. The first zone is within 100 km from Chiang Mai within the Thailand border. The second and third zone is 100 - 200 km and 200 - 400 km from Chiang Mai. A lot of fire activities in this zone are in Myanmar and Laos(red spots). The third zone is between 400 and 700 km from Chiang Mai. Most burning activities here are in Laos. The last zone is between 700 and 1000 km. This zone also not only includes the burning activities in Myanmar, Laos, and Vietnam but also those in Cambodia. However, most fire activities in Cambodia, which is much further away and the burning activities concentrate in December(blue spots), which is not the month with the highest pollution in Chiang Mai. 
 
 
 ![fire_zone](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_zone.png)
@@ -196,20 +196,14 @@ Since the concentration of hotspots differs at various distances from Chiang Mai
 
 Model Optimization breakdown into the following steps
 
-1. Build dataset using default fire parameter. Split the data into train, validation and test set. Optimize for a reasonable RandomForestRegressor model  
-2. Remove lower importance features from the model  
-3. Optimize for the best fire features
-4. Improve model performance by adding lag columns (of weather and fire)
-5. Remove lower importance lag columns 
-6. Optimize for better model parameters again  
-7. Save model and model meta information 
+1. Find a reasonable parameters RandomForestRegressor model. Build a model input data using default fire parameters. Split the data into train, validation, and test set. Using the training and validation sets.
+2. Remove lower importance features from the model input. This is done by try to drop the data and see if the error decrease. 
+3. Optimize for the best fire features. Assuming that the pollution from a hotspot travels to the city at a certain average speed and linger in the environment for an unknown duration. This optimization step finds out the average travel speed and average linger duration.  
+4. Improve model performance by adding lag columns (of weather and fire). The effects of weather and hotspots can have a time lag effect. This step search for the amount of lagged to add to the model. 
+5. Remove lower importance lag columns. The earlier step often adds too many lagged columns. I prune these columns here. 
+6. Optimize for RandomForestRegressor parameters again.  
+7. Save model and model meta information. The Model meta would contain fire feature parameters, the lagged values, and columns to use.
 
-These steps are carried out in a single line of code. 
-
-
-```python
-dataset, rf_model, model_meta = src.models.train_model.train_city_s1(city='Chiang Mai', pollutant='PM2.5')
-```
 
 ### Model Performance
 
@@ -219,37 +213,23 @@ Look at the model performance by plotting actual data and the prediction data. I
 
 ![model performance](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/PM25_model_perfomance.png)
 
-
-```python
-_, df = plot_model_perf(dataset=data, model=rf_model, split_list=[0.7, 0.3], xlim=[], to_save=False)
-```
-
 When loading a model using `src.models.predict_model.load_model`, the function calculate the R2-score for the test set(which is an hourly pollution data). Then, its calculate the R2-score of a daily average of both the training and test data. 
 
-For Chiang Mai, hourly prediction R2-score is 0.71. The daily average test data has R2-score of 0.79. This is pretty good.   
+For Chiang Mai, hourly prediction R2-score is 0.70. The daily average test data has R2-score of 0.79. This is pretty good.   
 
+## Model Feature of Importances
 
-```python
-dataset, model, *argv = src.models.predict_model.load_model(city='Chiang Mai', pollutant='PM2.5',split_list=[0.7, 0.3])
-```
+The figure below ranks input’s order of importance. This is from `feature_importances_` attribute of the random forest(another reason to like random forest !). The fire_100_200 columns means the hotspots between 100 – 200 km from Chiang Mai. The importance unit measures the decrease in model accuracy if a column data is replaced with noise; therefore, the columns from the sources or areas most contributed to the pollution level will have a high order of importance. 
 
-    data no fire has shape (77747, 14)
-    raw model performance {'test_r2_score': 0.7181850826320375, 'test_mean_squared_error': 220.3070792867193, 'test_mean_absolute_error': 9.069185235196183}
-    daily avg training error {'avg_trn_r2_score': 0.9056688733734121, 'avg_trn_mean_squared_error': 61.629098357499416, 'avg_trn_mean_absolute_error': 4.718201297339313}
-    daily avg test error {'avg_test_r2_score': 0.7880245398552946, 'avg_test_mean_squared_error': 142.22351861838922, 'avg_test_mean_absolute_error': 7.67540429113698}
-    
-
-## Simulation
-
-
-The figure below ranks input’s order of importance. fire_100_200 means the hotspots between 100 – 200 km from Chiang Mai. The fire columns are the most important features indicating that agricultural burning is the major source of air pollution. 
+The fire columns from different distances from Chiang Mai are the most important. All fire columns are in the top 6 of the order of importance, in agreement with the data analysis in section 3. The fire activities in 100 – 200 km and 200 - 400 km zones are the two most important columns because of the large number of burning activities and short distances from Chiang Mai. The weather pattern such as temperature and wind speed only has a weak effect on the PM2.5 level. 
 
 ![feature_importance](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/PM25_rf_fea_op2_nolag.png)
 
+## Simulation
 
-```python
+The data between 1st October 2017 and 15th June 2020 are set aside as a test dataset during the model optimization process. In this section, the prediction dataset is used for studying the effect of reduced burning activities, which is the major source of air pollution in Chiang Mai. The fitted model will be used to predict the pollution levels in a scenario where the burning activities decreased. 
 
-```
+The simulation is not the same as the prediction of the test data in the [model performance](#Model-Performance-6.3.3) section, where the actual fire activities and the weather conditions were used to predict the pollution levels. In the simulation and in the actual situation, the fire and the weather information is not known, and one has to use the ranges of possible values from previous years to obtain a range of pollution levels in the prediction dataset. I call this method of statistical simulation. The commands used for simulation can be found in [simulation notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/6_prediction.ipynb)
 
 Compare the set aside test data and the simulation. 
 
@@ -270,7 +250,7 @@ Seasonal pattern of the test data and the simulation. The simulation capture the
 
 ```
 
-
+## Effect of Reduced Burning Activities
 
 In the figure below, (top) seasonal pattern of the pollution level when the burning activities are reduced to 100%, 90%, 50%, and 10% in 0 – 100 km radius. 100% means no fire reduction. (bottom) corresponding numbers of hotspots per day in different scenarios. The horizontal lines indicate the moderate(orange) and unhealthy(red) AQIs
 
