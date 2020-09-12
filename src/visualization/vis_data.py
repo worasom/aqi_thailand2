@@ -45,17 +45,22 @@ def display_time_split(index_list):
         index_list: a list of index in each split
 
     """
-    lenght = len(index_list)
-    if lenght == 3:
+    length = len(index_list)
+    if length == 3:
         colors = ['royalblue', 'orange', 'red']
         label_list = ['Training', 'Validation', 'Test']
 
-    elif lenght == 4:
+    elif length == 4:
         colors = ['royalblue', 'orange', 'red', 'maroon']
         label_list = ['Training', 'Validation1', 'Validation2', 'Test']
 
+    elif length == 2:
+        colors = ['royalblue',  'red' ]
+        label_list = ['Training', 'Test']
+
     else:
         colors = get_color(color_length=length, cmap=cm.jet)
+        label_list = []
 
     fig, ax = plt.subplots(figsize=(9, 2.5))
     ax_list = []
@@ -69,7 +74,7 @@ def display_time_split(index_list):
     plt.xticks(rotation=90)
 
 
-def plot_corr(df, cor_method='spearman', figsize=(8, 6), filename=None):
+def plot_corr(df, cor_method='pearson', figsize=(8, 6), filename=None):
     """Plot the correlation between different pollutants
 
     Args:
