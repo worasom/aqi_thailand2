@@ -657,7 +657,7 @@ class Inferer():
 
             #levels = self.dataset.transition_dict[pollutant][1:4]
             levels = self.dataset.transition_dict['PM2.5'][1:4]
-            colors = ['green','goldenrod','orange', 'red', 'purple']
+            colors = ['goldenrod','orange', 'red', 'purple']
             self.color_zip = [*zip(levels, colors)]
 
     def cal_error(self):
@@ -786,7 +786,7 @@ class Inferer():
                 50))
 
         for l, c in self.color_zip:
-            ax.axhline(l, color=c)
+            ax.axhline(l, color=c, linestyle='dashed')
 
         new_ticks = [
             '07-01',
@@ -806,9 +806,9 @@ class Inferer():
         ax.set_ylabel(r'$\mu g/m^3$')
         ax.set_ylim([0, 110])
 
-        ax.axhline(12, color='green', linestyle='dashed')
-        ax.axhline(35.4, color='goldenrod', linestyle='dashed')
-        ax.axhline(55.4, color='orange', linestyle='dashed')
+        #ax.axhline(12, color='green', linestyle='dashed')
+        #ax.axhline(35.4, color='goldenrod', linestyle='dashed')
+        #ax.axhline(55.4, color='orange', linestyle='dashed')
         #ax.axhline(55.4, color='red')
         ax.text(365, 6, ' good', horizontalalignment='left')
         ax.text(365, 20, ' moderate', horizontalalignment='left')

@@ -714,12 +714,12 @@ def compare_seson_avg(
     ax[0].axhline(35.4, color='orange', linestyle='dashed')
     #ax[0].axhline(55.4, color='red', linestyle='dashed')
     ax[0].axhline(55.4, color='red', linestyle='dashed')
-    ax[0].axhline(150.4, color='red', linestyle='dashed')
+    ax[0].axhline(150.4, color='purple', linestyle='dashed')
     #ax[0].text(365, 35.4, ' moderate', horizontalalignment='left')
     #ax[0].text(365, 55.4, ' unhealthy', horizontalalignment='left')
     ax[0].text(365, 6, ' good', horizontalalignment='left')
     ax[0].text(365, 20, ' moderate', horizontalalignment='left')
-    ax[0].text(365, 45, ' unhealthy(sen)', horizontalalignment='left')
+    ax[0].text(365, 43, ' unhealthy(sen)', horizontalalignment='left')
     ax[0].text(365, 100.4, ' unhealthy', horizontalalignment='left')
 
     fire_hour = dataset.fire[['count']].resample('d').sum()
@@ -1044,7 +1044,7 @@ def compare_aqis(filename=None):
 
     """
     plt.rcParams.update({'font.size': 14})
-    _, ax = plt.subplots(2, 1, figsize=(12, 7))
+    _, ax = plt.subplots(2, 1, figsize=(12, 6))
 
     ax[0].set_title('PM2.5(24hr avg) AQI converstion')
     # Thailand
@@ -1074,30 +1074,30 @@ def compare_aqis(filename=None):
         len(np.arange(91, 200))), c='red', marker='_', lw=18)
     ax[0].set_xlabel(r'$\mu$g/m$^3$')
 
-    # simplified system
-    ax[0].plot(np.arange(0, 12), np.ones(len(np.arange(0, 12)))+1,
-               c='green', marker='_', lw=18 )
-    ax[0].plot(np.arange(12, 35.5), np.ones(len(np.arange(12, 35.5)))+1,
-               c='orange', marker='_', lw=18 )
-    ax[0].plot(np.arange(35.5, 55.5), np.ones(len(np.arange(35.5, 55.5)))+1,
-               c='red', marker='_', lw=18)
-    ax[0].plot(np.arange(55.5, 180.5), np.ones(len(np.arange(55.5, 180.5)))+1,
-               c='red', marker='_', lw=18 )
-    ax[0].plot(np.arange(180.5, 200.0), np.ones(len(np.arange(180.5, 200)))+1,
-               c='purple', marker='_', lw=18)
+    ## simplified system
+    #ax[0].plot(np.arange(0, 12), np.ones(len(np.arange(0, 12)))+1,
+    #           c='green', marker='_', lw=18 )
+    #ax[0].plot(np.arange(12, 35.5), np.ones(len(np.arange(12, 35.5)))+1,
+    #           c='orange', marker='_', lw=18 )
+    #ax[0].plot(np.arange(35.5, 55.5), np.ones(len(np.arange(35.5, 55.5)))+1,
+    #           c='red', marker='_', lw=18)
+    #ax[0].plot(np.arange(55.5, 180.5), np.ones(len(np.arange(55.5, 180.5)))+1,
+    #           c='red', marker='_', lw=18 )
+    #ax[0].plot(np.arange(180.5, 200.0), np.ones(len(np.arange(180.5, 200)))+1,
+    #           c='purple', marker='_', lw=18)
 
     # --AQI label--(TH)
-    ax[0].text(13, -0.2, '25')
-    ax[0].text(26, -0.2, '50')
-    ax[0].text(35, -0.2, '100')
-    ax[0].text(75, -0.2, '200')
-    # ax[0].text(190,-0.2,'310')
+    ax[0].text(13, 0, '25', verticalalignment='center')
+    ax[0].text(26, 0, '50', verticalalignment='center')
+    ax[0].text(35, 0, '100', verticalalignment='center')
+    ax[0].text(75, 0, '200', verticalalignment='center')
+    # ax[0].text(190,0, , verticalalignment='center''310')
 
     # --AQI label--(US)
-    ax[0].text(0, 0.8, '50')
-    ax[0].text(22, 0.8, '100')
-    ax[0].text(40, 0.8, '150')
-    ax[0].text(165, 0.8, '200')
+    ax[0].text(0, 1, '50', verticalalignment='center')
+    ax[0].text(22, 1, '100', verticalalignment='center')
+    ax[0].text(40, 1, '150', verticalalignment='center')
+    ax[0].text(165, 1, '200', verticalalignment='center')
     # ax[0].text(192,0.8,'300')
 
     #  -----------------------SO2---------------------------
@@ -1129,40 +1129,41 @@ def compare_aqis(filename=None):
 
 
 
-    ax[1].plot(np.arange(0, 35), np.ones(len(np.arange(0, 35)))+1,
-               c='green', marker='_', lw=18 )
-    ax[1].plot(np.arange(35, 75), np.ones(len(np.arange(35, 75)))+1,
-               c='orange', marker='_', lw=18 )
-    ax[1].plot(np.arange(75, 185), np.ones(len(np.arange(75, 185)))+1,
-               c='red', marker='_', lw=18 )
-    ax[1].plot(np.arange(185, 304), np.ones(len(np.arange(185, 304)))+1,
-               c='red', marker='_', lw=18 )
-    ax[1].plot(np.arange(304, 604), np.ones(len(np.arange(304, 604)))+1,
-               c='purple', marker='_', lw=18 )
+    # ax[1].plot(np.arange(0, 35), np.ones(len(np.arange(0, 35)))+1,
+    #            c='green', marker='_', lw=18 )
+    # ax[1].plot(np.arange(35, 75), np.ones(len(np.arange(35, 75)))+1,
+    #            c='orange', marker='_', lw=18 )
+    # ax[1].plot(np.arange(75, 185), np.ones(len(np.arange(75, 185)))+1,
+    #            c='red', marker='_', lw=18 )
+    # ax[1].plot(np.arange(185, 304), np.ones(len(np.arange(185, 304)))+1,
+    #            c='red', marker='_', lw=18 )
+    # ax[1].plot(np.arange(304, 604), np.ones(len(np.arange(304, 604)))+1,
+    #            c='purple', marker='_', lw=18 )
 
     # --AQI label--(TH)
-    ax[1].text(65, -0.2, '25')
-    ax[1].text(165, -0.2, '50')
-    ax[1].text(255, -0.2, '100')
-    ax[1].text(352, -0.2, '200')
-    # ax[0].text(400,-0.2,'323')
+    ax[1].text(65, 0, '25', verticalalignment='center')
+    ax[1].text(165, 0, '50', verticalalignment='center')
+    ax[1].text(255, 0, '100',  verticalalignment='center')
+    ax[1].text(352, 0, '200',  verticalalignment='center')
+    # ax[0].text(400,0, , verticalalignment='center''323')
 
     # --AQI label--(US)
-    ax[1].text(5, 0.8, '50')
-    ax[1].text(29, 0.8, '100')
-    ax[1].text(142, 0.8, '150')
-    ax[1].text(257, 0.8, '200')
+    ax[1].text(5, 1, '50', verticalalignment='center')
+    ax[1].text(29, 1, '100', verticalalignment='center')
+    ax[1].text(142, 1, '150', verticalalignment='center')
+    ax[1].text(257, 1, '200', verticalalignment='center')
 
     ax[0].legend(bbox_to_anchor=(1.05, 1.05), frameon=False)
 
     labels = [item.get_text() for item in ax[0].get_yticklabels()]
-    labels[1] = 'Thai AQI'
-    labels[2] = 'US AQI'
-    labels[3] = 'Simplified'
+    labels[0] = 'Thai AQI'
+    labels[1] = 'US AQI'
+   # labels[3] = 'Simplified'
 
     for a in ax:
-        a.set_ylim([-1, 3])
-        a.set_yticklabels(labels)
+        a.set_ylim([-0.5, 1.5])
+        a.yaxis.set_major_locator(plt.FixedLocator([0,1]))
+        a.yaxis.set_major_formatter(plt.FixedFormatter(labels))
 
     plt.tight_layout()
 

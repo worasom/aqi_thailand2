@@ -1,5 +1,5 @@
 <h1>Table of Contents<span class="tocSkip"></span></h1>
-<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Standards" data-toc-modified-id="AQI-Standards-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Standards</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Casual-Diagram" data-toc-modified-id="Casual-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Casual Diagram</a></span></li><li><span><a href="#A-Dataset-Object" data-toc-modified-id="A-Dataset-Object-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>A Dataset Object</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.3"><span class="toc-item-num">6.3&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span><ul class="toc-item"><li><span><a href="#Geography" data-toc-modified-id="Geography-6.3.1"><span class="toc-item-num">6.3.1&nbsp;&nbsp;</span>Geography</a></span></li><li><span><a href="#PM2.5-Pollution" data-toc-modified-id="PM2.5-Pollution-6.3.2"><span class="toc-item-num">6.3.2&nbsp;&nbsp;</span>PM2.5 Pollution</a></span></li><li><span><a href="#Agricultural-Burning" data-toc-modified-id="Agricultural-Burning-6.3.3"><span class="toc-item-num">6.3.3&nbsp;&nbsp;</span>Agricultural Burning</a></span></li></ul></li><li><span><a href="#Model-Optimization" data-toc-modified-id="Model-Optimization-6.4"><span class="toc-item-num">6.4&nbsp;&nbsp;</span>Model Optimization</a></span><ul class="toc-item"><li><span><a href="#Training" data-toc-modified-id="Training-6.4.1"><span class="toc-item-num">6.4.1&nbsp;&nbsp;</span>Training</a></span></li><li><span><a href="#Model-Performance" data-toc-modified-id="Model-Performance-6.4.2"><span class="toc-item-num">6.4.2&nbsp;&nbsp;</span>Model Performance</a></span></li></ul></li><li><span><a href="#Simulation" data-toc-modified-id="Simulation-6.5"><span class="toc-item-num">6.5&nbsp;&nbsp;</span>Simulation</a></span></li></ul></li><li><span><a href="#Conclusions" data-toc-modified-id="Conclusions-7"><span class="toc-item-num">7&nbsp;&nbsp;</span>Conclusions</a></span></li></ul></div>
+<div class="toc"><ul class="toc-item"><li><span><a href="#Model-Air-Pollution-Thailand-and-South-East-Asian-Countries" data-toc-modified-id="Model-Air-Pollution-Thailand-and-South-East-Asian-Countries-1"><span class="toc-item-num">1&nbsp;&nbsp;</span>Model Air Pollution Thailand and South East Asian Countries</a></span></li><li><span><a href="#Requirements" data-toc-modified-id="Requirements-2"><span class="toc-item-num">2&nbsp;&nbsp;</span>Requirements</a></span></li><li><span><a href="#Directory-Tree" data-toc-modified-id="Directory-Tree-3"><span class="toc-item-num">3&nbsp;&nbsp;</span>Directory Tree</a></span></li><li><span><a href="#Data-Sources" data-toc-modified-id="Data-Sources-4"><span class="toc-item-num">4&nbsp;&nbsp;</span>Data Sources</a></span><ul class="toc-item"><li><span><a href="#Pollution-Data" data-toc-modified-id="Pollution-Data-4.1"><span class="toc-item-num">4.1&nbsp;&nbsp;</span>Pollution Data</a></span></li><li><span><a href="#Weather-Data" data-toc-modified-id="Weather-Data-4.2"><span class="toc-item-num">4.2&nbsp;&nbsp;</span>Weather Data</a></span></li><li><span><a href="#Hotspot-Data" data-toc-modified-id="Hotspot-Data-4.3"><span class="toc-item-num">4.3&nbsp;&nbsp;</span>Hotspot Data</a></span></li></ul></li><li><span><a href="#AQI-Standards" data-toc-modified-id="AQI-Standards-5"><span class="toc-item-num">5&nbsp;&nbsp;</span>AQI Standards</a></span></li><li><span><a href="#Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study" data-toc-modified-id="Modeling-Air-Pollution-in-Chiang-Mai-Data-:-A-Case-Study-6"><span class="toc-item-num">6&nbsp;&nbsp;</span>Modeling Air Pollution in Chiang Mai Data : A Case Study</a></span><ul class="toc-item"><li><span><a href="#Casual-Diagram" data-toc-modified-id="Casual-Diagram-6.1"><span class="toc-item-num">6.1&nbsp;&nbsp;</span>Casual Diagram</a></span></li><li><span><a href="#Exploratory-Data-Analysis" data-toc-modified-id="Exploratory-Data-Analysis-6.2"><span class="toc-item-num">6.2&nbsp;&nbsp;</span>Exploratory Data Analysis</a></span><ul class="toc-item"><li><span><a href="#Geography" data-toc-modified-id="Geography-6.2.1"><span class="toc-item-num">6.2.1&nbsp;&nbsp;</span>Geography</a></span></li><li><span><a href="#PM2.5-Pollution" data-toc-modified-id="PM2.5-Pollution-6.2.2"><span class="toc-item-num">6.2.2&nbsp;&nbsp;</span>PM2.5 Pollution</a></span></li><li><span><a href="#Agricultural-Burning" data-toc-modified-id="Agricultural-Burning-6.2.3"><span class="toc-item-num">6.2.3&nbsp;&nbsp;</span>Agricultural Burning</a></span></li></ul></li><li><span><a href="#Model-Optimization" data-toc-modified-id="Model-Optimization-6.3"><span class="toc-item-num">6.3&nbsp;&nbsp;</span>Model Optimization</a></span><ul class="toc-item"><li><span><a href="#Training" data-toc-modified-id="Training-6.3.1"><span class="toc-item-num">6.3.1&nbsp;&nbsp;</span>Training</a></span></li><li><span><a href="#Model-Performance" data-toc-modified-id="Model-Performance-6.3.2"><span class="toc-item-num">6.3.2&nbsp;&nbsp;</span>Model Performance</a></span></li></ul></li><li><span><a href="#Simulation" data-toc-modified-id="Simulation-6.4"><span class="toc-item-num">6.4&nbsp;&nbsp;</span>Simulation</a></span></li></ul></li><li><span><a href="#Conclusions" data-toc-modified-id="Conclusions-7"><span class="toc-item-num">7&nbsp;&nbsp;</span>Conclusions</a></span></li></ul></div>
 
 # Model Air Pollution Thailand and South East Asian Countries
 
@@ -118,22 +118,11 @@ Countries have different standards, which convert the raw polution readings into
 
 
 
-
-```python
-#  Load the "autoreload" extension so that code can change
-%reload_ext autoreload
-%autoreload 2
-import src
-```
-
-
-```python
-src.visualization.vis_data.compare_aqis(filename='../reports/chiang_mai/aqi.png')
-```
-
 ![png](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/aqi.png)
 
 #  Modeling Air Pollution in Chiang Mai Data : A Case Study
+
+For command used in this analysis, please refer to [EPA notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/4.0_vis_ChiangMai.ipynb) for data analysis, [model optimization notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/5.0-ML_Chiang_mai.ipynb) for training, and [prediction notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/6_prediction.ipynb) for statistical prediction.
 
 ## Casual Diagram
 
@@ -144,79 +133,13 @@ Since each pollution source results in different seasonal pollution patterns and
 
 <img src="https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/casual_di.PNG" width="500"/>
 
-## A Dataset Object
-
-It is more convenience to have a `Dataset` object that keep tracks of all relavant data for a city along with necessary meta information such as city location etc. This is object is under `src.features.dataset.py`.
-
-The `Dataset` object is also in charge of compile raw pollution, weather, fire data from the data folder into a ready-to-use format. The processed data are saved under ../data/city_name/. The code below illustrates how to `Dataset` object compile the data using a build_all_data command. This object also keep track of feature engineering parameters during [model optmization](#Training-7.1) step. 
-
-
-```python
-# init a dataset object and build the data from scratch 
-# only perform this when new data files are added 
-dataset = src.features.dataset.Dataset('Chiang Mai')
-
-# build pollution,  weather data and (optional) fire data
-dataset.build_all_data( build_fire=True, build_holiday=True)
-```
-
-After the building process, which might take sometimes because of the size of the fire data (building the fire data is optional and can be set to false (`build_fire=False`). The complied data can be loaded using `_load()` command.
-
-
-```python
-# reinit the data and load saved process data 
-dataset = src.features.dataset.Dataset('Chiang Mai')
-dataset.load_()
-```
-
-The hourly pollution data, weather data, and fire data are under `dataset.poll_df`, `dataset.wea` and `dataset.fire` attributes accordingly. Each data is a panda dataframe with datetime index. For example, the pollution data for Chiang Mai looks like
-
-
-```python
-print(dataset.poll_df.tail(2).to_markdown())
-```
-
-    | datetime            |   PM2.5 |   PM10 |   O3 |   CO |   NO2 |   SO2 |
-    |:--------------------|--------:|-------:|-----:|-----:|------:|------:|
-    | 2020-06-17 15:00:00 |     8.5 |   19.5 |   15 | 0.4  |     5 |     1 |
-    | 2020-06-17 16:00:00 |     7.5 |   16.5 |   11 | 0.43 |     5 |     1 |
-    
-
-The weather data is under `wea` attribute
-
-Additionally the dataset also has city information under `city_info` attribute
-
-
-```python
-dataset.city_info
-```
-
-
-
-
-    {'Country': 'Thailand',
-     'City': 'Chiang Mai',
-     'City (ASCII)': 'Chiang Mai',
-     'Region': 'Chiang Mai',
-     'Region (ASCII)': 'Chiang Mai',
-     'Population': '200952',
-     'Latitude': '18.7904',
-     'Longitude': '98.9847',
-     'Time Zone': 'Asia/Bangkok',
-     'lat_km': 2117.0,
-     'long_km': 11019.0}
-
-
-
 ## Exploratory Data Analysis
 
-The first step before any machine learning model is to understand the data. The file `src.visualization.vis_data.py` contains many useful functions for quick data visualization. Here, pollution data in Chiang Mai is used to illustrate visualization functions. 
+The first step before any machine learning model is to understand the data. The file `src.visualization.vis_data.py` contains many useful functions for quick data visualization. Again the code for this section can be founded in [notebook](https://github.com/worasom/aqi_thailand2/blob/master/notebooks/4.0_vis_ChiangMai.ipynb)  
 
 ### Geography
 
-It is important to understand the geography of the city. The picture belows show a map of Chiang Mai. It is a medium size surrounded by high mountains. Locations of the monitoring stations, near by industrial complex and power plants are also shown.
-
-I have two handy functions to convert logtitude, latitude coordinates to Mercator projection and vice versa. They are `src.gen_functions.merc_x`, `src.gen_functions.merc_y`, and `src.gen_functions.to_latlon`
+It is important to understand the geography of the city. The picture belows show a map of Chiang Mai. It is a medium size city surrounded by high mountains. Locations of the monitoring stations, near by industrial complex and power plants are also shown.
 
 ![map of Chiang Mai](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/cm_map.png)
 
