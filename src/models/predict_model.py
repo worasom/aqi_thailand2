@@ -32,20 +32,17 @@ def load_model(
         city: str = 'Chiang Mai',
         pollutant: str = 'PM2.5',
         build=False,
-        split_list=[
-            0.45,
-            0.25,
-            0.3],
         update=True):
     """Load and update the model without optimization steps. Use parameters from model_meta file.
 
     Use for small data update without parameters change.
 
     Args:
-        city:
-        pollutant:
-        split_list: datasplit for training and testset
-
+        city: city_name
+        pollutant: pollution name 
+        build
+        update: if True, update the model 
+    
     Returns:
         model: model
         dataset: dataset object
@@ -60,6 +57,7 @@ def load_model(
     # load model_meta
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
+    split_lists = poll_meta['split_lists']
 
     # load model
     model = pickle.load(
@@ -100,7 +98,7 @@ def load_model(
     #print('\n x_cols', dataset.x_cols)
 
     # split data
-    dataset.split_data(split_ratio=split_list)
+    dataset.split_data(split_ratio=split_lists[2])
     trn_index = dataset.split_list[0]
     test_index = dataset.split_list[1]
 
@@ -616,7 +614,6 @@ class Inferer():
     Args:
         city_name: lower case of city name
         pollutant:str='PM2.5'
-        split_list(optional)
 
     Attributes:
         dataset
@@ -629,10 +626,7 @@ class Inferer():
     def __init__(
         self,
         city_name: str,
-        pollutant: str = 'PM2.5',
-        split_list=[
-            0.7,
-            0.3]):
+        pollutant: str = 'PM2.5'):
         """Initialize
 
         #. Check if the city name exist in the database
@@ -651,7 +645,7 @@ class Inferer():
         else:
             # load model and add as attribute
             self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.rolling_win = load_model(
-                city=city_name, pollutant=pollutant, split_list=split_list)
+                city=city_name, pollutant=pollutant)
             self.cal_error()
             self.report_folder = self.dataset.report_folder
 
