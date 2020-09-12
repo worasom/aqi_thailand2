@@ -483,11 +483,11 @@ def train_city_s1(
             columns=['importance'])
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
-        show_fea_imp(
-            feat_imp,
-            filename=dataset.report_folder +
-            f'{poll_name}_fea_imp_op1.png',
-            title='rf feature of importance(raw)')
+        #show_fea_imp(
+        #    feat_imp,
+        #    filename=dataset.report_folder +
+        #    f'{poll_name}_fea_imp_op1.png',
+        #    title='rf feature of importance(raw)')
 
         # columns to consider droping are columns with low importance
         to_drop = feat_imp['index'].to_list()
@@ -514,7 +514,7 @@ def train_city_s1(
         # look for the best lag
         #dataset.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
         dataset.lag_dict, gp_result = op_lag(
-            dataset, model, split_ratio=[0.45, 0.25, 0.3])
+            dataset, model, split_ratio=split_lists[1])
         #dataset.lag_dict = {'n_max': 2, 'step': 5}
         dataset.build_lag(
             lag_range=np.arange(
@@ -526,7 +526,7 @@ def train_city_s1(
         dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
 
         print('x_cols', dataset.x_cols)
-        dataset.split_data(split_ratio=[0.45, 0.25, 0.3])
+        dataset.split_data(split_ratio=split_lists[1])
         xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
             use_index=dataset.split_list[0], x_cols=dataset.x_cols)
         xval, yval, _ = dataset.get_data_matrix(
@@ -589,7 +589,7 @@ def train_city_s1(
     # dataset.build_lag(lag_range=np.arange(1, dataset.lag_dict['n_max'], dataset.lag_dict['step']), roll=dataset.lag_dict['roll'])
 
     print('================= optimization 6: optimize for the best rf again =================')
-    dataset.split_data(split_ratio=[0.45, 0.25, 0.3])
+    dataset.split_data(split_ratio=split_lists[1])
 
     #print('x_cols in op7', dataset.x_cols)
     xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
@@ -618,7 +618,7 @@ def train_city_s1(
     #print('test score after op8', cal_scores(ytest, model.predict(xtest), header_str='test_'))
 
     # final split
-    dataset.split_data(split_ratio=[0.7, 0.3])
+    dataset.split_data(split_ratio=split_lists[2])
     xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
         use_index=dataset.split_list[0], x_cols=dataset.x_cols)
     xtest, ytest, _ = dataset.get_data_matrix(
