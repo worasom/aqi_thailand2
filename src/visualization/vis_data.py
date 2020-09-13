@@ -620,7 +620,8 @@ def plot_chem_print(
     plt.title(f'AQI Fingerprint for {city_name}')
     plt.xlabel('pollutant')
     plt.ylabel('aqi')
-
+    plt.tight_layout()
+    
     if filename:
         plt.savefig(filename)
 
