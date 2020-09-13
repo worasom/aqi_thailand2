@@ -163,11 +163,13 @@ On average, the PM2.5 level significantly increases in the winter season. The av
 
 ![seasonal pattern](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/fire_PM25_season_aqi.png)
 
-The figure below compares the yearly average of PM2.5, PM10, number of hotspots, and the temperature. Only the values in the pollution season (between Dec 1 and April 30) are used for calculating the average. The rising temperature due to climate change is visible, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can infer that the trend for PM2.5 is the same. Since the yearly trends of pollutions and temperature are in the opposite direction, I can rule out the direct and indirect effects of global warming toward high air pollution.
+The figure below compares the yearly average of PM2.5, PM10, number of hotspots, and the temperature. Only the values in the pollution season (between Dec 1 and April 30) are used for calculating the average. The rising temperature due to climate change is visible, while the trend for the pollution level(PM10) has a downward trend. Since PM10 and PM2.5 are highly correlated, we can infer that the trend for PM2.5 is the same. Since the yearly trends of pollutions and temperature are in the opposite direction, I can rule out the direct and indirect effects of climate change warming toward high air pollution. 
 
-Again, the yearly trends of both kinds of particle pollutions and the number of hotspots are highly correlated. Moreover, in the years with a particularly low number of hotspots, the both PM2.5 and PM10 are also low, for example, in the pollution season year 2010 (between December 2010 – April 2011), and year 2016 (between December 2016 – April 2017). 
+**The burning activities will affect the climate change, so please stop burning!**
 
 ![linear trend](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/compare_ln_trends.png)
+
+Again, the yearly trends of both kinds of particle pollutions and the number of hotspots are highly correlated. Moreover, in the years with a particularly low number of hotspots, the both PM2.5 and PM10 are also low, for example, in the pollution season year 2010 (between December 2010 – April 2011), and year 2016 (between December 2016 – April 2017). 
 
 ### Agricultural Burning 
 
