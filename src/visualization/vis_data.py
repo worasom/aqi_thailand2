@@ -609,7 +609,7 @@ def plot_chem_print(
     if color_list is None:
         color_list = get_gas_color_list(gas_list)
 
-    plt.figure(figsize=(7, 4))
+    plt.figure(figsize=(7, 3))
     plt.bar(
         sum_df.index,
         sum_df,
@@ -748,6 +748,8 @@ def compare_seson_avg(
 
     if filename:
         plt.savefig(filename)
+    
+    return ax
 
 
 def plot_hour_avg(df, col, ax, color='blue'):
