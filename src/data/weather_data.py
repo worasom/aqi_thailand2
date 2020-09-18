@@ -10,6 +10,7 @@ from ..imports import *
 
 def find_weather_stations(city_names: list, weather_json_file: str):
     """Find a list of weather stations in city_names list
+    
     """
     # load weather information
     with open(weather_json_file, 'r') as f:

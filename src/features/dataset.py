@@ -52,7 +52,9 @@ class Dataset():
     city_wea_dict = {'Chiang Mai': 'Mueang Chiang Mai',
                      'Bangkok': 'Bangkok',
                      'Hanoi': 'Soc Son',
-                     'Jakarta': 'East Jakarta'}
+                     'Jakarta': 'East Jakarta',
+                     'Da Nang': 'Hai Chau',
+                     'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat'}
 
     transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
                        'PM10': [0, 155, 254, 354, 1e3],
@@ -82,7 +84,7 @@ class Dataset():
 
         """
 
-        city_names = ['Chiang Mai', 'Bangkok', 'Hanoi', 'Jakarta']
+        city_names = self.city_wea_dict.keys()
 
         if city_name not in city_names:
             raise AssertionError(
@@ -309,6 +311,18 @@ class Dataset():
                 '53t',
                 '59t',
                 '61t']
+            # update the file
+            self.merge_new_old_pollution(station_ids)
+            # load the file
+            for station_id in station_ids:
+                filename = self.data_folder + station_id + '.csv'
+                data = pd.read_csv(filename)
+                data['datetime'] = pd.to_datetime(data['datetime'])
+                data_list.append(data)
+                
+        elif self.city_name == 'Nakhon Si Thammarat':
+            # List of Bangkok stations that has been processed
+            station_ids = ['42t','m3','o26']
             # update the file
             self.merge_new_old_pollution(station_ids)
             # load the file

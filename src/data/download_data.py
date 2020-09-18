@@ -338,7 +338,8 @@ def main(
         main_folder: str = '../data/',
         cdc_data=True,
         build_json: bool = False):
-    """
+    """Download all data 
+
     Args:
         main_folder: main data_folder
         build_json: if True also build city information
@@ -350,10 +351,11 @@ def main(
         data_folder=f'{main_folder}pm25/',
         url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
 
-    print('\n Download Data for Hanoi, Ha dong and Jakarta')
-    download_province_data(
-        grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/Ha_Noi/',
-        data_folder=f'{main_folder}pm25/')
+    print('\n Download Data for Vietnam')
+    download_b_data(
+    data_folder=f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/')
+
+    print('\n Download Data for Jakarta')
     download_province_data(
         grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/',
         data_folder=f'{main_folder}pm25/')
@@ -392,7 +394,9 @@ def main(
         'Tada-U',
         'Sikhottabong',
         'Luang Prabang District',
-        'Kunming', 'East Jakarta']
+        'Kunming', 'East Jakarta', 
+        'Mueang Nakhon Si Thammarat', 
+        'Hai Chau' ]
     w_folder = f'{main_folder}weather_cities/'
     weather_station_info = find_weather_stations(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
