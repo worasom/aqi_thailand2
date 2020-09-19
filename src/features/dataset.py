@@ -4,7 +4,9 @@ from ..gen_functions import *
 from ..data.read_data import *
 from ..data.fire_data import *
 from ..data.weather_data import *
-from .build_features import *
+from .config import set_config
+
+
 
 """Pollution Dataset Object of a particular city. This object is contains the raw dataset
 and processed data, and is in charge of splitting data for training.
@@ -24,8 +26,6 @@ class Dataset():
 
     Attributes:
         city_name: name of the city
-        city_wea_dict: link the name of the city to the weather file
-        gas_list: a list of pollutants existed in the data. Can be overide when loading the data
         main_folder: main data folder [default:'../data/']. This folder contains raw data.
         data_folder: data folder spcified for this city for keeping processed data
         model_folder: model folder for this city for model meta and model files
@@ -45,31 +45,8 @@ class Dataset():
         AssertionError: if the city_name is not in city_names list
 
     """
-
     # a defaul list of pollutants
-    gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
-    # mapping city name to weather city name
-    city_wea_dict = {'Chiang Mai': 'Mueang Chiang Mai',
-                     'Bangkok': 'Bangkok',
-                     'Hanoi': 'Soc Son',
-                     'Jakarta': 'East Jakarta',
-                     'Da Nang': 'Hai Chau',
-                     'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat'}
-
-    transition_dict =  {
-                        'PM2.5': [ 0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3], 
-                        'PM10': [0, 155, 254, 354, 424, 504, 604, 1e3], 
-                        'O3': [0, 54, 70, 85, 105, 200, 1e3], 
-                        'SO2': [0, 75, 185, 304, 504, 604, 1e3], 
-                        'NO2': [0, 53, 100, 360, 649, 1249, 2049, 1e3], 
-                        'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]}
-
-    roll_dict = {'PM2.5': 24,
-                 'PM10': 24,
-                 'O3': 8,
-                 'SO2': 1,
-                 'NO2': 1,
-                 'CO': 8}
+    #gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
 
     def __init__(
             self,
@@ -84,10 +61,10 @@ class Dataset():
         #. Load city information and add as atribute
 
         """
+        # add congiruation attribute
+        set_config(self)
 
-        city_names = self.city_wea_dict.keys()
-
-        if city_name not in city_names:
+        if city_name not in self.city_wea_dict.keys():
             raise AssertionError(
                 'city name not in the city_names list. No data for this city')
         else:
@@ -135,28 +112,11 @@ class Dataset():
                 self.city_info['Longitude']) /
             1000).round()
 
-    def get_th_stations(self):
-        """Look for all polltuions station in the city by Thailand PCD.
+        if self.city_info['Country'] == 'Viet Nam':
+            # fix the name of Vietnam
+            self.city_info['Country']= 'Vietnam'
 
-        """
-        # load stations information for air4 Thai
-        station_info_file = f'{self.main_folder}aqm_hourly2/' + \
-            'stations_locations.json'
-        with open(station_info_file, 'r', encoding="utf8") as f:
-            station_info = json.load(f)
 
-        station_info = station_info['stations']
-
-        # find stations in that city and add to a list
-        station_ids = []
-        station_info_list = []
-
-        for i, stations in enumerate(station_info):
-            if self.city_name in stations['areaEN']:
-                station_ids.append(stations['stationID'])
-                station_info_list.append(stations)
-
-        return station_ids, station_info_list
 
     @staticmethod
     def parse_th_station(folder, station_id):
@@ -263,7 +223,7 @@ class Dataset():
 
             new_data = new_data.set_index('datetime')
             new_data.columns = [s.split(' (')[0] for s in new_data.columns]
-            # keep only the gass columns
+            # keep only the gas columns
             new_data = new_data[self.gas_list]
             # concatinate data and save
             data = pd.concat([old_data, new_data])
@@ -276,7 +236,8 @@ class Dataset():
     def collect_stations_data(self):
         """Collect all Pollution data from a different sources and take the average.
 
-        Since each city have different data sources. It has to be treat differently
+        Since each city have different data sources. It has to be treat differently. 
+        The stations choices is specified by the config.json
 
         Returns: a list of dataframe each dataframe is the data from all station.
 
@@ -284,19 +245,22 @@ class Dataset():
         # data list contain the dataframe of all pollution data before merging
         # all of this data has 'datetime' as a columns
         data_list = []
-        # load data from Berekely Earth Projects This is the same for all
+
+        # load data from Berkeley Earth Projects This is the same for all
         # cities
-        b_data, _ = read_b_data(
-            self.main_folder + 'pm25/' + self.city_name.replace(' ', '_') + '.txt')
+        b_data, _ = read_b_data(self.main_folder + 'pm25/' + self.city_name.replace(' ', '_') + '.txt')
         data_list.append(b_data)
 
-        if self.city_name == 'Chiang Mai':
-            # Chiang Mai has two stations, which are stored into folder
-            # (historical data and newly scrape data)
-            station_ids, _ = self.get_th_stations()
-            # for Chiang mai keep only the first two stations
-            station_ids = station_ids[:2]
-            # update the file
+        try:
+            # load config_dict for the city 
+            config_dict = self.config_dict[self.city_name]
+        except:
+            config_dict = {}
+        
+        # load thailand stations if applicable 
+        if 'th_stations' in config_dict.keys():
+            station_ids = config_dict['th_stations']
+            print('th_stations', station_ids)
             self.merge_new_old_pollution(station_ids)
             # load the file
             for station_id in station_ids:
@@ -304,60 +268,31 @@ class Dataset():
                 data = pd.read_csv(filename)
                 data['datetime'] = pd.to_datetime(data['datetime'])
                 data_list.append(data)
-
-        elif self.city_name == 'Bangkok':
-            # List of Bangkok stations that has been processed
-            station_ids = [
-                '02t',
-                '03t',
-                '05t',
-                '11t',
-                '12t',
-                '50t',
-                '52t',
-                '53t',
-                '59t',
-                '61t']
-            # update the file
-            self.merge_new_old_pollution(station_ids)
-            # load the file
+        # load the Thailand stations maintained by cmucdc project 
+        if 'cmu_stations' in config_dict.keys():
+            station_ids = config_dict['cmu_stations']
+            print('cmu_stations', station_ids)
             for station_id in station_ids:
-                filename = self.data_folder + station_id + '.csv'
-                data = pd.read_csv(filename)
-                data['datetime'] = pd.to_datetime(data['datetime'])
-                data_list.append(data)
-                
-        elif self.city_name == 'Nakhon Si Thammarat':
-            # List of Bangkok stations that has been processed
-            station_ids = ['42t','m3','o26']
-            dusboy_ids = ['118']
-            # update the file
-            self.merge_new_old_pollution(station_ids)
-            # load the file
-            for station_id in station_ids:
-                filename = self.data_folder + station_id + '.csv'
-                data = pd.read_csv(filename)
-                data['datetime'] = pd.to_datetime(data['datetime'])
-                data_list.append(data)
-
-            for station_id in dusboy_ids:
-                filename = self.main_folder + 'cdc_data/' + station_id + '.csv' 
+                filename = self.main_folder + 'cdc_data/' + str(station_id) + '.csv' 
                 data_list.append(read_cmucdc(filename))
+        
+        if 'b_stations' in config_dict.keys():
+            # add Berkeley stations in near by provinces 
+            station_ids = config_dict['b_stations']
+            print('add Berkerley stations', station_ids)
+            for station_id in station_ids:
+                b_data, _ = read_b_data(self.main_folder + 'pm25/' + f'{station_id}.txt')
+                data_list.append(b_data)
 
-
-        elif self.city_name == 'Hanoi':
-            # for Hanoi Data, also load Ha Dong Data
-            b_data, _ = read_b_data(self.main_folder + 'pm25/' + 'Ha_Dong.txt')
-            data_list.append(b_data)
+        if 'us_emb' in config_dict.keys():
+            # add the data from US embassy 
+            print('add US embassy data')
             data_list += build_us_em_data(city_name=self.city_name,
-                                          data_folder=f'{self.main_folder}us_emb/')
+                                                    data_folder=f'{self.main_folder}us_emb/')
 
-        elif self.city_name == 'Jakarta':
-            data_list.append(b_data)
-            data_list += build_us_em_data(city_name=self.city_name,
-                                          data_folder=f'{self.main_folder}us_emb/')
+        return data_list 
 
-        return data_list
+    
 
     def build_pollution(self):
         """Collect all Pollution data from a different sources and take the average.
@@ -381,7 +316,7 @@ class Dataset():
 
         self.poll_df = data.round()
 
-    def build_fire(self, instr: str = 'MODIS', distance=1000,
+    def build_fire(self, instr: str = 'MODIS', distance=1200,
                    fire_data_folder: str = 'fire_map/world_2000-2020/'):
         """Extract hotspots satellite data within distance from the city location.
 
@@ -404,8 +339,8 @@ class Dataset():
         """
         print('Loading all hotspots data. This might take sometimes')
 
-        if self.city_name == 'Hanoi':
-            distance = 1200
+        #if self.city_name == 'Hanoi':
+        #    distance = 1200
 
         # else self.city_name == 'Bangkok':
         #    distance = 600
@@ -421,29 +356,10 @@ class Dataset():
             raise AssertionError(
                 'instrument name can be either MODIS or VIIRS')
 
-        # keeping radius
-        #upper_lat = self.city_info['lat_km'] + distance
-        #lower_lat = self.city_info['lat_km'] - distance
-        #upper_long = self.city_info['long_km'] + distance
-        #lower_long = self.city_info['long_km'] - distance
-
         files = glob(folder)
 
         fire = pd.DataFrame()
-        # for file in tqdm_notebook(files):
-
-        #     df = pd.read_csv(file)
-        #     # convert lat and long to km
-        #     df['lat_km'] = (
-        #         df['latitude'].apply(merc_y) /
-        #         1E3).round().astype(int)
-        #     df['long_km'] = (merc_x(df['longitude']) / 1E3).round().astype(int)
-
-        #     # remove by lat
-        #     df = df[(df['lat_km'] <= (upper_lat)) & (df['lat_km'] >= (lower_lat))]
-
-        #     # remove by long
-        #     df = df[(df['long_km'] <= (upper_long)) & (df['long_km'] >= (lower_long))]
+ 
         lat_km = self.city_info['lat_km']
         long_km = self.city_info['long_km']
 
@@ -519,15 +435,7 @@ class Dataset():
         Save the data as data_folder/holiday.csv
 
         """
-        # if self.city_name == 'Chiang Mai' or self.city_name == 'Bangkok':
-        #     head_url = 'https://www.timeanddate.com/holidays/thailand/'
-
-        # elif self.city_name == 'Jakarta':
-        #     head_url = 'https://www.timeanddate.com/holidays/indonesia/'
-
-        # elif self.city_name == 'Hanoi':
-        #     head_url = 'https://www.timeanddate.com/holidays/vietnam/'
-
+     
         country = self.city_info['Country'].lower()
         print('Getting holiday for ', country)
         head_url = f'https://www.timeanddate.com/holidays/{country}/'
@@ -636,10 +544,18 @@ class Dataset():
             rolling_win, min_periods=0).mean().round(1)
         data = data.dropna()
 
-        if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
-            data = data.loc['2010':]
-        elif self.city_name == 'Hanoi':
-            data = data.loc['2016-03-21':]
+        # if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
+        #     data = data.loc['2010':]
+        # elif self.city_name == 'Hanoi':
+        #     data = data.loc['2016-03-21':]
+
+        # some data need to be crop. This is specified by the crop_dict in the config.py 
+        try: 
+            start_date = self.crop_dict[self.city_name][self.pollutant]
+        except:
+            pass
+        else:
+            data = data.loc[start_date:]
 
         # add lag information
         # data = add_lags(data, pollutant)
@@ -681,14 +597,24 @@ class Dataset():
             fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
             self.fire_dict = fire_dict
 
-        if self.city_name == 'Chiang Mai':
-            zone_list = [0, 100, 200, 400, 700, 1000]
-        elif self.city_name == 'Hanoi':
-            zone_list = [0, 120, 400, 700, 1200]
-        elif self.city_name == 'Bangkok':
-            zone_list = [0, 100, 200, 400, 600, 800, 1000]
-        else:
-            zone_list = [0, 100, 200, 400, 800, 1000]
+        # if self.city_name == 'Chiang Mai':
+        #     zone_list = [0, 100, 200, 400, 700, 1000]
+        # elif self.city_name == 'Hanoi':
+        #     zone_list = [0, 120, 400, 700, 1200]
+        # elif self.city_name == 'Bangkok':
+        #     zone_list = [0, 100, 200, 400, 600, 800, 1000]
+        # elif self.city_name == 'Da Nang':
+        #     zone_list = [0, 75, 300, 700,  1000]
+        # elif self.city_name == 'Nakhon Si Thammarat':
+        #     zone_list = [0, 200, 450,  1000]
+        # else:
+        #     zone_list = [0, 100, 200, 400, 800, 1000]
+        
+        # check if the preset fire zone exist for the city. Use default value other wise.
+        try: 
+            zone_list = self.zone_dict[self.city_name]
+        except:
+            zone_list = self.zone_dict['default']
 
         fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=zone_list,
                                                 fire_col='power', damp_surface=damp_surface,
