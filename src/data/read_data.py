@@ -221,3 +221,26 @@ def parse_1xl_sheet(data_df):
         data_df = pd.DataFrame()
 
     return data_df
+
+def read_cmucdc(filename:str)->pd.DataFrame:
+    """Read Chiang Mai University pollution data. Rename the columns and rop other columns. 
+    
+    Args:
+        filename: filename string
+    
+    Returns: pd.DataFrame
+        data dataframe
+        
+    """
+    # read data
+    df = pd.read_csv(filename)
+    # replace the pollution name with our convention
+    col_dict = {'log_datetime':'datetime',
+        'pm10':'PM10',
+        'pm25':'PM2.5'}
+    # rename the columns
+    df = df.rename(columns=col_dict)
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    # drop temperature and humidity columns 
+    cols = [ col for col in df.columns if col in ['datetime','PM10', 'PM2.5']]
+    return df[cols]

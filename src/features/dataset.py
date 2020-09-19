@@ -56,12 +56,13 @@ class Dataset():
                      'Da Nang': 'Hai Chau',
                      'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat'}
 
-    transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
-                       'PM10': [0, 155, 254, 354, 1e3],
-                       'O3': [0, 70, 85, 105, 1e3],
-                       'SO2': [0, 75, 185, 304, 1e3],
-                       'NO2': [0, 100, 360, 649, 1e3],
-                       'CO': [0, 6.4, 12.5, 15.4, 1e3]}
+    transition_dict =  {
+                        'PM2.5': [ 0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3], 
+                        'PM10': [0, 155, 254, 354, 424, 504, 604, 1e3], 
+                        'O3': [0, 54, 70, 85, 105, 200, 1e3], 
+                        'SO2': [0, 75, 185, 304, 504, 604, 1e3], 
+                        'NO2': [0, 53, 100, 360, 649, 1249, 2049, 1e3], 
+                        'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]}
 
     roll_dict = {'PM2.5': 24,
                  'PM10': 24,
@@ -146,7 +147,7 @@ class Dataset():
 
         station_info = station_info['stations']
 
-        # find stations in Chiangmai and parase that files
+        # find stations in that city and add to a list
         station_ids = []
         station_info_list = []
 
@@ -216,6 +217,7 @@ class Dataset():
             parse(optional): if True, also parse the stations data from the excel files
         """
         for station_id in station_ids:
+            
 
             old_data_list = []
             # extract data from both folder
@@ -241,10 +243,15 @@ class Dataset():
                     old_data = old_data[gas_list]
                     old_data_list.append(old_data)
 
-            old_data = pd.concat(old_data_list)
-            old_data.index = pd.to_datetime(old_data.index)
-            old_data = old_data.sort_index()
-            old_data = old_data[~old_data.index.duplicated(keep='first')]
+            # combine old data from two folders
+            if len(old_data_list) > 0:
+                old_data = pd.concat(old_data_list)
+                old_data.index = pd.to_datetime(old_data.index)
+                old_data = old_data.sort_index()
+                old_data = old_data[~old_data.index.duplicated(keep='first')]
+            else:
+                # no data 
+                old_data = pd.DataFrame()
 
             # read data parse from the website
             new_data = pd.read_csv(
@@ -323,6 +330,7 @@ class Dataset():
         elif self.city_name == 'Nakhon Si Thammarat':
             # List of Bangkok stations that has been processed
             station_ids = ['42t','m3','o26']
+            dusboy_ids = ['118']
             # update the file
             self.merge_new_old_pollution(station_ids)
             # load the file
@@ -331,6 +339,11 @@ class Dataset():
                 data = pd.read_csv(filename)
                 data['datetime'] = pd.to_datetime(data['datetime'])
                 data_list.append(data)
+
+            for station_id in dusboy_ids:
+                filename = self.main_folder + 'cdc_data/' + station_id + '.csv' 
+                data_list.append(read_cmucdc(filename))
+
 
         elif self.city_name == 'Hanoi':
             # for Hanoi Data, also load Ha Dong Data
@@ -506,14 +519,18 @@ class Dataset():
         Save the data as data_folder/holiday.csv
 
         """
-        if self.city_name == 'Chiang Mai' or self.city_name == 'Bangkok':
-            head_url = 'https://www.timeanddate.com/holidays/thailand/'
+        # if self.city_name == 'Chiang Mai' or self.city_name == 'Bangkok':
+        #     head_url = 'https://www.timeanddate.com/holidays/thailand/'
 
-        elif self.city_name == 'Jakarta':
-            head_url = 'https://www.timeanddate.com/holidays/indonesia/'
+        # elif self.city_name == 'Jakarta':
+        #     head_url = 'https://www.timeanddate.com/holidays/indonesia/'
 
-        elif self.city_name == 'Hanoi':
-            head_url = 'https://www.timeanddate.com/holidays/vietnam/'
+        # elif self.city_name == 'Hanoi':
+        #     head_url = 'https://www.timeanddate.com/holidays/vietnam/'
+
+        country = self.city_info['Country'].lower()
+        print('Getting holiday for ', country)
+        head_url = f'https://www.timeanddate.com/holidays/{country}/'
 
         years = np.arange(2000, datetime.now().year + 1)
 
