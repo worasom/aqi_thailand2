@@ -222,6 +222,37 @@ def parse_1xl_sheet(data_df):
 
     return data_df
 
+def get_th_stations(city_name: str, data_folder:str='../data/aqm_hourly2/'):
+    """Look for all polltuions station in the city by Thailand PCD.
+    
+    Arg:
+        city_name: name of the city
+        data_folder: location of the staion information json file
+    
+    Returns: (list, list)
+        station_ids: a list of station ids
+        station_info_list: a list of station information dictionary 
+
+    """
+    # load stations information for air4 Thai
+    station_info_file = data_folder + \
+        'stations_locations.json'
+    with open(station_info_file, 'r', encoding="utf8") as f:
+        station_info = json.load(f)
+
+    station_info = station_info['stations']
+
+    # find stations in that city and add to a list
+    station_ids = []
+    station_info_list = []
+
+    for i, stations in enumerate(station_info):
+        if city_name in stations['areaEN']:
+            station_ids.append(stations['stationID'])
+            station_info_list.append(stations)
+
+    return station_ids, station_info_list
+
 def read_cmucdc(filename:str)->pd.DataFrame:
     """Read Chiang Mai University pollution data. Rename the columns and rop other columns. 
     
@@ -244,3 +275,34 @@ def read_cmucdc(filename:str)->pd.DataFrame:
     # drop temperature and humidity columns 
     cols = [ col for col in df.columns if col in ['datetime','PM10', 'PM2.5']]
     return df[cols]
+
+
+def collect_vt_station(data_folder, city_name):
+    """Extract all data from Vietnamese EPA stations for the specified city_name and average the data for that city  
+
+    Note that each pollutant is recorded in AQI unit and has to be convert to the raw concentration first 
+    Args:
+        data_folder: folder with all scraped datafile 
+        city_name: city_name to choose
+
+    Return: a dataframe
+        a average avalue for each pollutant   
+
+    """
+    # extract all data from Vietnamese EPA 
+    dfs = glob('../data/vn_epa/*.csv')
+    city_df = []
+    for df in dfs:
+        df = pd.read_csv(df, na_values='-')
+        # keep only hanoi data
+        df = df[df['city'] == city_name]
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        city_df.append(df)
+
+    city_df = pd.concat(city_df, ignore_index=True)
+    # drop duplicates data
+    city_df = city_df.drop_duplicates()
+    city_df = hanoi_df.drop(['VN_AQI', 'city','station'], axis=1)
+    city_df = city_df.sort_values('datetime')
+    # taking average of all the station in hanoi
+    return city_df.groupby('datetime', as_index=False).mean().round()
