@@ -58,7 +58,7 @@ def plot_model_perf(
         split_list=[
             0.7,
             0.3],
-    xlim=[],
+    xlim=[], ylim=[],
         to_save=True):
     """Plot model performance over training and test data.
     - plot actual againt prediction for train and test set
@@ -70,6 +70,7 @@ def plot_model_perf(
         model: fitted model
         split_list(optional): train/test spliting ratio[default:[0.7,0.3]]
         xlim(optional): if passed, use these value for xlim
+        ylim(optional): if passed, use these value for ylim
         filename(optional): if not None, save the figure using the filename
 
     Returns:
@@ -170,6 +171,8 @@ def plot_model_perf(
         a.set_ylabel(dataset.monitor)
         if len(xlim) > 0:
             a.set_xlim(xlim)
+        if len(ylim) > 0:
+            a.set_ylim(ylim)
 
     plt.tight_layout()
 

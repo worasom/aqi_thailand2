@@ -317,7 +317,7 @@ def download_cdc_data(
 
 def download_us_emb_data(
         data_folder: str = '../data/us_emb/',
-        year: int = None, city_list= ['Hanoi', 'JakartaSouth', 'JakartaCentral']):
+        year: int = None, city_list= ['Hanoi', 'JakartaSouth', 'JakartaCentral', 'HoChiMinhCity']):
     """Download pollution data taken at the US Embabby in Hanoi and Jakata
 
     """

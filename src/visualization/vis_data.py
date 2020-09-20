@@ -199,7 +199,7 @@ def plot_all_pollutions(
     """
     if transition_dict is None:
         transition_dict = {'PM2.5': [0, 12, 35.5, 55.4, 150.4, 1e3],
-                           'PM10': [0, 54, 154, 254, 354, 504],
+                           'PM10': [0, 154, 254, 354, 504],
                            'O3': [0, 54, 70, 85, 105, 200],
                            'SO2': [0, 35, 75, 185, 304, 1e3],
                            'NO2': [0, 53, 100, 360, 649, 1e3],
@@ -217,7 +217,7 @@ def plot_all_pollutions(
             'very unhealthy']
 
     gas_list = poll_df.columns
-    print(gas_list)
+    print('pollutants to plot', gas_list)
     len_gas = len(gas_list)
 
     _, ax = plt.subplots(len_gas, 1, figsize=(10, 3 * len_gas), sharex=True)
@@ -426,7 +426,11 @@ def plot_polls_aqi(
 
             # select ymax to select level
             ymax = temp.max().max()
-            idx = np.where(levels < ymax)[0][-1] + 1
+            try:
+                idx = np.where(levels < ymax)[0][-1]
+            except:
+                idx = 0
+            idx += 1
             # make horizontal line
             for l, c, n, p in zip(
                     levels[:idx], color_labels[:idx], level_names[:idx], text_pos):
@@ -619,7 +623,7 @@ def plot_chem_print(
     plt.ylim(ylim)
     plt.title(f'AQI Fingerprint for {city_name}')
     plt.xlabel('pollutant')
-    plt.ylabel('aqi')
+    plt.ylabel('AQI')
     plt.tight_layout()
     
     if filename:
@@ -657,7 +661,7 @@ def plot_yearly_ln(dataset, min_year=None, filename=None):
         min_year = year_fire.index.min()
 
     year_avg = pd.concat(
-        [year_poll.loc[min_year:], year_fire, year_temp.loc[min_year:]], axis=1)
+        [year_poll.loc[min_year:], year_fire.loc[min_year:], year_temp.loc[min_year:]], axis=1)
 
     _, ax = plt.subplots(
         len(y_labels), 1, figsize=(
