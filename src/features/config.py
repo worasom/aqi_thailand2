@@ -23,14 +23,13 @@ def set_config(dataset):
                     'Jakarta': {'us_emb': True}}
 
     # fire zone for each city
-    dataset.zone_dict = {'Chiang Mai' : [0, 100, 200, 400, 700, 1000],
+    zone_dict = {'Chiang Mai' : [0, 100, 200, 400, 700, 1000],
              'Bangkok':  [0, 100, 200, 400, 600, 800, 1000],
              'Nakhon Si Thammarat': [0, 200, 450,  1000],
             'Da Nang': [0, 75, 300, 700,  1000],
              'Hanoi': [0, 120, 400, 700, 1200], 
             'default': [0, 100, 200, 400, 800, 1000]
                 }
-         
 
     
     # mapping city name to weather city name
@@ -41,13 +40,10 @@ def set_config(dataset):
                  'Da Nang': 'Hai Chau',
                  'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat'}
       
-    
-     
 
-        # cropping point to remove the earlier data 
+    # cropping point to remove the earlier data 
     dataset.crop_dict = {'Chiang Mai':{'PM2.5': '2010'},
-                    'Hanoi':{'PM2.5': '2016-03-21'}
-                    }
+                    'Hanoi':{'PM2.5': '2016-03-21'}}
 
     # US AQI standard
     dataset.transition_dict =  {
@@ -65,5 +61,16 @@ def set_config(dataset):
              'SO2': 1,
              'NO2': 1,
              'CO': 8}
+
+    try:
+        # load config_dict for the city 
+        dataset.config_dict = config_dict[dataset.city_name]
+    except:
+        dataset.config_dict = {}
+    # check if the preset fire zone exist for the city. Use default value otherwise.
+    try:
+        dataset.zone_list = zone_dict[dataset.city_name]
+    except:
+        dataset.zone_list = zone_dict['default']
 
 

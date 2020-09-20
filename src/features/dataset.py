@@ -4,6 +4,7 @@ from ..gen_functions import *
 from ..data.read_data import *
 from ..data.fire_data import *
 from ..data.weather_data import *
+from .build_features import *
 from .config import set_config
 
 
@@ -61,22 +62,22 @@ class Dataset():
         #. Load city information and add as atribute
 
         """
+        # add city name as attribute
+        self.city_name = city_name
         # add congiruation attribute
         set_config(self)
 
         if city_name not in self.city_wea_dict.keys():
-            raise AssertionError(
-                'city name not in the city_names list. No data for this city')
+            print('city name not in the city_names list. No weather data for this city')
         else:
-            # the city exist in the database set folders attributes
-            self.city_name = city_name
-            city_name = city_name.lower().replace(' ', '_')
-            self.main_folder = main_data_folder
-            self.data_folder = main_data_folder + city_name + '/'
-            self.model_folder = model_folder + city_name + '/'
-            self.report_folder = report_folder + city_name + '/'
             self.wea_name = self.city_wea_dict[self.city_name]
-
+        # the city exist in the database set folders attributes    
+        city_name = city_name.lower().replace(' ', '_')
+        self.main_folder = main_data_folder
+        self.data_folder = main_data_folder + city_name + '/'
+        self.model_folder = model_folder + city_name + '/'
+        self.report_folder = report_folder + city_name + '/'
+            
         if not os.path.exists(self.data_folder):
             os.mkdir(self.data_folder)
 
@@ -115,7 +116,6 @@ class Dataset():
         if self.city_info['Country'] == 'Viet Nam':
             # fix the name of Vietnam
             self.city_info['Country']= 'Vietnam'
-
 
 
     @staticmethod
@@ -251,11 +251,7 @@ class Dataset():
         b_data, _ = read_b_data(self.main_folder + 'pm25/' + self.city_name.replace(' ', '_') + '.txt')
         data_list.append(b_data)
 
-        try:
-            # load config_dict for the city 
-            config_dict = self.config_dict[self.city_name]
-        except:
-            config_dict = {}
+        config_dict = self.config_dict
         
         # load thailand stations if applicable 
         if 'th_stations' in config_dict.keys():
@@ -417,17 +413,20 @@ class Dataset():
             wea_data_folder(optional): weather data folder[default:'weather_cities/']
 
         """
-
-        filename = self.city_wea_dict[self.city_name]
-        filename = self.main_folder + wea_data_folder + \
-            filename.replace(' ', '_') + '.csv'
-        wea = pd.read_csv(filename)
-        wea = fill_missing_weather(wea, limit=12)
-        # round the weather data
-        wea[['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']] = wea[[
+        # check if there is a weather data
+        if hasattr(self, 'wea_name')
+            filename = self.wea_name
+            filename = self.main_folder + wea_data_folder + \
+                filename.replace(' ', '_') + '.csv'
+            wea = pd.read_csv(filename)
+            wea = fill_missing_weather(wea, limit=12)
+            # round the weather data
+            wea[['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']] = wea[[
             'Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']].round()
 
-        self.wea = wea
+            self.wea = wea
+        else:
+            print('no weather data')
 
     def build_holiday(self):
         """Scrape holiday data from https://www.timeanddate.com/holidays/ since 2000 until current.
@@ -597,26 +596,7 @@ class Dataset():
             fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
             self.fire_dict = fire_dict
 
-        # if self.city_name == 'Chiang Mai':
-        #     zone_list = [0, 100, 200, 400, 700, 1000]
-        # elif self.city_name == 'Hanoi':
-        #     zone_list = [0, 120, 400, 700, 1200]
-        # elif self.city_name == 'Bangkok':
-        #     zone_list = [0, 100, 200, 400, 600, 800, 1000]
-        # elif self.city_name == 'Da Nang':
-        #     zone_list = [0, 75, 300, 700,  1000]
-        # elif self.city_name == 'Nakhon Si Thammarat':
-        #     zone_list = [0, 200, 450,  1000]
-        # else:
-        #     zone_list = [0, 100, 200, 400, 800, 1000]
-        
-        # check if the preset fire zone exist for the city. Use default value other wise.
-        try: 
-            zone_list = self.zone_dict[self.city_name]
-        except:
-            zone_list = self.zone_dict['default']
-
-        fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=zone_list,
+        fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=self.zone_list,
                                                 fire_col='power', damp_surface=damp_surface,
                                                 shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
@@ -629,7 +609,7 @@ class Dataset():
         data = data.dropna()
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
-        return fire_cols, zone_list
+        return fire_cols, self.zone_list
 
     def make_diff_col(self):
         """Add pollutant diff column for modeling the diff instead of the actual value.
