@@ -275,9 +275,13 @@ def get_fire_feature(
 
     """
     fire_col_list = []
+    # look for the hotspots very close to the city center, which can create infinity-like value. 
+    idxs = fire[fire['distance'] <1].index
+    fire.loc[idxs, 'distance'] = 1
+
     new_fire = pd.DataFrame()
     # weight the fire columns by confidence 
-    fire[fire_col] *= fire['confidence']
+    #fire[fire_col] *= fire['confidence']
     for start, stop in zip(zone_list, zone_list[1:]):
         col_name = f'fire_{start}_{stop}'
 
