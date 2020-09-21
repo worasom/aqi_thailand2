@@ -414,7 +414,7 @@ class Dataset():
 
         """
         # check if there is a weather data
-        if hasattr(self, 'wea_name')
+        if hasattr(self, 'wea_name'):
             filename = self.wea_name
             filename = self.main_folder + wea_data_folder + \
                 filename.replace(' ', '_') + '.csv'
@@ -583,10 +583,13 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self, fire_dict=None, damp_surface='sphere'):
+    def merge_fire(self, fire_dict=None, damp_surface='sphere', true_damp=False):
         """Process raw hotspot data into fire feature and merge with the rest of the data
+        
         Args:
-            fire_dict(optional): fire dictionary [default:None]
+            fire_dict(optional): fire dictionary containing wind_speed, shift and roll as keys [default:None] 
+            damp_surface(optional): damping surface, either 'sphere', or 'cicle' 
+            true_damp(optional): if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
 
         """
 
@@ -595,7 +598,7 @@ class Dataset():
             print('use default fire feature')
             fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
             self.fire_dict = fire_dict
-
+        
         fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=self.zone_list,
                                                 fire_col='power', damp_surface=damp_surface,
                                                 shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
@@ -796,6 +799,7 @@ class Dataset():
         - data no fire
         - data_org
         - data
+
         """
 
         if os.path.exists(self.data_folder + 'poll.csv'):
@@ -807,7 +811,7 @@ class Dataset():
 
             if (self.city_name == 'Chiang Mai') or (
                     self.city_name == 'Bangkok'):
-                # for Chiang Mai, delete all PM2.5 record before 2010
+                # for Thailand, delete all PM2.5 record before 2010
                 self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
 
         else:
