@@ -170,9 +170,7 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
 
 
 def sk_op_fire(dataset,
-               model,
-               trn_index,
-               val_index,
+               model, split_ratio:list,
                wind_range: list = [2,
                                    20],
                shift_range: list = [-72,
@@ -186,8 +184,7 @@ def sk_op_fire(dataset,
     Args:
         dataset: dataset object
         model: model object
-        trn_index: datetime index for training set
-        val_index: datetime index of validation set
+        split_ratio: a list of spliting ratio for train and validation set 
         wind_range(optional): min and max value of wind speed
         shift_range(optional): min and max value of shift parameter
         roll_range(optional): min and max value of roll parameter
@@ -214,6 +211,9 @@ def sk_op_fire(dataset,
     x_cols = dataset.x_cols
     print('skop_ fire use x_cols', x_cols)
     # establish the baseline
+    dataset.split_data(split_ratio=split_ratio)
+    trn_index=dataset.split_list[0] 
+    val_index=dataset.split_list[1]
     xtrn, ytrn, x_cols = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
@@ -254,6 +254,9 @@ def sk_op_fire(dataset,
                 roll=dataset.lag_dict['roll'])
 
         try:
+            dataset.split_data(split_ratio=split_ratio)
+            trn_index=dataset.split_list[0] 
+            val_index=dataset.split_list[1]
             xtrn, ytrn, x_cols = dataset.get_data_matrix(
                 use_index=trn_index, x_cols=dataset.x_cols)
             xval, yval, _ = dataset.get_data_matrix(
@@ -261,11 +264,12 @@ def sk_op_fire(dataset,
 
             model.fit(xtrn, ytrn)
             y_pred = model.predict(xval)
-            error = mean_squared_error(yval, y_pred)
-        except:
-            error = 1
+            return mean_squared_error(yval, y_pred)
 
-        return error
+        except:
+            raise AssertionError(f'fit fail for {fire_dict}')
+
+        
 
     gp_result = gp_minimize(
         func=fit_with,
@@ -508,7 +512,7 @@ def train_city_s1(
         print('================= optimization 3: find the best fire feature ===================')
         dataset.x_cols = x_cols_org
         dataset.fire_dict, gp_result = sk_op_fire(
-            dataset, model, trn_index=dataset.split_list[0], val_index=dataset.split_list[1])
+            dataset, model,split_ratio=split_lists[0] )
         fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
 
     if lag_dict is None:
