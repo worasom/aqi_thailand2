@@ -22,7 +22,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
 
 
-def extract_vn_data(browser, wait_time=10):
+def extract_vn_data(browser, wait_time=20):
     """Extract hourly data from a Vietnamese EPA station
 
     Args:
@@ -107,7 +107,7 @@ def extract_vn_stations(
     return station_list[1:]
 
 
-def select_vn_station(browser, station, wait_time=10):
+def select_vn_station(browser, station, wait_time=15):
     """Select the name of the station and wait.
 
     """
@@ -203,7 +203,7 @@ def download_vn_data(
         station_info_list.append(station_info)
 
         # extract data
-        df = extract_vn_data(browser, wait_time=10)
+        df = extract_vn_data(browser, wait_time=20)
         df['city'] = city_name
         df['station'] = station
         #print(station, 'has data len ', len(df))

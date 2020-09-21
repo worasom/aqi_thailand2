@@ -240,6 +240,7 @@ def sk_op_fire(dataset,
         fire_dict = {'w_speed': wind_speed,
                      'shift': shift,
                      'roll': roll}
+
         _, *args = dataset.merge_fire(fire_dict)
 
         if with_lag:
@@ -252,15 +253,19 @@ def sk_op_fire(dataset,
                     dataset.lag_dict['step']),
                 roll=dataset.lag_dict['roll'])
 
-        xtrn, ytrn, x_cols = dataset.get_data_matrix(
-            use_index=trn_index, x_cols=dataset.x_cols)
-        xval, yval, _ = dataset.get_data_matrix(
-            use_index=val_index, x_cols=dataset.x_cols)
+        try:
+            xtrn, ytrn, x_cols = dataset.get_data_matrix(
+                use_index=trn_index, x_cols=dataset.x_cols)
+            xval, yval, _ = dataset.get_data_matrix(
+                use_index=val_index, x_cols=dataset.x_cols)
 
-        model.fit(xtrn, ytrn)
-        y_pred = model.predict(xval)
+            model.fit(xtrn, ytrn)
+            y_pred = model.predict(xval)
+            error = mean_squared_error(yval, y_pred)
+        except:
+            error = 1
 
-        return mean_squared_error(yval, y_pred)
+        return error
 
     gp_result = gp_minimize(
         func=fit_with,
@@ -491,16 +496,17 @@ def train_city_s1(
 
         # columns to consider droping are columns with low importance
         to_drop = feat_imp['index'].to_list()
-        if dataset.city_name== 'Chiang Mai':
-            to_drop = [a for a in to_drop if 'fire' not in a]
-            for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
-                to_drop.remove(s)
+        # keep weather and fire columns for in case it matter later on 
+        to_drop = [a for a in to_drop if 'fire' not in a]
+        for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
+            to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
             dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
 
     if fire_dict is None:
         print('================= optimization 3: find the best fire feature ===================')
+        dataset.x_cols = x_cols_org
         dataset.fire_dict, gp_result = sk_op_fire(
             dataset, model, trn_index=dataset.split_list[0], val_index=dataset.split_list[1])
         fire_cols, *args = dataset.merge_fire(dataset.fire_dict)

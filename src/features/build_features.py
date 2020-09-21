@@ -150,7 +150,10 @@ def cal_power_damp(
         surface='sphere'):
     """ Calculate the damped power based on the distance series.
 
-    The damping factor maybe 1/distance or 1/distance**2.
+    The damping factor maybe 100/distance or 100/distance**2.
+
+    The hundred is add to increase the magnitude of the columns 
+
     Args:
         series: series to recalculate
         distance: distance array. Must have the same lenght as the series
@@ -164,10 +167,10 @@ def cal_power_damp(
 
     """
     if surface == 'sphere':
-        new_series = series / distance**2
+        new_series = series*100 / distance**2 
 
     elif surface == 'circle':
-        new_series = series / distance
+        new_series = series*100 / distance
 
     return new_series
 
@@ -177,7 +180,7 @@ def cal_arrival_time(
     distance: pd.core.series.Series,
     wind_speed: (
         float,
-        np.array) = 2):
+        np.array, pd.core.series.Series) = 2):
     """ Calculate the approximate time that the pollution arrived at the city using the wind speed and distance from the hotspot.
 
     Round arrival time to hour
@@ -203,15 +206,18 @@ def shift_fire(
     roll: int = 48,
     w_speed: (
         float,
-        int) = 8):
+        int) = 1):
     """ Feature engineer fire data. Account of the distance from the source and time lag using wind speed.
+    This function use average wind speed.
 
     Args:
-        fire_df:
-        fire_col
-        damp_surface
-        shift
-        roll
+        fire_df: fire df
+        fire_col: fire column to use, either 'power' or 'count'
+        damp_surface: damping surface, either 'sphere', or 'cicle'
+        shift: row to lag the fire data
+        roll: rolling sum factor  
+
+    Return: pd.DataFrame 
 
     """
     require_cols = ['distance', fire_col]
@@ -230,7 +236,7 @@ def shift_fire(
 
     fire_df = fire_df.set_index('arrival_time')
     fire_df = fire_df.resample('h').sum()['damp_' + fire_col]
-    fire_df = fire_df.rolling(roll, min_periods=0).sum()
+    fire_df = fire_df.rolling(roll, min_periods=1).sum()
     fire_df = fire_df.shift(shift)
     fire_df.index.name = 'datetime'
     return fire_df
@@ -251,12 +257,27 @@ def get_fire_feature(
         roll: int = 48,
         w_speed: (
             float,
-        int) = 8):
-    """ Separate fire from different distance
+        int) = 1):
+    """ Separate fire from different distance and take the average. This function use average wind speed. 
+    
+    Args:
+        fire: fire dataframe
+        zone_list: a list of distance in km to separate fire feature
+        fire_col: fire column to use, either 'power' or 'count'
+        damp_surface: damping surface, either 'sphere', or 'cicle'
+        shift: row to lag the fire data
+        roll: rolling sum factor  
+        w_speed: average wind speed in km per hour
+    
+    Returns: (pd.DataFrame, list)
+        new_fire: new fire feature ready to merge with the weather data
+        fire_col_list: a list of fire columns 
 
     """
     fire_col_list = []
     new_fire = pd.DataFrame()
+    # weight the fire columns by confidence 
+    fire[fire_col] *= fire['confidence']
     for start, stop in zip(zone_list, zone_list[1:]):
         col_name = f'fire_{start}_{stop}'
 
