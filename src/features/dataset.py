@@ -583,7 +583,7 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self, fire_dict=None, damp_surface='sphere', true_damp=False):
+    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp=False):
         """Process raw hotspot data into fire feature and merge with the rest of the data
         
         Args:
