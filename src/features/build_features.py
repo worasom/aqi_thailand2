@@ -393,3 +393,89 @@ def fill_missing_poll(df, limit: int = 6):
 
     return pd.concat([new_poll_df_f, new_poll_df_b],
                      axis=0).groupby(level=0).mean()
+
+
+def add_wea_vec(wea_df:pd.DataFrame)-> pd.DataFrame:
+    """Add wind direction vector columns. This is to prepare the weather data for fire feature engineering.
+    
+    
+    Args:
+        wea_df: weather dataframe with datetime index 'Wind' and 'Wind Speed(kmph)' columns
+        
+    Returns: process weather dataframe
+    
+
+    """
+    # dictionay to map the string direction 
+    wind_vec_x_dict = {'N': 0.0, 'NNE': 0.38, 'NE': 0.71, 'ENE': 0.92, 'E': 1.0, 'ESE': 0.92, 'SE': 0.71, 'SSE': 0.38,
+                       'S': 0.0, 'SSW': -0.38, 'SW': -0.71, 'WSW': -0.92, 'W': -1.0, 'WNW': -0.92, 'NW': -0.71, 'NNW': -0.38}
+    wind_vec_y_dict = {'N': -1.0, 'NNE': -0.92, 'NE': -0.71, 'ENE': -0.38, 'E': 0.0, 'ESE': 0.38, 'SE': 0.71,
+                       'SSE': 0.92, 'S': 1.0, 'SSW': 0.92, 'SW': 0.71, 'WSW': 0.38, 'W': 0.0, 'WNW': -0.38, 'NW': -0.71, 'NNW': -0.92}
+    
+    # keep only wind direction and wind speed columns
+    wea_proc = wea_df[['Wind', 'Wind Speed(kmph)']].copy()
+    # create a winvector columns
+    wea_proc['wind_vec_x'] =  wea_proc['Wind'].map(wind_vec_x_dict)
+    wea_proc['wind_vec_y'] =  wea_proc['Wind'].map(wind_vec_y_dict)
+    # rolling average smooth abrupt change. 
+    wea_proc = wea_proc.rolling(6, min_periods=1).mean()
+    # reample to daily average because the fire data is a daily data 
+    wea_proc = wea_proc.resample('d').mean().round()
+    # normalize wind vector 
+    norm_vec = np.linalg.norm(wea_proc[['wind_vec_x', 'wind_vec_y']].values, axis=1)
+    wea_proc['wind_vec_x'] = wea_proc['wind_vec_x']/norm_vec
+    wea_proc['wind_vec_y'] = wea_proc['wind_vec_y']/norm_vec
+    
+    # drop the 'Wind' direction columns
+    return wea_proc
+
+
+def cal_wind_damp_row(row, city_x, city_y):
+    """Calculate damping factor for each hotspot. This function should be applied to Panda DataFrame.
+    
+    Round to negative damping factor to zero.
+    
+    Args:
+        row: panda row
+        city_x: longitude in km in Mercator coordinate
+        city_y: latitude in km in Mercator coordinate
+        
+    Returns: float 
+        a damping factor for that row.
+        
+    """
+    # forming a vector in km unit 
+    hot_vec = [(city_x - row['long_km']), (city_y - row['lat_km'])]
+    # normalize this vector
+    hot_vec = hot_vec/np.linalg.norm(hot_vec)
+ 
+    wea_vec = [row['wind_vec_x'], row['wind_vec_y']]
+     
+    # round to zero and keep only the value greater than or equal to two
+    return np.maximum(round(np.dot(hot_vec, wea_vec), 4), 0)
+
+def cal_wind_damp(fire_df, wea_df, city_x, city_y):
+    """Calculate the damping due to the wind direction. The new column is named 'winddamp' columns
+    
+    Args:
+        fire_df: hotspots information
+        wea_df: weather dataframe 
+        city_x: longitude in km in Mercator coordinate
+        city_y: latitude in km in Mercator coordinate
+        
+    Returns:   pd.DataFrame
+    
+    """
+    fire_df['round_time'] = fire_df.index.round('D')
+    # obtain process weather dataframe
+    wea_proc = add_wea_vec(wea_df)
+    # add windspeed and direction to the fire data
+    fire_df = fire_df.merge(wea_proc, left_on='round_time', right_index=True, how='left')    
+    # calculate the damping factors due to win direction
+    fire_df['winddamp'] = fire_df.apply(cal_wind_damp_row, axis=1, args=(city_x, city_y))
+    # keep only the columns with more than zero winddamp factor to reduce computation time
+    fire_df = fire_df[fire_df['winddamp'] > 0]
+
+
+    #remove unuse columns
+    return fire_df.drop(['wind_vec_x', 'wind_vec_y', 'round_time'], axis=1)

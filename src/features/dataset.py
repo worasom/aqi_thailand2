@@ -583,24 +583,72 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp=False):
+    def get_wind_damp_fire(self):
+        """Use self.fire and self.wea dataframes to calculate the self.damp_fire feature. 
+        The self.damp_fire has a winddamp columns, which is the damping factor from a dot production between the location of the hotspot and  the wind direction.
+        Any hotspots with the dot products less than 0 is removed. 
+
+        This function also calculated the hotspot arrival time to the city using the dynamic wind speed (not the average wind speed). 
+
+        """
+        # make a copy of the fire data and weather data 
+
+        fire_df = cal_wind_damp(self.fire.copy(), self.wea, self.city_info['long_km'] , self.city_info['lat_km'] )
+        # overide the index of the fire with the new arrival time 
+        fire_df.index = cal_arrival_time(detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=fire_df['Wind Speed(kmph)'])
+        # set at attribute
+        self.damped_fire = fire_df
+
+    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp =False):
         """Process raw hotspot data into fire feature and merge with the rest of the data
-        
+        If wind_damp is True, use self.damped_fire attribute for fire data, if False, use self.fire attribute.  
+
+        Call src.features.build_features.get_fire_feature() to calcuate the daming due to distance and shift due to effective wind_speed. 
+
+        The fire_proc dataframe is merged with the rest of the pollution, and weather dataframe. 
+
         Args:
             fire_dict(optional): fire dictionary containing wind_speed, shift and roll as keys [default:None] 
             damp_surface(optional): damping surface, either 'sphere', or 'cicle' 
-            true_damp(optional): if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
-
-        """
-
-        # use self.fire_dict attribute
-        if fire_dict is None:
-            print('use default fire feature')
-            fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
-            self.fire_dict = fire_dict
+            wind_damp(optional): if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
         
-        fire_proc, fire_cols = get_fire_feature(self.fire, zone_list=self.zone_list,
-                                                fire_col='power', damp_surface=damp_surface,
+        Returns: (list, list)
+            fire_cols: list of the fire columns
+            zone_list: a list of fire zone 
+        
+        """
+        fire_col = 'power'
+        if wind_damp:
+            # use wind_damp fire default option
+            # set self.fire_dict attribute 
+            if fire_dict is None:
+                print('use default fire feature')
+                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44}
+                self.fire_dict = fire_dict
+
+            # check if has damped_fire attribute
+            if not hasattr(self, 'damped_fire'):
+                print('obtain damp_fire attribute')
+                #create the damped fire first 
+                self.get_wind_damp_fire()
+            # use damped fire attribute      
+            fire_df = self.damped_fire
+            # damp the fire_col columns 
+            fire_df[fire_col] = fire_df[fire_col]*fire_df['winddamp']
+              
+        else:
+
+            # set self.fire_dict attribute
+            if fire_dict is None:
+                print('use default fire feature')
+                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
+                self.fire_dict = fire_dict
+            # use raw fire data        
+            fire_df = self.fire
+
+        # obtain processed fire dataframe and the fire columns     
+        fire_proc, fire_cols = get_fire_feature(fire_df, zone_list=self.zone_list,
+                                                fire_col=fire_col, damp_surface=damp_surface,
                                                 shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
 
         # merge with fire data

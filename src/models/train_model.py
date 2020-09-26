@@ -171,14 +171,14 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
 
 def sk_op_fire(dataset,
                model, split_ratio:list,
-               wind_range: list = [2,
+               wind_range: list = [0.5,
                                    20],
                shift_range: list = [-72,
                                     72],
                roll_range: list = [24,
                                    240],
                vis: bool = False,
-               with_lag=False) -> dict:
+               with_lag=False, wind_damp=False) -> dict:
     """Search for the best fire parameter using skopt optimization
 
     Args:
@@ -190,13 +190,14 @@ def sk_op_fire(dataset,
         roll_range(optional): min and max value of roll parameter
         vis(optional): if True, also plot the search space
         with_lag(optional): if True optimized the data with lag columns
+        wind_damp(optional): if True, use fire feature version 2 
 
     Return: fire_dict fire dictionary
 
     """
 
     # check the baseline
-    _, *args = dataset.merge_fire(dataset.fire_dict)
+    _, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
 
     if with_lag:
         print('optimize fire dict with lag columns')
@@ -224,11 +225,9 @@ def sk_op_fire(dataset,
     print('old score', best_score, 'fire dict', best_fire_dict)
 
     print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
+    
     # build search space
-    wind_speed = Integer(
-        low=wind_range[0],
-        high=wind_range[1],
-        name='wind_speed')
+    wind_speed = Real(low=wind_range[0], high=wind_range[1], name='wind_speed')
     shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
     roll = Integer(low=roll_range[0], high=roll_range[1], name='roll')
 
@@ -241,7 +240,7 @@ def sk_op_fire(dataset,
                      'shift': shift,
                      'roll': roll}
 
-        _, *args = dataset.merge_fire(fire_dict)
+        _, *args = dataset.merge_fire(fire_dict, wind_damp=wind_damp)
 
         if with_lag:
             dataset.data_org = dataset.data[[
@@ -282,7 +281,7 @@ def sk_op_fire(dataset,
     if score < best_score:
         print('mean_squared_error for the best fire parameters', gp_result.fun)
         best_fire_dict = {
-            'w_speed': int(wind_speed),
+            'w_speed': float(wind_speed),
             'shift': int(shift),
             'roll': int(roll)}
         print('new fire dict', best_fire_dict)
@@ -445,6 +444,7 @@ def train_city_s1(
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
     split_lists = poll_meta['split_lists']
+    wind_damp = poll_meta['wind_damp']
 
     # load raw data
     dataset.load_()
@@ -462,10 +462,10 @@ def train_city_s1(
         group_hour=poll_meta['group_hour'])
     if fire_dict is None:
         # use default fire feature
-        fire_cols, *args = dataset.merge_fire()
+        fire_cols, *args = dataset.merge_fire(wind_damp=wind_damp)
     else:
         dataset.fire_dict = fire_dict
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
     dataset.monitor = dataset.pollutant = pollutant
 
     # . Optimization 1: optimize for the best randomforest model
@@ -511,9 +511,9 @@ def train_city_s1(
     if fire_dict is None:
         print('================= optimization 3: find the best fire feature ===================')
         dataset.x_cols = x_cols_org
-        dataset.fire_dict, gp_result = sk_op_fire(
-            dataset, model,split_ratio=split_lists[0] )
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
+        dataset.fire_dict, gp_result = sk_op_fire(dataset, model, split_ratio=split_lists[0], wind_damp=wind_damp )
+        
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
 
     if lag_dict is None:
         print('================= optimization 4: improve model performance by adding lag columns =================')

@@ -1,3 +1,5 @@
 #ignore scratch notebooks
 untitle.*
 _*.ipynb
+4.2*.ipynb
+4.1*.ipynb
