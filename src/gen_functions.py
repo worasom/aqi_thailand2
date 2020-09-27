@@ -46,10 +46,10 @@ def merc_y(lat, shift=False):
     return y
 
 
-def to_latlon(xy):
+def to_latlon(xy:tuple):
     """ Convert x and y mercator coordinate to latitude and longtitude
     Args:
-        xy
+        xy: a tuple of xy
 
     Return (float,float)
 
