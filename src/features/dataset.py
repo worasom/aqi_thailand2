@@ -23,7 +23,7 @@ class Dataset():
         city_name: lower case of city name
         main_folder(optional): main data folder [default:'../data/]
         model_folder(optional): model folder[default:'../models/']
-        report_folder(optional): folder to save fiture[default:'../reports/']
+        report_folder(optional): folder to save figure[default:'../reports/']
 
     Attributes:
         city_name: name of the city
