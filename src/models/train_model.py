@@ -222,7 +222,11 @@ def sk_op_fire(dataset,
     xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
 
     model.fit(xtrn, ytrn)
-    #best_score = mean_squared_error(yval, model.predict(xval))
+    if mse:
+        best_score = mean_squared_error(yval, model.predict(xval))
+    else:
+        best_score = -r2_score(yval, model.predict(xval))
+
     best_fire_dict = dataset.fire_dict
     print('old score', cal_scores(yval, model.predict(xval)), 'fire dict', best_fire_dict)
 
@@ -279,23 +283,19 @@ def sk_op_fire(dataset,
 
     wind_speed, shift, roll = gp_result.x
     print('score for the best fire parameters', gp_result.fun)
-    best_fire_dict = {'w_speed': float(wind_speed),
+    score = gp_result.fun
+    if score < best_score:
+        print('mean_squared_error for the best fire parameters', gp_result.fun)
+        best_fire_dict = {
+            'w_speed': float(wind_speed),
             'shift': int(shift),
             'roll': int(roll)}
-    print('new fire dict', best_fire_dict)
-    # score = gp_result.fun
-    # if score < best_score:
-    #     print('mean_squared_error for the best fire parameters', gp_result.fun)
-    #     best_fire_dict = {
-    #         'w_speed': float(wind_speed),
-    #         'shift': int(shift),
-    #         'roll': int(roll)}
-    #     print('new fire dict', best_fire_dict)
-    #     if vis:
-    #         plot_objective(gp_result)
-    # else:
-    #     print(
-    #         f'old fire parameter {best_score} is still better than optimized score ={score}')
+        print('new fire dict', best_fire_dict)
+        if vis:
+            plot_objective(gp_result)
+    else:
+        print(
+            f'old fire parameter {best_score} is still better than optimized score ={score}')
 
     return best_fire_dict, gp_result
 
