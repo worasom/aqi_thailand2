@@ -147,7 +147,7 @@ def add_lags(data, pollutant, num_lags=None):
 def cal_power_damp(
         series: pd.core.series.Series,
         distance: pd.core.series.Series,
-        surface='sphere'):
+        surface:(str, float)='sphere'):
     """ Calculate the damped power based on the distance series.
 
     The damping factor maybe 100/distance or 100/distance**2.
@@ -157,7 +157,7 @@ def cal_power_damp(
     Args:
         series: series to recalculate
         distance: distance array. Must have the same lenght as the series
-        surface(optional): either 'circle' or 'sphere'
+        surface(optional): either 'circle' or 'sphere' or power factor 
 
     Returns:
         new_series
@@ -171,6 +171,9 @@ def cal_power_damp(
 
     elif surface == 'circle':
         new_series = series*100 / distance
+
+    else:
+        new_series = series*100 / distance**surface
 
     return new_series
 
@@ -451,7 +454,7 @@ def cal_wind_damp_row(row, city_x, city_y):
  
     wea_vec = [row['wind_vec_x'], row['wind_vec_y']]
      
-    # round to zero and keep only the value greater than or equal to two
+    # round to zero if negative 
     return np.maximum(round(np.dot(hot_vec, wea_vec), 4), 0)
 
 def cal_wind_damp(fire_df, wea_df, city_x, city_y):
@@ -473,9 +476,6 @@ def cal_wind_damp(fire_df, wea_df, city_x, city_y):
     fire_df = fire_df.merge(wea_proc, left_on='round_time', right_index=True, how='left')    
     # calculate the damping factors due to win direction
     fire_df['winddamp'] = fire_df.apply(cal_wind_damp_row, axis=1, args=(city_x, city_y))
-    # keep only the columns with more than zero winddamp factor to reduce computation time
-    fire_df = fire_df[fire_df['winddamp'] > 0]
-
-
+    
     #remove unuse columns
     return fire_df.drop(['wind_vec_x', 'wind_vec_y', 'round_time'], axis=1)

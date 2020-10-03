@@ -583,23 +583,30 @@ class Dataset():
         print('data no fire has shape', data.shape)
         self.data_no_fire = data
 
-    def get_wind_damp_fire(self):
+    def get_wind_damp_fire(self, wind_lag):
         """Use self.fire and self.wea dataframes to calculate the self.damp_fire feature. 
         The self.damp_fire has a winddamp columns, which is the damping factor from a dot production between the location of the hotspot and  the wind direction.
         Any hotspots with the dot products less than 0 is removed. 
 
         This function also calculated the hotspot arrival time to the city using the dynamic wind speed (not the average wind speed). 
 
-        """
-        # make a copy of the fire data and weather data 
+        Args:
 
+            wind_damp: if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
+            wind_lag: if True, use real wind speed for arrivial time 
+
+        """
+        
+        # make a copy of the fire data and weather data 
         fire_df = cal_wind_damp(self.fire.copy(), self.wea, self.city_info['long_km'] , self.city_info['lat_km'] )
-        # overide the index of the fire with the new arrival time 
-        fire_df.index = cal_arrival_time(detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=fire_df['Wind Speed(kmph)'])
+         
+        if wind_lag:
+            # overide the index of the fire with the new arrival time 
+            fire_df.index = cal_arrival_time(detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=fire_df['Wind Speed(kmph)'])
         # set at attribute
         self.damped_fire = fire_df
 
-    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp =False):
+    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp =False, wind_lag=False):
         """Process raw hotspot data into fire feature and merge with the rest of the data
         If wind_damp is True, use self.damped_fire attribute for fire data, if False, use self.fire attribute.  
 
@@ -611,37 +618,40 @@ class Dataset():
             fire_dict(optional): fire dictionary containing wind_speed, shift and roll as keys [default:None] 
             damp_surface(optional): damping surface, either 'sphere', or 'cicle' 
             wind_damp(optional): if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
-        
+            wind_lag(optional): if True, use real wind speed for arrivial time 
+
         Returns: (list, list)
             fire_cols: list of the fire columns
             zone_list: a list of fire zone 
         
         """
         fire_col = 'power'
-        if wind_damp:
+        if wind_damp or wind_lag:
             # use wind_damp fire default option
             # set self.fire_dict attribute 
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44}
+                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44, 'wind_damp': wind_damp, 'wind_lag': wind_lag }
                 self.fire_dict = fire_dict
 
             # check if has damped_fire attribute
             if not hasattr(self, 'damped_fire'):
-                print('obtain damp_fire attribute')
                 #create the damped fire first 
-                self.get_wind_damp_fire()
+                self.get_wind_damp_fire(wind_lag=wind_lag)
             # use damped fire attribute      
             fire_df = self.damped_fire
-            # damp the fire_col columns 
-            fire_df[fire_col] = fire_df[fire_col]*fire_df['winddamp']
+            if wind_damp:
+                # keep only the columns with more than zero winddamp factor to reduce computation time
+                fire_df = fire_df[fire_df['winddamp'] > 0]
+                # damp the fire_col columns 
+                fire_df[fire_col] = fire_df[fire_col]*fire_df['winddamp']
               
         else:
 
             # set self.fire_dict attribute
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44}
+                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44, 'wind_damp': wind_damp, 'wind_lag': wind_lag}
                 self.fire_dict = fire_dict
             # use raw fire data        
             fire_df = self.fire
@@ -660,6 +670,7 @@ class Dataset():
         data = data.dropna()
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
+        
         return fire_cols, self.zone_list
 
     def make_diff_col(self):

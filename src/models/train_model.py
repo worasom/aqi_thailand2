@@ -180,7 +180,7 @@ def sk_op_fire(dataset,
                                     72],
                roll_range: list = [24,
                                    240],
-               with_lag=False, wind_damp=False, mse=True) -> dict:
+               with_lag=False, mse=True,n_jobs=-2) -> dict:
     """Search for the best fire parameter using skopt optimization
 
     Args:
@@ -191,15 +191,15 @@ def sk_op_fire(dataset,
         shift_range(optional): min and max value of shift parameter
         roll_range(optional): min and max value of roll parameter
         with_lag(optional): if True optimized the data with lag columns
-        wind_damp(optional): if True, use fire feature version 2 
         mse(optional): if True, use MSE for the loss function, if False, use -r2_score.
+        n_jobs(optional): number of CPU
 
     Return: fire_dict fire dictionary
 
     """
 
     # check the baseline
-    _, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
+    _, *args = dataset.merge_fire(dataset.fire_dict, surface_damp=dataset.fire_deict['surface_damp'], wind_damp=dataset.fire_dict['wind_damp'], wind_lag=dataset.fire_dict['wind_lag'])
 
     if with_lag:
         print('optimize fire dict with lag columns')
@@ -228,6 +228,10 @@ def sk_op_fire(dataset,
         best_score = -r2_score(yval, model.predict(xval))
 
     best_fire_dict = dataset.fire_dict
+    damp_surface = best_fire_dict['damp_surface']
+    wind_damp = best_fire_dict['wind_damp']
+    wind_lag = best_fire_dict['wind_lag']
+
     print('old score', cal_scores(yval, model.predict(xval)), 'fire dict', best_fire_dict)
 
     print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
@@ -246,7 +250,7 @@ def sk_op_fire(dataset,
                      'shift': shift,
                      'roll': roll}
 
-        _, *args = dataset.merge_fire(fire_dict, wind_damp=wind_damp)
+        _, *args = dataset.merge_fire(fire_dict, damp_surface=damp_surface, wind_damp=wind_damp, wind_lag=wind_lag)
 
         if with_lag:
             dataset.data_org = dataset.data[[
@@ -278,7 +282,7 @@ def sk_op_fire(dataset,
     gp_result = gp_minimize(
         func=fit_with,
         dimensions=dimensions,
-        n_jobs=-2,
+        n_jobs=n_jobs,
         random_state=30)
 
     wind_speed, shift, roll = gp_result.x
@@ -289,7 +293,9 @@ def sk_op_fire(dataset,
         best_fire_dict = {
             'w_speed': float(wind_speed),
             'shift': int(shift),
-            'roll': int(roll)}
+            'roll': int(roll), 
+            'damp_surface': damp_surface, 
+            'wind_damp': wind_damp, 'wind_lag': wind_lag}
         print('new fire dict', best_fire_dict)
         if vis:
             plot_objective(gp_result)
@@ -298,6 +304,114 @@ def sk_op_fire(dataset,
             f'old fire parameter {best_score} is still better than optimized score ={score}')
 
     return best_fire_dict, gp_result
+
+def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
+                    20], shift_range: list = [-72,
+                     72], roll_range: list = [24,
+                    240], surface_range:list = [1, 4], mse=True, n_jobs=-2):
+    """Search for the best fire parameter using skopt optimization. This function search for possible of using wind_damp, wind_lag, and different damp_surface, which will take longer than sk_op_fire()
+
+    Args:
+        dataset: dataset object
+        model: model object
+        split_ratio: a list of spliting ratio for train and validation set 
+        wind_range(optional): min and max value of wind speed
+        shift_range(optional): min and max value of shift parameter
+        roll_range(optional): min and max value of roll parameter
+        surface_range(optional): min and max value of the damp_surface range 
+        mse(optional): if True, use MSE for the loss function, if False, use -r2_score.
+        n_jobs(optional): number of CPU
+    
+    Returns:
+        best_fire_dict: dictionary of the best fire parameter 
+        gp_result: gp_result object for visualization 
+
+    """
+    _, *args = dataset.merge_fire(dataset.fire_dict, surface_damp=dataset.fire_dict['surface_damp'], wind_damp=dataset.fire_dict['wind_damp'], wind_lag=dataset.fire_dict['wind_lag'])
+
+    # establish the baseline
+    x_cols = dataset.x_cols
+    dataset.split_data(split_ratio=split_ratio)
+    trn_index=dataset.split_list[0] 
+    val_index=dataset.split_list[1]
+    xtrn, ytrn, x_cols = dataset.get_data_matrix(use_index=trn_index, x_cols=x_cols)
+    xval, yval, _ = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+
+    model.fit(xtrn, ytrn)
+    if mse:
+        best_score = mean_squared_error(yval, model.predict(xval))
+    else:
+        best_score = -r2_score(yval, model.predict(xval))
+
+    # build search space
+    wind_speed = Real(low=wind_range[0], high=wind_range[1], name='wind_speed')
+    shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
+    roll = Integer(low=roll_range[0], high=roll_range[1], name='roll')
+    surface_damp = Real(low=surface_range[0], high=surface_range[1], name='surface_damp')
+    wind_damp = Categorical(categories=[True, False], name='wind_damp')
+    wind_lag = Categorical(categories=[True, False], name='wind_lag')
+
+    dimensions = [wind_speed, shift, roll, surface_damp, wind_damp, wind_lag]
+
+    print('optimizing fire parameter using skopt optimizer. This will take about 4 hours')
+    # setup the function for skopt
+    @use_named_args(dimensions)
+    def fit_with(wind_speed, shift, surface_damp. roll, wind_damp, wind_lag):
+        # function to return the score (smaller better)
+        fire_dict = {'w_speed': wind_speed,
+                        'shift': shift,
+                        'roll': roll, 
+                        'surface_damp':surface_damp,
+                    'wind_damp': wind_damp,
+                    'wind_lag': wind_lag}
+    
+        # delete old damped_fire feature 
+        try:
+            del dataset.damped_fire 
+        except:
+            pass 
+    
+        _, *args = dataset.merge_fire(fire_dict, surface_damp=surface_damp, wind_damp=wind_damp, wind_lag=wind_lag)
+
+        dataset.split_data(split_ratio=split_ratio)
+        trn_index=dataset.split_list[0] 
+        val_index=dataset.split_list[1]
+        xtrn, ytrn, x_cols = dataset.get_data_matrix(
+                    use_index=trn_index, x_cols=dataset.x_cols)
+        xval, yval, _ = dataset.get_data_matrix(
+                    use_index=val_index, x_cols=dataset.x_cols)
+
+        model.fit(xtrn, ytrn)
+        y_pred = model.predict(xval)
+        if mse:
+            return mean_squared_error(yval, y_pred)
+        else:
+            return -r2_score(yval, y_pred)
+    
+    gp_result = gp_minimize(func=fit_with, dimensions=dimensions, n_jobs=n_jobs, random_state=30)
+
+    # unpack the result 
+    wind_speed, shift, roll, surface_damp, wind_damp, wind_lag = gp_result.x
+    print('score for the best fire parameters', gp_result.fun)
+    score = gp_result.fun
+    if score < best_score:
+        print('mean_squared_error for the best fire parameters', gp_result.fun)
+        best_fire_dict = {
+            'w_speed': float(wind_speed),
+            'shift': int(shift),
+            'roll': int(roll), 
+            'surface_damp': surface_damp, 
+            'wind_damp': wind_damp, 
+            'wind_lag': wind_lag}
+        print('new fire dict', best_fire_dict)
+        if vis:
+            plot_objective(gp_result)
+    else:
+        print(
+            f'old fire parameter {best_score} is still better than optimized score ={score}')
+
+    return best_fire_dict, gp_result
+
 
 
 def op_lag(
@@ -309,7 +423,7 @@ def op_lag(
         120],
         step_range=[
             1,
-        25], mse=True):
+        25], mse=True, n_jobs=-2):
     """Search for the best lag parameters using skopt optimization
 
     Args:
@@ -319,6 +433,7 @@ def op_lag(
         lag_range(optional): min and max value of wind speed
         step_range(optional): min and max value of shift parameter
         mse(optional): if True, use MSE for the loss function, if False, use -r2_score
+        n_jobs(optional): number of CPUs
 
     Return: fire_dict fire dictionary
 
@@ -351,7 +466,7 @@ def op_lag(
     gp_result = gp_minimize(
         func=fit_with,
         dimensions=dimensions,
-        n_jobs=-2,
+        n_jobs=n_jobs,
         random_state=30)
     n_max, step = gp_result.x
     lag_dict = {'n_max': int(n_max),
@@ -361,6 +476,97 @@ def op_lag(
     print('new mean squared error', score, 'using', lag_dict)
 
     return lag_dict, gp_result
+
+def op_lag_fire(
+    dataset,
+    model,
+    split_ratio,
+    lag_range=[
+        2,
+        168],
+        step_range=[
+            1,
+            25],
+    wind_range: list = [
+        0.5,
+        20],
+    shift_range: list = [
+        -72,
+        72],
+    roll_range: list = [
+        24,
+        240], wind_damp=False, wind_lag=False, n_jobs=-2):
+    """Search for the best lag and fire parameters using skopt optimization
+
+    Args:
+        dataset: dataset object
+        model: model object
+        split_ratio: list of split ratio
+        lag_range(optional): min and max value of wind speed
+        step_range(optional): min and max value of shift parameter
+        wind_damp(optional): if True, use fire feature version 2 
+        wind_lag(optional): if True, use fire feature version 2 with wind time delay. 
+        n_jobs(optional): number of CPUs 
+
+    Return: fire_dict fire dictionary
+
+    """
+    # build search space
+    n_max = Integer(low=lag_range[0], high=lag_range[1], name='n_max')
+    step = Integer(low=step_range[0], high=step_range[1], name='step')
+
+    # build search space
+    wind_speed = Real(
+        low=wind_range[0],
+        high=wind_range[1],
+        name='wind_speed')
+    shift = Integer(low=shift_range[0], high=shift_range[1], name='shift')
+    roll = Integer(low=roll_range[0], high=roll_range[1], name='roll')
+
+    #roll = Categorical([True, False], name='roll')
+    dimensions = [n_max, step, wind_speed, shift, roll]
+
+    # setup the function for skopt
+    @use_named_args(dimensions)
+    def fit_with(n_max, step, wind_speed, shift, roll):
+        # function to return the score (smaller better)
+        fire_dict = {'w_speed': wind_speed,
+                     'shift': shift,
+                     'roll': roll}
+        _, *args = dataset.merge_fire(fire_dict, wind_damp=wind_damp, wind_lag=wind_lag )
+        dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
+
+        # function to return the score (smaller better)
+        dataset.build_lag(lag_range=np.arange(1, n_max, step), roll=True)
+        dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
+
+        dataset.split_data(split_ratio=split_ratio)
+        xtrn, ytrn, x_cols = dataset.get_data_matrix(
+            use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+        xval, yval, _ = dataset.get_data_matrix(
+            use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+        model.fit(xtrn, ytrn)
+        y_pred = model.predict(xval)
+
+        return mean_squared_error(yval, y_pred)
+
+    gp_result = gp_minimize(
+        func=fit_with,
+        dimensions=dimensions,
+        n_jobs=n_jobs,
+        random_state=30)
+    n_max, step, wind_speed, shift, roll = gp_result.x
+    lag_dict = {'n_max': int(n_max),
+                'step': int(step),
+                'roll': True}
+    fire_dict = {
+        'w_speed': int(wind_speed),
+        'shift': int(shift),
+        'roll': int(roll),  'wind_damp': wind_damp, 'wind_lag': wind_lag }
+    score = gp_result.fun
+    print('new mean squared error', score, 'using', lag_dict and fire_dict)
+
+    return lag_dict, fire_dict, gp_result
 
 
 def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
@@ -664,7 +870,7 @@ def train_city_s0(
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
         #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
-    except BaseException:
+    except:
         # custom feature of importance
         feat_imp = feat_importance(
             model, xtrn, ytrn, dataset.x_cols, n_iter=50)
@@ -741,8 +947,12 @@ class Trainer():
         self.poll_name = pollutant.replace('.', '')
         # load model meta to setup parameters
         model_meta = load_meta(self.dataset.model_folder + 'model_meta.json')
-        poll_meta = model_meta[pollutant]
-        self.poll_meta = poll_meta
+        if pollutant in model_meta:
+            poll_meta = model_meta[pollutant]
+            self.poll_meta = poll_meta
+        else:
+            self.get_default_meta()
+
         self.split_lists = poll_meta['split_lists']
         self.wind_damp = poll_meta['wind_damp']
 
@@ -754,6 +964,9 @@ class Trainer():
             cat_hour=poll_meta['cat_hour'],
             group_hour=poll_meta['group_hour'])
 
+        # number of CPUS
+        self.n_jobs = -2
+
     def op_rf(self, fire_dict=None):
         """Optimization 1&6: optimize for the best randomforest model
 
@@ -764,10 +977,10 @@ class Trainer():
 
         if fire_dict is None:
             # use default fire feature
-            self.fire_cols, *args = self.dataset.merge_fire(wind_damp=self.wind_damp)
+            self.fire_cols, *args = self.dataset.merge_fire( wind_damp=False, wind_lag=False)
         else:
             self.dataset.fire_dict = fire_dict
-            self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, wind_damp=self.wind_damp)
+            self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, wind_damp=fire_dict['wind_damp'], wind_lag=fire_dict['wind_lag'])
         
         # check x_cols attributes
         if not hasattr(self.dataset, 'x_cols'):
@@ -783,14 +996,21 @@ class Trainer():
 
         print('xtrn has shape', xtrn.shape)
 
-        self.model = do_rf_search(xtrn, ytrn, cv_split='other')
+        self.model = do_rf_search(xtrn, ytrn, cv_split='other', n_jobs=self.n_jobs)
         print('val score after op_rf',cal_scores(yval,self.model.predict(xval),header_str='val_'))
-        print('test score after op_rf', cal_scores(ytest, self.model.predict(xtest), header_str='test_'))
+        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
+        print('test score after op_rf', self.score_dict)
 
-    def op2_rm_cols(self):
+    def op2_rm_cols(self): 
         """ optimize 2: remove unncessary columns
+        
+        Raises:
+            AssertionError: if the self.model attribute doesn't exist. 
 
         """
+        if not hasattr(self, 'model'):
+            raise AssertionError('model not load, use self.op_rf(), or load the model')
+        
         importances = self.model.feature_importances_
         feat_imp = pd.DataFrame(
             importances,
@@ -808,25 +1028,42 @@ class Trainer():
         self.model, self.dataset.x_cols_org = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
 
-        
-
-    def op_fire(self, x_cols, mse=True):
+    def op_fire(self, x_cols, mse=True, search_wind_damp=False):
         """optimization 3: find the best fire feature before lag columns 
 
         Args:
             x_cols: data columns
             mse: if True, use mse for the loss function, if False, use -r2_score
 
+        Raises:
+            AssertionError: if the self.dataset.fire_dict attribute doesn't exist. 
+            AssertionError: if the self.model attribute doesn't exist. 
+
         """
+        # check attributes
+        if not hasattr(self, 'model'):
+            raise AssertionError('model not load, use self.op_rf(), or load the model')
+        if not hasattr(self.dataset, 'fire_dict'):
+            raise AssertionError('dataset object need fire_dict attribute, assign the default fire_dict first')
+
         self.dataset.x_cols = x_cols
-        # look for fire dict
-        self.dataset.fire_dict, gp_result = sk_op_fire(self.dataset, self.model, split_ratio=self.split_lists[0], wind_damp=self.wind_damp, mse=mse)
+        if search_wind_damp:
+            # look for fire dict using default wind_damp and wind_lag 
+            self.dataset.fire_dict, gp_result = sk_op_fire_w_damp(self.dataset, self.model, split_ratio=self.split_lists[0], mse=mse, n_jobs=self.n_jobs)
+        else:
+            # look for fire dict using default wind_damp and wind_lag 
+            self.dataset.fire_dict, gp_result = sk_op_fire(self.dataset, self.model, split_ratio=self.split_lists[0], mse=mse, n_jobs=self.n_jobs)
         # use the optimized columns 
-        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, wind_damp=self.wind_damp)
+        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, surface_damp=self.dataset.fire_deict['surface_damp'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
 
 
     def op4_lag(self):
         """optimization 4: improve model performance by adding lag columns and remove unncessary lag columns
+
+        Raises:
+            AssertionError: if the self.dataset.x_cols_org attribute doesn't exist. 
+            AssertionError: if the self.dataset.fire_dict attribute doesn't exist. 
+            AssertionError: if the self.model attribute doesn't exist. 
 
         """
         # check attributes
@@ -846,7 +1083,7 @@ class Trainer():
         # look for the best lag
          
         self.dataset.lag_dict, gp_result = op_lag(
-            self.dataset, self.model, split_ratio=self.split_lists[1])
+            self.dataset, self.model, split_ratio=self.split_lists[1], n_jobs=self.n_jobs)
         #dataset.lag_dict = {'n_max': 2, 'step': 5}
         self.dataset.build_lag(
             lag_range=np.arange(
@@ -868,9 +1105,10 @@ class Trainer():
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
         print('xtrn has shape', xtrn.shape)
         self.model.fit(xtrn, ytrn)
-        score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_')
+        score_dict   = cal_scores(yval, self.model.predict(xval), header_str='val_')
         print('op4 score', score_dict)
-        print('op4 test score',cal_scores(ytest,self.model.predict(xtest),header_str='test_'))
+        self.score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        print('op4 test score', self.score_dict)
 
         print('================= optimization 5: remove unncessary lag columns =================')
         importances = self.model.feature_importances_
@@ -905,19 +1143,15 @@ class Trainer():
         xtest, ytest, _ = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
 
-        self.model = do_rf_search(xtrn, ytrn,cv_split='other')
+        self.model = do_rf_search(xtrn, ytrn,cv_split='other', n_jobs=self.n_jobs)
         print(
             'val score after op6',
             cal_scores(
                 yval,
                 self.model.predict(xval),
                 header_str='val_'))
-        print(
-            'test score after op6',
-            cal_scores(
-                ytest,
-                self.model.predict(xtest),
-                header_str='test_'))
+        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
+        print('test score after op6', self.score_dict)
 
     def final_fit(self):
         """Merge train and validation data to perform the final fit
@@ -930,5 +1164,84 @@ class Trainer():
         xtest, ytest, _ = dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         self.model.fit(xtrn, ytrn)
-        score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
+        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         print('final score for test set', score_dict)
+    
+    def save_feat_imp(self, filename=None):
+        """Build feature of importance plots and save the plot as png file
+        
+        Args:
+            filename: if not None, save the plot as a filename  
+
+        """
+        # build feature of importance using build in rf
+        try:
+            importances = self.model.feature_importances_
+            feat_imp = pd.DataFrame(
+                importances,
+                index=self.dataset.x_cols,
+                columns=['importance'])
+            feat_imp = feat_imp.sort_values(
+                'importance', ascending=False).reset_index()
+            #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
+        except:
+            # custom feature of importance
+            xtrn, ytrn, dataset.x_cols = self.dataset.get_data_matrix(
+                use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
+            feat_imp = feat_importance(self.model, xtrn, ytrn, self.dataset.x_cols, n_iter=50)
+
+        # obtain feature of importance without lag
+        feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
+        feat_imp = feat_imp.groupby('index').sum()
+        feat_imp = feat_imp.sort_values(
+            'importance', ascending=False).reset_index()
+
+        show_fea_imp(feat_imp, filename=filename, title='')
+
+    def get_default_meta(self, **kwargs):
+        """Setup pollution meta dictionary and add as self.poll_meta attribute 
+
+        Args:
+            keywords arguments for overiding default poll_meta
+
+        """
+        poll_meta = {"rolling_win": 1, "cat_hour": False, "fill_missing": True, "group_hour": 1, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
+        poll_meta.update(kwargs)
+        poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface'= 2, 'wind_damp': False, 'wind_lag': False}
+
+        self.poll_meta = poll_meta
+
+    def update_poll_meta(self, **kwargs):
+        """Update self.poll_meta attribute 
+
+        """
+        try:
+            self.poll_meta.update({'x_cols_org': self.dataset.x_cols_org,
+            'x_cols': self.dataset.x_cols,
+            'fire_cols': self.fire_cols,
+            'fire_dict': self.dataset.fire_dict,
+            'lag_dict': self.dataset.lag_dict,
+            'rf_score': self.score_dict,
+            'rf_params': self.model.get_params(),
+            })
+        else:
+            pass
+
+        self.poll_meta.update(kwargs)
+
+    def save_meta(self):
+        """Save self.poll_meta 
+
+        """
+        model_meta[self.pollutant] = self.poll_meta
+        save_meta(self.dataset.model_folder + 'model_meta.json', model_meta)
+
+    def save_all(self):
+        """Save model meta, model file and dataset data 
+
+        """
+
+        self.save_meta()
+        self.dataset.save_()
+        pickle.dump(self.model, open( self.dataset.model_folder + f'{self.poll_name}_rf_model.pkl', 'wb'))
+
