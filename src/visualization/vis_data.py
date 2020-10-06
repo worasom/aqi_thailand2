@@ -102,7 +102,7 @@ def plot_season_avg(
         agg='max',
         color='blue',
         linestyle='solid',
-        linewidth=2):
+        linewidth=2, label=None):
     """Plot the average by date of year. Good for looking seasonal pattern.
 
     Args:
@@ -112,6 +112,7 @@ def plot_season_avg(
         plot_error: if True, use sns.lineplot to show the error
         roll: if True, calculate the rolling average or use daily average
         agg: either 'max' or 'mean'
+        label(optional): label word 
 
     """
     plt.rcParams.update({'font.size': 14})
@@ -139,6 +140,9 @@ def plot_season_avg(
 
     df, winter_day_dict = season_avg(
         poll_df, cols=[pollutant], roll=roll, agg=agg, offset=182)
+    
+    if label==None:
+        label=pollutant
 
     if plot_error:
         sns.lineplot(
@@ -147,14 +151,14 @@ def plot_season_avg(
             y=pollutant,
             ax=ax,
             legend='brief',
-            label=pollutant,
+            label=label,
             color=color)
 
     else:
         mean_day = df.groupby('winter_day').mean()[pollutant]
         ax.plot(
             mean_day,
-            label=pollutant,
+            label=label,
             color=color,
             linewidth=linewidth,
             linestyle=linestyle)
@@ -172,7 +176,6 @@ def plot_season_avg(
         '']
 
     ax.set_xticklabels(new_ticks)
-    ax.set_xlim([df['winter_day'].min(), df['winter_day'].max()])
     ax.legend()
     ax.set_xlabel('month-date')
     # plt.show()
@@ -499,8 +502,7 @@ def plot_season_aqi(
         ax.text(365, 175, ' unhealthy', horizontalalignment='left')
 
     poll_aqi = poll_to_aqi(poll_df, roll_dict)
-    winter_day_dict, mean_day = plot_season_avg(
-        poll_aqi, pollutant, ax, plot_error=True, roll=False)
+    winter_day_dict, mean_day = plot_season_avg(poll_aqi, pollutant, ax, plot_error=True, roll=False)
 
     ax.set_ylabel('AQI')
 
@@ -522,6 +524,8 @@ def plot_season_aqi(
 
     if filename:
         plt.savefig(filename)
+
+    return ax, winter_day_dict
 
 
 def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30'):

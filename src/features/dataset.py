@@ -631,7 +631,7 @@ class Dataset():
             # set self.fire_dict attribute 
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44, 'wind_damp': wind_damp, 'wind_lag': wind_lag }
+                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag }
                 self.fire_dict = fire_dict
 
             # check if has damped_fire attribute
@@ -651,7 +651,7 @@ class Dataset():
             # set self.fire_dict attribute
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44, 'wind_damp': wind_damp, 'wind_lag': wind_lag}
+                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag}
                 self.fire_dict = fire_dict
             # use raw fire data        
             fire_df = self.fire
@@ -670,7 +670,7 @@ class Dataset():
         data = data.dropna()
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
-        
+
         return fire_cols, self.zone_list
 
     def make_diff_col(self):

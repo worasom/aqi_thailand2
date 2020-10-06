@@ -58,7 +58,6 @@ def load_model(
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
     split_lists = poll_meta['split_lists']
-    wind_damp = poll_meta['wind_damp']
 
     # load model
     model = pickle.load(
@@ -81,7 +80,7 @@ def load_model(
         cat_hour=poll_meta['cat_hour'],
         group_hour=poll_meta['group_hour'])
     dataset.fire_dict = poll_meta['fire_dict']
-    fire_cols, zone_list = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
+    fire_cols, zone_list = dataset.merge_fire(dataset.fire_dict, damp_surface=dataset.fire_dict['damp_surface'], wind_damp=dataset.fire_dict['wind_damp'], wind_lag=dataset.fire_dict['wind_lag'])
 
     #print('\n fire_columns', fire_cols)
     # build lag_data

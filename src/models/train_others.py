@@ -100,9 +100,6 @@ def do_ln_search(
     return search.best_estimator_
 
 
-
-
-
 def get_nn_model(
         input_shape: int,
         output_shape: int,
