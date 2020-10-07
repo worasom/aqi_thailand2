@@ -401,12 +401,11 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
             'w_speed': float(wind_speed),
             'shift': int(shift),
             'roll': int(roll), 
-            'damp_surface': damp_surface, 
+            'damp_surface': float(damp_surface), 
             'wind_damp': wind_damp, 
             'wind_lag': wind_lag}
         print('new fire dict', best_fire_dict)
-        if vis:
-            plot_objective(gp_result)
+         
     else:
         print(
             f'old fire parameter {best_score} is still better than optimized score ={score}')
@@ -1263,3 +1262,51 @@ class Trainer():
                 open(self.dataset.model_folder +f'{self.poll_name}_rf_model.pkl', 'rb'))
         except:
             pass
+
+
+def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, op_fire_twice=False, main_data_folder: str = '../data/',
+        model_folder='../models/', report_folder='../reports/'):
+    """Training pipeline from process raw data, hyperparameter tune, and save model.
+
+    Args:
+        city: city name
+        pollutant(optional): pollutant name
+        n_jobs(optional): number of CPUs to use during optimization
+        default_meta(optional): if True, override meta setting with the default value 
+        search_wind_damp(optional): if True, search in four options of the fire features.
+        op_fire_twice(optiohnal): if True, optimize fire data after optimizing lag 
+        main_data_folder(optional): main data folder for initializing Dataset object [default:'../data/]
+        model_folder(optional): model folder  for initializing Dataset object [default:'../models/']
+        report_folder(optional): folder to save figure for initializing Dataset object [default:'../reports/']
+
+
+    Returns:
+        dataset: dataset object
+        model: model object
+        poll_meta(dict): parameter dictionary 
+
+    """
+    # initialize a trainer object
+    trainer = Trainer(city=city, pollutant=pollutant)
+    trainer.n_jobs = n_jobs
+
+    if default_meta:
+        trainer.get_default_meta()
+
+    print('=================optimize 1: find the best RF model=================')
+    trainer.op_rf(fire_dict=trainer.dataset.fire_dict)
+    print('=================optimize 2: remove unncessary columns=================')
+    trainer.op2_rm_cols()
+    print('================= optimization 3: find the best fire feature ===================')
+    trainer.op_fire(x_cols=trainer.dataset.x_cols_org, search_wind_damp=search_wind_damp)
+    print('================= optimization 4: improve model performance by adding lag columns =================')
+    trainer.op4_lag()
+    if op_fire_twice:
+        trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=False)
+    trainer.op6_rf()
+    trainer.final_fit()
+    trainer.save_feat_imp()
+    trainer.update_poll_meta()
+    trainer.save_all()
+
+    return trainer.dataset, trainer.model, trainer.poll_meta 
