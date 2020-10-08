@@ -37,19 +37,29 @@ def extract_vn_data(browser, wait_time=20):
     xpath_list = ['//*[@id="custom_datatable_1_paginate"]/ul/li[3]/a',
                   '//*[@id="custom_datatable_1_paginate"]/ul/li[4]/a']
     for xpath in xpath_list:
+        load_sucess = True
         try:
             # sometimes the page load slowly resulting in a crash. 
             # If the first attemp fail, try again.
             browser.find_elements_by_xpath(xpath)[0].click()
             time.sleep(wait_time)
         except:
-            browser.find_elements_by_xpath(xpath)[0].click()
-            time.sleep(wait_time)
-        # find number of pages to click
-        page = browser.page_source
-        soup = BeautifulSoup(page, features="lxml")
-        # read the first table
-        df.append(pd.read_html(str(soup))[3])
+            try:
+                time.sleep(wait_time)
+                browser.find_elements_by_xpath(xpath)[0].click()
+                time.sleep(wait_time)
+
+            except:
+                # if both tries fail, don't append any dataframe
+                load_sucess  = False
+
+        if load_sucess:
+            # find number of pages to click
+            page = browser.page_source
+            soup = BeautifulSoup(page, features="lxml")
+            # read the first table
+            df.append(pd.read_html(str(soup))[3])
+
 
     # reset the page to the original
     back_button = browser.find_elements_by_xpath(
