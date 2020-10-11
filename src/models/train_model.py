@@ -307,7 +307,7 @@ def sk_op_fire(dataset,
 def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
                     20], shift_range: list = [-72,
                      72], roll_range: list = [24,
-                    240], surface_range:list = [1, 4], mse=True, n_jobs=-2):
+                    240], surface_range:list = [1, 6], mse=True, n_jobs=-2):
     """Search for the best fire parameter using skopt optimization. This function search for possible of using wind_damp, wind_lag, and different damp_surface, which will take longer than sk_op_fire()
 
     Args:
@@ -660,7 +660,9 @@ def train_city_s0(
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
     split_lists = poll_meta['split_lists']
-    wind_damp = poll_meta['wind_damp']
+    wind_damp = False
+    wind_lag = False
+
 
     # load raw data
     dataset.load_()
@@ -681,7 +683,7 @@ def train_city_s0(
         fire_cols, *args = dataset.merge_fire(wind_damp=wind_damp)
     else:
         dataset.fire_dict = fire_dict
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp, wind_lag=False)
     dataset.monitor = dataset.pollutant = pollutant
 
     # . Optimization 1: optimize for the best randomforest model

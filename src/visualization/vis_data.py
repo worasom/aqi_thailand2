@@ -634,12 +634,14 @@ def plot_chem_print(
         plt.savefig(filename)
 
 
-def plot_yearly_ln(dataset, min_year=None, filename=None):
+def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', end_month='-04-30' ):
     """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.
 
     Args:
         dataset: dataset object with all data
         filename(optional): filename to save data
+        start_month: starting month of the season
+        end_month: ending month of the season
 
     """
     year_fire = cal_sea_yr(
@@ -660,7 +662,7 @@ def plot_yearly_ln(dataset, min_year=None, filename=None):
         colors = ['royalblue', 'red', 'orange']
 
     year_poll = cal_sea_yr(
-        dataset.poll_df.resample('d').mean().copy())[poll_col]
+        dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month)[poll_col]
     if min_year is None:
         min_year = year_fire.index.min()
 
