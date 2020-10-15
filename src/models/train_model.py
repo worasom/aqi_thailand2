@@ -660,8 +660,6 @@ def train_city_s0(
     model_meta = load_meta(dataset.model_folder + 'model_meta.json')
     poll_meta = model_meta[pollutant]
     split_lists = poll_meta['split_lists']
-    wind_damp = False
-    wind_lag = False
 
 
     # load raw data
@@ -683,7 +681,7 @@ def train_city_s0(
         fire_cols, *args = dataset.merge_fire(wind_damp=wind_damp)
     else:
         dataset.fire_dict = fire_dict
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp, wind_lag=False)
+        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
     dataset.monitor = dataset.pollutant = pollutant
 
     # . Optimization 1: optimize for the best randomforest model
@@ -954,16 +952,16 @@ class Trainer():
         else:
             self.get_default_meta()
 
-        self.split_lists = poll_meta['split_lists']
-        self.dataset.fire_dict = poll_meta['fire_dict']
+        self.split_lists = self.poll_meta['split_lists']
+        self.dataset.fire_dict = self.poll_meta['fire_dict']
 
         #build the first dataset only have to do this once 
         self.dataset.feature_no_fire(
             pollutant=pollutant,
-            rolling_win=poll_meta['rolling_win'],
-            fill_missing=poll_meta['fill_missing'],
-            cat_hour=poll_meta['cat_hour'],
-            group_hour=poll_meta['group_hour'])
+            rolling_win=self.poll_meta['rolling_win'],
+            fill_missing=self.poll_meta['fill_missing'],
+            cat_hour=self.poll_meta['cat_hour'],
+            group_hour=self.poll_meta['group_hour'])
 
         # number of CPUS
         self.n_jobs = n_jobs

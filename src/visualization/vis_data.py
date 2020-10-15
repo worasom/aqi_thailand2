@@ -475,7 +475,7 @@ def plot_season_aqi(
         roll_dict,
         pollutant,
         filename=None,
-        aqi_line=True):
+        aqi_line=True, aqi_text=True):
     """Plot average seasonal AQI value of a pollutant, and identify the high months.
 
     Args:
@@ -484,6 +484,7 @@ def plot_season_aqi(
         pollutant: pollutant value
         filename(optional): filename to save
         aqi_line(optional): if True, show horizontal aqi line
+        aqi_text(optional): if True, show aqi text
 
     """
     _, ax = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
@@ -496,6 +497,7 @@ def plot_season_aqi(
         ax.axhline(200, color='purple', linestyle='dashed')
         #ax.text(365, 100, ' moderate', horizontalalignment='left')
         #ax.text(365, 150, ' unhealthy', horizontalalignment='left')
+    if aqi_text:
         ax.text(365, 40, ' good', horizontalalignment='left')
         ax.text(365, 75, ' moderate', horizontalalignment='left')
         ax.text(365, 125, ' unhealthy(sen)', horizontalalignment='left')
