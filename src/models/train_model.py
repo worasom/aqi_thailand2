@@ -1003,6 +1003,8 @@ class Trainer():
         self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         print('test score after op_rf', self.score_dict)
 
+        self.save_model()
+
     def op2_rm_cols(self): 
         """ optimize 2: remove unncessary columns
         
@@ -1060,6 +1062,8 @@ class Trainer():
         # use the optimized columns 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
 
+        self.save_meta()
+         
 
     def op4_lag(self):
         """optimization 4: improve model performance by adding lag columns and remove unncessary lag columns
@@ -1133,6 +1137,8 @@ class Trainer():
         self.model, self.dataset.x_cols = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
 
+        self.save_meta()
+
     def op6_rf(self):
         """optimization 6: optimize for the best rf again
 
@@ -1156,6 +1162,8 @@ class Trainer():
                 header_str='val_'))
         self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         print('test score after op6', self.score_dict)
+        
+        self.save_all()
 
     def final_fit(self):
         """Merge train and validation data to perform the final fit
@@ -1242,6 +1250,13 @@ class Trainer():
         model_meta[self.pollutant] = self.poll_meta
         save_meta(self.dataset.model_folder + 'model_meta.json', model_meta)
 
+    def save_model(self):
+        """Save trained model 
+
+        """
+
+        pickle.dump(self.model, open( self.dataset.model_folder + f'{self.poll_name}_rf_model.pkl', 'wb'))
+
     def save_all(self):
         """Save model meta, model file and dataset data 
 
@@ -1249,7 +1264,8 @@ class Trainer():
 
         self.save_meta()
         self.dataset.save_()
-        pickle.dump(self.model, open( self.dataset.model_folder + f'{self.poll_name}_rf_model.pkl', 'wb'))
+        self.save_model()
+        
 
     def load_model(self):
         """Try to load the model if exist 
