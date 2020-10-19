@@ -765,7 +765,7 @@ def compare_seson_avg(
     return ax
 
 
-def plot_hour_avg(df, col, ax, color='blue'):
+def plot_hour_avg(df, col, ax, color='blue', label=None):
     """Plot average hourly behavior. Must have datetime index.
 
     Args:
@@ -779,6 +779,9 @@ def plot_hour_avg(df, col, ax, color='blue'):
     # add hour of day from the index.
     df['time_of_day'] = df.index.hour
 
+    if label==None:
+        label = col
+
     sns.lineplot(
         data=df,
         x='time_of_day',
@@ -786,10 +789,11 @@ def plot_hour_avg(df, col, ax, color='blue'):
         color=color,
         ax=ax,
         legend='brief',
-        label=col)
+        label=label)
     ax.set_ylabel(col)
     ax.set_xlabel('hour')
     #ax[2].set_title('hourly fire activities')
+    
     ax.legend(loc='upper left')
 
 

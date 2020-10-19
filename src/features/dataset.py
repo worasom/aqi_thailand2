@@ -487,7 +487,7 @@ class Dataset():
             rolling_win=24,
             fill_missing=False,
             cat_hour=False,
-            group_hour=2):
+            group_hour=2, cat_dayofweek=False):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data
@@ -500,6 +500,7 @@ class Dataset():
             fill_missing(optional): if True, fill the missing pollution data
             cat_hour(optional): if true, one hot encode the time_of_day column
             group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True
+            cat_dayofweek(optional): if true, one hot encode the day_of_week column
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -570,7 +571,10 @@ class Dataset():
             # one hot encode the time of day columns
             data = dummy_time_of_day(
                 data, col='time_of_day', group_hour=group_hour)
-
+        
+        if cat_dayofweek:
+            data['day_of_week'] = data['day_of_week'].astype("category")
+        
         try:
             data = data.astype(float)
         except BaseException:

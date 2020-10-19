@@ -162,7 +162,7 @@ def download_vn_data(
 
     Args:
         url: link to the data website
-        save_folder: folder to save the data to
+        save_folder: folder to save the data
 
     """
     # open the webpage and wait
@@ -234,6 +234,36 @@ def download_vn_data(
     return data, station_info_list
 
 
+def concat_vn_data(save_folder='../data/vn_epa/'):
+    """Concatenate all Vitenamese EPA data into a single file and drop duplicates items. 
+
+    Args:
+        save_folder: folder to save the data
+
+    """
+    # look for scraped csv files
+    old_files = glob(save_folder + '*.csv')
+    new_df = []
+    for file in old_files:
+        new_df.append(pd.read_csv(file))
+    
+    # put all the file together, drop duplicates and save 
+    new_df = pd.concat(new_df, ignore_index=True)
+    new_df = new_df.drop_duplicates(['datetime', 'station'])
+    print(f'new file length  {len(new_df)}')
+    # prepare filename and turn to absolute path
+    date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    filename = os.path.abspath(f'{save_folder}{date}.csv')
+    new_df.to_csv(filename, index=False)
+
+    # remove old files 
+    for file in old_files:
+        try:
+            os.remove(file)
+        except:
+            pass
+
 if __name__ == '__main__':
 
     download_vn_data(save_folder='../../data/vn_epa/')
+    concat_vn_data(save_folder='../../data/vn_epa/')

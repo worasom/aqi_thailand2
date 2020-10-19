@@ -113,3 +113,4 @@ target/
 /models/jakarta/
 /models/nakhon_si_thammarat/
 /models/*.json
+models/*

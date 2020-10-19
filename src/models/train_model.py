@@ -1004,6 +1004,8 @@ class Trainer():
         print('test score after op_rf', self.score_dict)
 
         self.save_model()
+        self.update_poll_meta(x_cols = self.dataset.x_cols, x_cols_org = self.dataset.x_cols)
+        self.save_meta()
 
     def op2_rm_cols(self): 
         """ optimize 2: remove unncessary columns
@@ -1031,6 +1033,9 @@ class Trainer():
         to_drop.reverse()
         self.model, self.dataset.x_cols_org = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
+
+        self.update_poll_meta(x_cols=self.dataset.x_cols, x_cols_org = self.dataset.x_cols)
+        self.save_meta()
 
     def op_fire(self, x_cols, mse=True, search_wind_damp=False, with_lag=False):
         """optimization 3: find the best fire feature before lag columns 
@@ -1062,6 +1067,7 @@ class Trainer():
         # use the optimized columns 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
 
+        self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict)
         self.save_meta()
          
 
@@ -1136,7 +1142,7 @@ class Trainer():
         to_drop.reverse()
         self.model, self.dataset.x_cols = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
-
+        self.update_poll_meta()
         self.save_meta()
 
     def op6_rf(self):
@@ -1162,7 +1168,7 @@ class Trainer():
                 header_str='val_'))
         self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         print('test score after op6', self.score_dict)
-        
+
         self.save_all()
 
     def final_fit(self):
@@ -1178,6 +1184,7 @@ class Trainer():
         self.model.fit(xtrn, ytrn)
         self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         print('final score for test set', self.score_dict)
+
     
     def save_feat_imp(self, filename=None):
         """Build feature of importance plots and save the plot as png file
@@ -1261,7 +1268,7 @@ class Trainer():
         """Save model meta, model file and dataset data 
 
         """
-
+        self.update_poll_meta()
         self.save_meta()
         self.dataset.save_()
         self.save_model()
@@ -1322,7 +1329,6 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
     trainer.op6_rf()
     trainer.final_fit()
     trainer.save_feat_imp()
-    trainer.update_poll_meta()
     trainer.save_all()
 
     return trainer.dataset, trainer.model, trainer.poll_meta 
