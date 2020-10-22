@@ -288,8 +288,6 @@ class Dataset():
 
         return data_list 
 
-    
-
     def build_pollution(self):
         """Collect all Pollution data from a different sources and take the average.
 
@@ -567,13 +565,21 @@ class Dataset():
         data = add_calendar_info(
             data, holiday_file=self.data_folder + 'holiday.csv')
 
+        # fix COVID shutdown for Bangkok
+        if self.city_name == 'Bangkok':
+            data.loc['2020-03-21':'2020-04-16','is_holiday'] = 1
+
         if cat_hour:
             # one hot encode the time of day columns
             data = dummy_time_of_day(
                 data, col='time_of_day', group_hour=group_hour)
         
         if cat_dayofweek:
-            data['day_of_week'] = data['day_of_week'].astype("category")
+            data = dummy_day_of_week(data)
+
+        # include traffic data if exist 
+        if hasattr(self,'traffic'):
+            data = data.merge(self.traffic, left_index=True, right_index=True, how='inner')
         
         try:
             data = data.astype(float)
@@ -922,9 +928,16 @@ class Dataset():
                 self.data['datetime'])
             self.data.set_index('datetime', inplace=True)
 
+        if os.path.exists(self.data_folder + 'traffic.csv'):
+            self.traffic = pd.read_csv(self.data_folder + 'traffic.csv')
+            self.traffic['datetime'] = pd.to_datetime(
+                self.traffic['datetime'])
+            self.traffic.set_index('datetime', inplace=True)
+
         if os.path.exists(self.data_folder + 'data.csv'):
             self.data = pd.read_csv(
                 self.data_folder + 'data.csv')
             self.data['datetime'] = pd.to_datetime(
                 self.data['datetime'])
             self.data.set_index('datetime', inplace=True)
+
