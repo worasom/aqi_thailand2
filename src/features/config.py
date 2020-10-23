@@ -19,6 +19,7 @@ def set_config(dataset):
                     'Bangkok': {'th_stations': ['02t', '03t', '05t', '11t', '12t', '50t', '52t', '53t', '59t', '61t']}, 
                     'Nakhon Si Thammarat': {'th_stations': ['42t', 'm3'], 
                                             'cmu_stations': [118]}, 
+                    'Nakhon Ratchasima': {'th_stations':['47t']},
                     'Hanoi': {'b_stations': ['Ha_Dong'], 'us_emb': True}, 
                     'Jakarta': {'us_emb': True}}
 
@@ -26,6 +27,7 @@ def set_config(dataset):
     zone_dict = {'Chiang Mai' : [0, 100, 200, 400, 700, 1000],
              'Bangkok':  [0, 100, 200, 400, 600, 800, 1000],
              'Nakhon Si Thammarat': [0, 200, 450,  1000],
+             'Nakhon Ratchasima': [0, 130, 300, 600, 1200],
             'Da Nang': [0, 75, 300, 700,  1000],
              'Hanoi': [0, 120, 400, 700, 1200], 
             'default': [0, 100, 200, 400, 800, 1000]
@@ -38,7 +40,8 @@ def set_config(dataset):
                  'Hanoi': 'Soc Son',
                  'Jakarta': 'East Jakarta',
                  'Da Nang': 'Hai Chau',
-                 'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat'}
+                 'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat',
+                 'Nakhon Ratchasima':'Chaloem Phra Kiat'}
       
 
     # cropping point to remove the earlier data 
