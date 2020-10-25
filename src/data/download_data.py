@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+# import os
+# import sys
+# PACKAGE_PARENT = '..//..'
+# SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+# sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
+
+
 from ..imports import *
 from .weather_data import *
 from selenium.webdriver.support.select import Select
@@ -345,20 +352,25 @@ def main(
         build_json: if True also build city information
 
     """
+    b_data_list = ['http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/', 
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Myanmar/',
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Singapore/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Laos/',
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Cambodia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Malaysia/']
+    
+    for url in b_data_list:
+        # gather all data for Thailand
+        download_b_data(
+            data_folder=f'{main_folder}pm25/',
+            url=url)
 
-    # gather all data for Thailand
-    download_b_data(
-        data_folder=f'{main_folder}pm25/',
-        url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/')
+    # print('\n Download Data for Vietnam')
+    # download_b_data(
+    # data_folder=f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/')
 
-    print('\n Download Data for Vietnam')
-    download_b_data(
-    data_folder=f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/')
-
-    print('\n Download Data for Jakarta')
-    download_province_data(
-        grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/',
-        data_folder=f'{main_folder}pm25/')
+    # print('\n Download Data for Jakarta')
+    # download_province_data(
+    #     grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/',
+    #     data_folder=f'{main_folder}pm25/')
 
     if build_json:
         # Build City info json for Berkeley Data
@@ -415,4 +427,4 @@ def main(
 
 if __name__ == '__main__':
 
-    main()
+    main(main_folder='../../data/', cdc_data=True, build_json=True)

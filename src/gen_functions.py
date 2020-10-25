@@ -81,7 +81,7 @@ def get_color(
             np.array,
             pd.core.series.Series) = None,
     color_length: int = None,
-        cmap=cm.Blues):
+        cmap=cm.jet):
     """Create a list of hex colormap for a series or for a specified length """
     if series:
         # colormap from a series

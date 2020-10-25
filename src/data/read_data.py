@@ -207,6 +207,10 @@ def parse_1xl_sheet(data_df):
     data_df.columns = data_df.columns.str.rstrip()
     data_df.columns = data_df.columns.str.lstrip()
     data_df.columns = data_df.columns.str.replace('ปี/เดือน/วัน', 'date')
+    data_df.columns = data_df.columns.str.replace('วัน/เดือน/ปี', 'date')
+    if 'date.1' in data_df.columns:
+        data_df['date'] = data_df['date'].fillna(data_df['date.1'])
+        data_df = data_df.drop('date.1', axis=1)
     data_df.columns = data_df.columns.str.replace('ชั่วโมง', 'hour')
     to_drops = data_df.columns[data_df.columns.str.contains('Unnamed')]
 
@@ -263,17 +267,24 @@ def read_cmucdc(filename:str)->pd.DataFrame:
         data dataframe
         
     """
-    # read data
-    df = pd.read_csv(filename)
-    # replace the pollution name with our convention
-    col_dict = {'log_datetime':'datetime',
-        'pm10':'PM10',
-        'pm25':'PM2.5'}
-    # rename the columns
-    df = df.rename(columns=col_dict)
-    df['datetime'] = pd.to_datetime(df['datetime'])
+    try:
+        # read data
+        df = pd.read_csv(filename)
+        # replace the pollution name with our convention
+        col_dict = {'log_datetime':'datetime',
+            'pm10':'PM10',
+            'pm25':'PM2.5'}
+        # rename the columns
+        df = df.rename(columns=col_dict)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        
+    except:
+        # exmpty data return an empty dataframe 
+        df = pd.DataFrame(columns = ['datetime','PM10', 'PM2.5'])
+
     # drop temperature and humidity columns 
     cols = [ col for col in df.columns if col in ['datetime','PM10', 'PM2.5']]
+    
     return df[cols]
 
 

@@ -140,25 +140,28 @@ class Dataset():
 
         # if filename exist load that file
         if len(filenames) > 0:
-
             save_filename = folder + 'process/' + station_id + '.csv'
 
             if not os.path.exists(folder + 'process/'):
                 os.mkdir(folder + 'process/')
-            print('save data as', save_filename)
-
+        
             station_data = []
             for f in filenames:
                 try:
                     station_data.append(read_his_xl(f))
                 except BaseException:
                     pass
-
-            station_data = pd.concat(station_data).drop_duplicates()
-
+            if len(station_data) > 0:
+                station_data = pd.concat(station_data).drop_duplicates()
+            else:
+                print('cannot parse data from station', station_id)
             # save the data if the dataframe is not empty
             if len(station_data) > 0:
-                station_data.to_csv(save_filename, index=True)
+                print('save data as', save_filename)
+                station_data.to_csv(save_filename, index=True)     
+
+        else:
+            print( 'not data file for station', station_id)           
 
     def merge_new_old_pollution(
             self,
@@ -214,24 +217,32 @@ class Dataset():
                 old_data = pd.DataFrame()
 
             # read data parse from the website
-            new_data = pd.read_csv(
-                f'{self.main_folder}{new_folder}' +
-                station_id +
-                '.csv',
-                na_values='-')
-            new_data['datetime'] = pd.to_datetime(new_data['datetime'])
+            try:
+                new_data = pd.read_csv(
+                    f'{self.main_folder}{new_folder}' +
+                    station_id +'.csv',
+                    na_values='-')
+            except:
+                new_data = pd.DataFrame()
+            
+            else:
+                new_data['datetime'] = pd.to_datetime(new_data['datetime'])
+                new_data = new_data.set_index('datetime')
+                new_data.columns = [s.split(' (')[0] for s in new_data.columns]
+                # keep only the gas columns
+                new_data = new_data[self.gas_list]
 
-            new_data = new_data.set_index('datetime')
-            new_data.columns = [s.split(' (')[0] for s in new_data.columns]
-            # keep only the gas columns
-            new_data = new_data[self.gas_list]
             # concatinate data and save
             data = pd.concat([old_data, new_data])
             data = data.sort_index()
             data = data[~data.index.duplicated(keep='first')]
             filename = self.data_folder + station_id + '.csv'
-            print('save file', filename)
-            data.to_csv(filename)
+            
+            if len(data) > 0:
+                print('save file', filename)
+                data.to_csv(filename)
+            else:
+                print( 'no old and new data for station', station_id)
 
     def collect_stations_data(self):
         """Collect all Pollution data from a different sources and take the average.

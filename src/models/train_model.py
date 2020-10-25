@@ -1108,7 +1108,7 @@ class Trainer():
          
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant)
 
-        print('x_cols', self.dataset.x_cols)
+        #print('x_cols', self.dataset.x_cols)
         # see the scores after the lag columns are added
         self.dataset.split_data(split_ratio=self.split_lists[1])
         xtrn, ytrn, self.dataset.x_cols = self.dataset.get_data_matrix(
@@ -1186,7 +1186,7 @@ class Trainer():
         print('final score for test set', self.score_dict)
 
     
-    def save_feat_imp(self, filename=None):
+    def save_feat_imp(self, filename=None, title=''):
         """Build feature of importance plots and save the plot as png file
         
         Args:
@@ -1215,7 +1215,7 @@ class Trainer():
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
 
-        show_fea_imp(feat_imp, filename=filename, title='')
+        show_fea_imp(feat_imp, filename=filename, title=title)
 
     def get_default_meta(self, **kwargs):
         """Setup pollution meta dictionary and add as self.poll_meta attribute 
@@ -1224,7 +1224,7 @@ class Trainer():
             keywords arguments for overiding default poll_meta
 
         """
-        poll_meta = {"rolling_win": 1, "cat_hour": False, "fill_missing": True, "group_hour": 1, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
+        poll_meta = {"rolling_win": 1, "cat_hour": True, "fill_missing": True, "group_hour": 2, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
         poll_meta.update(kwargs)
         poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface': 2, 'wind_damp': False, 'wind_lag': False}
 
@@ -1328,7 +1328,7 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
         trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=False)
     trainer.op6_rf()
     trainer.final_fit()
-    trainer.save_feat_imp()
+    trainer.save_feat_imp(filename=trainer.dataset.report_folder + f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
     trainer.save_all()
 
-    return trainer.dataset, trainer.model, trainer.poll_meta 
+    return trainer.dataset, trainer.model, trainer.poll_meta, trainner 

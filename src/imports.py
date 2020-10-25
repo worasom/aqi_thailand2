@@ -10,6 +10,7 @@ import scipy
 import pandas as pd
 import swifter
 import matplotlib.pyplot as plt
+import seaborn as sns
 import matplotlib.dates as mdates
 from textwrap import fill
 from math import ceil
@@ -38,7 +39,7 @@ from bokeh.models import (Span, Div, Label,
                           GMapPlot,
                           GMapOptions,
                           ColumnDataSource,
-                          Circle,
+                          Circle, InvertedTriangle, 
                           LogColorMapper,
                           BasicTicker,
                           ColorBar,
