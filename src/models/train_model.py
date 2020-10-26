@@ -128,7 +128,7 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
     trn_index = dataset.split_list[trn_i]
     val_index = dataset.split_list[val_i]
 
-    for col in to_drop:
+    for col in tqdm(to_drop):
 
         xtrn, ytrn, x_cols = dataset.get_data_matrix(
             use_index=trn_index, x_cols=x_cols)
@@ -963,6 +963,9 @@ class Trainer():
             cat_hour=self.poll_meta['cat_hour'],
             group_hour=self.poll_meta['group_hour'])
 
+        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
+
+
         # number of CPUS
         self.n_jobs = n_jobs
         # load model
@@ -982,7 +985,7 @@ class Trainer():
             self.fire_cols, *args = self.dataset.merge_fire( wind_damp=False, wind_lag=False)
         else:
             self.dataset.fire_dict = fire_dict
-            self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=fire_dict['damp_surface'], wind_damp=fire_dict['wind_damp'], wind_lag=fire_dict['wind_lag'])
+            self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
         
         # check x_cols attributes
         if not hasattr(self.dataset, 'x_cols'):

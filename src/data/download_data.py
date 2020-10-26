@@ -324,10 +324,11 @@ def download_cdc_data(
 
 def download_us_emb_data(
         data_folder: str = '../data/us_emb/',
-        year: int = None, city_list= ['Hanoi', 'JakartaSouth', 'JakartaCentral', 'HoChiMinhCity']):
+        year: int = None, city_list= ['Hanoi', 'JakartaSouth', 'JakartaCentral', 'HoChiMinhCity', 'Vientiane', 'Rangoon']):
     """Download pollution data taken at the US Embabby in Hanoi and Jakata
 
     """
+    
     if year is None:
         year = datetime.now().year
 
@@ -339,6 +340,14 @@ def download_us_emb_data(
             os.remove(filename)
         url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_YTD.csv'
         wget.download(url, filename)
+
+        if city == 'Rangoon':
+            filename = f'{data_folder}{city}_OZONE_{year}_YTD.csv'
+            if os.path.exists(filename):
+                os.remove(filename)
+            url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_OZONE_{year}_YTD.csv'
+            wget.download(url, filename)
+
 
 
 def main(
