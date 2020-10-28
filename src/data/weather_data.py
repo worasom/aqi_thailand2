@@ -90,9 +90,25 @@ def convert_pressure_col(data_df, pressure_col):
             data_series = data_df[col].copy()
             data_series = data_series.str.replace('in', '')
             data_series = data_series.astype(float)
+            # convert the value to hPa
+            data_series = (data_series * 33.8638).round(0)
             data_df[col] = data_series
-            data_df.columns = data_df.columns.str.replace(col, col + '(in)')
+            data_df.columns = data_df.columns.str.replace(col, col + '(hPa)')
 
+    return data_df
+
+def convert_precip_col(data_df, precip_col):
+    # convert string precipitation in 'inch' to float and change unit
+    for col in precip_col:
+        if col in data_df.columns:
+            data_series = data_df[col].copy()
+            data_series = data_series.str.replace('in', '')
+            data_series = data_series.astype(float)
+            # convert the value to hPa
+            data_series = (data_series * 25.4).round(2)
+            data_df[col] = data_series
+            data_df.columns = data_df.columns.str.replace(col, col + '(mm)')
+    
     return data_df
 
 
@@ -114,12 +130,14 @@ def convert_unit(data_df):
     # convert temperature wand windspeed into metric system
     temperature_col = ['Temperature', 'Dew Point']
     wind_col = ['Wind Speed', 'Wind Gust']
-    pressure_col = ['Pressure', 'Precip.']
+    pressure_col = ['Pressure']
     humidity_col = ['Humidity']
+    precip_col =  ['Precip.']
     data_df = convert_temp_col(data_df, temperature_col)
     data_df = convert_wind_col(data_df, wind_col)
     data_df = convert_pressure_col(data_df, pressure_col)
     data_df = convert_humidity_col(data_df, humidity_col)
+    data_df = convert_precip_col(data_df, precip_col)
     return data_df
 
 
@@ -197,6 +215,17 @@ def fix_temperature(df, lowest_t: int = 5, highest_t: int = 65):
     return df
 
 
+def fix_pressure(df, lowest_t: int = 170, highest_t: int = 1500):
+    # remove abnormal tempearture reading from weather data
+
+    idx = df[df['Pressure(hPa)'] < lowest_t].index
+    df.loc[idx, ['Pressure(hPa)']] = np.nan
+    
+    idx = df[df['Pressure(hPa)'] > highest_t].index
+    df.loc[idx, ['Pressure(hPa)']] = np.nan
+    
+    return df
+
 def fill_missing_weather(df, limit: int = 12):
     # make the timestamp to be 30 mins interval. Fill the missing value
     # roud datetiem to whole 30 mins
@@ -262,8 +291,9 @@ def update_weather(
         if len(new_weather) > 0:
             # fix bad temperature data and missing timestamp
             new_weather = fix_temperature(new_weather)
+            new_weather = fix_pressure(new_weather)
             new_weather = fill_missing_weather(new_weather)
-
+            
             # merge to existing value
             df = pd.concat([df, new_weather], ignore_index=True)
             df = df.sort_values('datetime')
@@ -292,8 +322,8 @@ def proc_open_weather(wea_df):
                     'temp': 'Temperature(C)',
                     'wind_deg': 'Wind',
                     'wind_speed': 'Wind Speed(kmph)',
-                    'pressure': 'Pressure(in)',
-                    'rain_3h': 'Precip.(in)',
+                    'pressure': 'Pressure(hPa)',
+                    'rain_3h': 'Precip.(mm)',
                     'weather_main': 'Condition'}
     degree_to_direction = {1: 'N',
                            2: 'NNE',
@@ -317,18 +347,18 @@ def proc_open_weather(wea_df):
     wea_df = wea_df.rename(columns=replace_dict)
     # keep only the column exist in underground weather website
     keep_cols = ['datetime', 'Time', 'Temperature(C)', 'Humidity(%)',
-                 'Wind', 'Wind Speed(kmph)', 'Pressure(in)',
-                 'Precip.(in)', 'Condition']
+                 'Wind', 'Wind Speed(kmph)', 'Pressure(hPa)',
+                 'Precip.(mm)', 'Condition']
     wea_df = wea_df[keep_cols]
 
     # convert Wind speed from meter/sec to kmph
     wea_df['Wind Speed(kmph)'] *= 3.6
     # convert Pressure from hpa to in
-    wea_df['Pressure(in)'] *= 0.02953
+    #wea_df['Pressure(in)'] *= 0.02953
 
     # convert Precip from mm to inch and fill zero
-    wea_df['Precip.(in)'] *= 0.0393701
-    wea_df['Precip.(in)'] = wea_df['Precip.(in)'].fillna(0)
+    #wea_df['Precip.(in)'] *= 0.0393701
+    wea_df['Precip.(mm)'] = wea_df['Precip.(mm)'].fillna(0)
 
     wea_df['Wind'] = (
         wea_df['Wind'] /

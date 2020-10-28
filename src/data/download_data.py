@@ -332,7 +332,7 @@ def download_us_emb_data(
     if year is None:
         year = datetime.now().year
 
-    print(f'\n Download us embassy data for Hanoi and Jakata for {year}')
+    print(f'\n Download us embassy data in ASEAN for {year}')
 
     for city in city_list:
         filename = f'{data_folder}{city}_PM2.5_{year}_YTD.csv'

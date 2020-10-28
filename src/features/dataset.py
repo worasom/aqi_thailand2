@@ -167,7 +167,7 @@ class Dataset():
             self,
             station_ids: list,
             hist_folders: str = ['aqm_hourly2/', 'aqm_hourly3/'],
-            new_folder='air4thai_hourly/',
+            new_folder='air4thai_hourly/', save_folder='aqm_hourly_final/',
             parse=False):
         """Merge Thai pollution data from the station in station_ids list from two folders: the historical data folder and new data folder.
 
@@ -236,7 +236,7 @@ class Dataset():
             data = pd.concat([old_data, new_data])
             data = data.sort_index()
             data = data[~data.index.duplicated(keep='first')]
-            filename = self.data_folder + station_id + '.csv'
+            filename = f'{self.main_folder}{save_folder}' + station_id + '.csv'
             
             if len(data) > 0:
                 print('save file', filename)
@@ -271,7 +271,7 @@ class Dataset():
             self.merge_new_old_pollution(station_ids)
             # load the file
             for station_id in station_ids:
-                filename = self.data_folder + station_id + '.csv'
+                filename = self.main_folder + 'aqm_hourly_final/' + station_id + '.csv'
                 data = pd.read_csv(filename)
                 data['datetime'] = pd.to_datetime(data['datetime'])
                 data_list.append(data)
@@ -429,9 +429,18 @@ class Dataset():
                 filename.replace(' ', '_') + '.csv'
             wea = pd.read_csv(filename)
             wea = fill_missing_weather(wea, limit=12)
+            number_cols = ['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)', 'Precip.(mm)', 'Pressure(hPa)']
+            # for col in number_cols:
+            #     # remove outliers from the data 
+            #     #q_hi = wea[col].quantile(0.99)
+            #     q_low = wea[col].quantile(0.01)
+            #     idxs = wea[ (wea[col] < q_low)].index
+            #     wea.loc[idxs, col] = np.nan
+            wea = fix_temperature(wea)
+            wea = fix_pressure(wea)
+            wea = fill_missing_weather(wea)
             # round the weather data
-            wea[['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']] = wea[[
-            'Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)']].round()
+            wea[number_cols] = wea[number_cols].round()
 
             self.wea = wea
         else:
@@ -914,9 +923,7 @@ class Dataset():
             try:
                 self.wea.drop(['Time',
                                'Dew Point(C)',
-                               'Wind Gust(kmph)',
-                               'Pressure(in)',
-                               'Precip.(in)'],
+                               'Wind Gust(kmph)'],
                               axis=1,
                               inplace=True)
             except BaseException:
