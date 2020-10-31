@@ -197,7 +197,7 @@ def download_vn_data(
                  'Gia Lai': 'Gia Lai',
                  'Cao Bằng': 'Cao Bang'}
 
-    data = []
+    data = pd.DataFrame()
     station_info_list = []
 
     for station in tqdm(station_list):
@@ -212,18 +212,20 @@ def download_vn_data(
         station_info['city'] = city_name
         station_info_list.append(station_info)
 
-        # extract data
-        df = extract_vn_data(browser, wait_time=20)
-        df['city'] = city_name
-        df['station'] = station
-        #print(station, 'has data len ', len(df))
-        data.append(df)
+        try: # extract data
+            df = extract_vn_data(browser, wait_time=20)
+        except:
+            pass
+        else:
+            df['city'] = city_name
+            df['station'] = station
+            #print(station, 'has data len ', len(df))
+            data = pd.concat([data, df], ignore_index=True)
+            data.to_csv(filename, index=False)
 
     browser.close()
 
-    station_len = len(df)
-    #print('the last station has len', station_len )
-    data = pd.concat(data, ignore_index=True)
+    #data = pd.concat(data, ignore_index=True)
     print('the total data has len', len(data))
     print('save file as ', filename)
     data.to_csv(filename, index=False)

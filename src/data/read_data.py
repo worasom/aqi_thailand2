@@ -52,34 +52,59 @@ def build_us_em_data(city_name: str, data_folder: str = '../data/us_emb/'):
     """Combine the pollution data from US Embassy monitoring station for the city. Return a list of pollution dataframe.
 
     """
-    if city_name not in ['Hanoi', 'Jakarta']:
-        raise AssertionError(f'no data for {city_name}')
-
+     
     if city_name == 'Jakarta':
         name_list = ['JakartaCentral', 'JakartaSouth']
-    else:
+    elif city_name == 'Rangoon':
+        name_list = ['Rangoon']
+    elif city_name == ['Vientiane']:
+        name_list = ['Vientiane']
+    elif city_name =='Ho Chi Minh City':
+        name_list = ['HoChiMinhCity']
+    elif city_name =='JakartaCentral':
+        name_list = ['JakartaCentral']
+    elif city_name == 'JakartaSouth':
+        name_list = ['JakartaSouth']
+    elif city_name =='Hanoi':
         name_list = ['Hanoi']
+    else:
+        raise AssertionError(f'no data for {city_name}')
 
     data_list = []
 
     for name in name_list:
-        files = glob(f'{data_folder}{name}*.csv')
-
+        files = glob(f'{data_folder}{name}_*.csv')
+    
         data = pd.DataFrame()
         # concatenate all data
         for file in files:
             df = pd.read_csv(file, na_values=[-999])
+            df.columns = df.columns.str.replace('Raw Conc.', 'Value')
+            #remove negative number 
+            idxs = df[df['Value'] < 0].index
+            df.loc[idxs, 'Value'] = np.nan
             data = pd.concat([data, df])
         # format the data
         data['Parameter'] = data['Parameter'].str.split(' - ', expand=True)[0]
         data['datetime'] = pd.to_datetime(data['Date (LT)'])
         data = data.sort_values('datetime')
-        data = data.drop_duplicates('datetime')
+        data = data.drop_duplicates(['datetime','Parameter'])
         data = data.pivot(
             columns='Parameter',
             values='Value',
             index='datetime').reset_index()
-        data = data.dropna()
+        data = data.dropna(how='all')
+
+        # remove outlier from the data 
+        data = data.set_index('datetime')
+        for col in data.columns:
+            q_high = data[col].quantile(0.9999)
+            if city_name == 'Jakarta':
+                q_high = 300
+            idxs = data[data[col] > q_high].index
+            data.loc[idxs, col] = np.nan
+        data = data.reset_index()
+        
         data_list.append(data)
 
     return data_list

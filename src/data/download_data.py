@@ -331,9 +331,10 @@ def download_us_emb_data(
     
     if year is None:
         year = datetime.now().year
+        month = datetime.now().month
 
     print(f'\n Download us embassy data in ASEAN for {year}')
-
+    
     for city in city_list:
         filename = f'{data_folder}{city}_PM2.5_{year}_YTD.csv'
         if os.path.exists(filename):
@@ -341,11 +342,23 @@ def download_us_emb_data(
         url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_YTD.csv'
         wget.download(url, filename)
 
+        filename = f'{data_folder}{city}_PM2.5_{year}_{month}_MTD.csv'
+        if os.path.exists(filename):
+            os.remove(filename)
+        url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_{month}_MTD.csv'
+        wget.download(url, filename)
+
         if city == 'Rangoon':
             filename = f'{data_folder}{city}_OZONE_{year}_YTD.csv'
             if os.path.exists(filename):
                 os.remove(filename)
             url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_OZONE_{year}_YTD.csv'
+            wget.download(url, filename)
+
+            filename = f'{data_folder}{city}_OZONE_{year}_{month}_MTD.csv'
+            if os.path.exists(filename):
+                os.remove(filename)
+            url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_OZONE_{year}_{month}_MTD.csv'
             wget.download(url, filename)
 
 

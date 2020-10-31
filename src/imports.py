@@ -62,7 +62,6 @@ from bokeh.models.tickers import FixedTicker
 from bokeh.palettes import Viridis5
 from bokeh.plotting import figure, show, output_file
 from bokeh.layouts import widgetbox, row, column, gridplot
-from mpl_toolkits.basemap import Basemap
 from bokeh.tile_providers import get_provider, Vendors
 import geopandas as gpd
 import fiona
