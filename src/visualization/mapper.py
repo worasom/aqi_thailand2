@@ -647,7 +647,7 @@ class Mapper():
         if peak:
             # extract pollution arr
             poll_arr = self.avg_polldata[self.pollutant].values
-            peaks, peak_dict = find_peaks(poll_arr,distance=4, prominence=1)
+            peaks, peak_dict = find_peaks(poll_arr,distance=4, prominence=2)
             self.data_samples = self.avg_polldata.iloc[peaks]
         else:
             idxs = pd.date_range(start_date, end_date, freq=freq) 
@@ -684,7 +684,7 @@ class Mapper():
         for file in files:
             os.remove(file)
 
-    def build_ani_images(self, start_date, end_date, pollutant, fire=[], delete=False):
+    def build_ani_images(self, start_date, end_date, pollutant, add_title='', fire=[], delete=False):
         """Make and save animation images for building gif file 
 
         Return: list
@@ -694,7 +694,7 @@ class Mapper():
         if delete:
             self.delete_old_images()
 
-        title =  f'{self.pollutant} map from {start_date} to {end_date}'   
+        title =  f'{self.pollutant} map from {start_date} to {end_date}' + add_title  
         # set colorbar
         self.set_pollutant_cbar(pollutant=pollutant)
         
@@ -724,13 +724,14 @@ class Mapper():
 
         return filenames
 
-    def make_ani(self, start_date, end_date, pollutant, peak=True, fire=[], freq=None, delete=False, duration=1):
+    def make_ani(self, start_date, end_date, pollutant, add_title='', peak=True, fire=[], freq=None, delete=False, duration=1):
         """ Create pollution map for each datasample date, save and used it to construct gif animation.
 
         Args:
             start_date:
             end_date:
             pollution: 
+            add_title: 
             peak 
             freq:
             delete: if True, delete old png file before building a new one
@@ -751,7 +752,7 @@ class Mapper():
         self.set_pollutant_cbar(pollutant=pollutant)
         # get datasamples
         self.get_datasamples(start_date, end_date, peak=peak, freq=freq) 
-        filenames = self.build_ani_images(start_date, end_date, pollutant, fire=fire, delete=delete)
+        filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, delete=delete)
         
         # create a gif showing pollution level for each month
         images = []
