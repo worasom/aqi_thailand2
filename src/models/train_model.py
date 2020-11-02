@@ -913,9 +913,9 @@ class Trainer():
         n_jobs(optional): number of CPUs to use during optimization
 
     Attributes:
-        Dataset
-        pollutant
-        poll_name
+        Dataset: dataset object
+        pollutant(str): pollutant type 
+        poll_name(str): simplified pollutant name for saving file 
         poll_meta
         split_lists
         wind_damp

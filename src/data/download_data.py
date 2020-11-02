@@ -117,6 +117,12 @@ def update_last_air4Thai(
 
     browser.close()
 
+    # update json file 
+    station_name  = data_folder + 'station_info.json'
+    if os.path.exists(station_name):
+        os.remove(station_name)
+    wget.download('http://air4thai.pcd.go.th/services/getNewAQI_JSON.php', station_name)
+
 
 def get_station_data_save(
         url,

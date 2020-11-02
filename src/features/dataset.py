@@ -161,7 +161,7 @@ class Dataset():
                 station_data.to_csv(save_filename, index=True)     
 
         else:
-            print( 'not data file for station', station_id)           
+            print( 'no data file for station', station_id, 'in folder', folder)           
 
     def merge_new_old_pollution(
             self,
@@ -239,7 +239,7 @@ class Dataset():
             filename = f'{self.main_folder}{save_folder}' + station_id + '.csv'
             
             if len(data) > 0:
-                print('save file', filename)
+                #print('save file', filename)
                 data.to_csv(filename)
             else:
                 print( 'no old and new data for station', station_id)

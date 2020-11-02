@@ -8,6 +8,7 @@ import json
 import numpy as np
 import scipy
 from scipy.interpolate import Rbf
+from scipy.signal import find_peaks
 import pandas as pd
 import swifter
 import matplotlib.pyplot as plt
@@ -34,9 +35,9 @@ from selenium import webdriver
 import time
 from datetime import datetime, date, timedelta
 
-
+import matplotlib.image as mpimg
 from bokeh.io import output_file, output_notebook, show, reset_output, export_png
-from bokeh.models import (Span, Div, Label,
+from bokeh.models import (Span, Div, Label, Title,
                           GMapPlot,
                           GMapOptions,
                           ColumnDataSource,

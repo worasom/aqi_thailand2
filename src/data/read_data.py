@@ -57,7 +57,7 @@ def build_us_em_data(city_name: str, data_folder: str = '../data/us_emb/'):
         name_list = ['JakartaCentral', 'JakartaSouth']
     elif city_name == 'Rangoon':
         name_list = ['Rangoon']
-    elif city_name == ['Vientiane']:
+    elif city_name == 'Vientiane':
         name_list = ['Vientiane']
     elif city_name =='Ho Chi Minh City':
         name_list = ['HoChiMinhCity']

@@ -1,4 +1,6 @@
 from .imports import *
+from bokeh.models import Title
+
 """ Unit conversion function
 
 """
@@ -348,3 +350,15 @@ def get_circle(x_cen, y_cen, r, num_data=100):
     x_arr = x_cen + r * np.cos(angle)
     y_arr = y_cen + r * np.sin(angle)
     return np.array([x_arr, y_arr])
+
+
+def wmark_bokeh(p, text='https://github.com/worasom/aqi_thailand2'):
+    """Adding watermark to bokeh plot
+
+    Args:
+        p: bokeh figure object
+        text(optional): text to add 
+
+    """
+
+    p.add_layout(Title(text=text, align="right", text_color='grey',text_font_size='11px',text_font_style='italic'), "below")
