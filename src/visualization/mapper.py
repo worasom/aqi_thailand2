@@ -33,7 +33,7 @@ class Mapper():
         'PM10': [0, 155, 254, 354, 424, 504, 604, 1e3], 
         'O3': [0, 54, 70, 85, 105, 200, 1e3], 
         'SO2': [0, 75, 185, 304, 504, 604, 1e3], 
-        'NO2': [0, 53, 100, 360, 649, 1249, 2049, 1e3], 
+        'NO2': [0, 53, 100, 360, 649, 1249, 2049, 1e4], 
         'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]} 
 
     def __init__(self,main_folder: str = '../data/', report_folder='../reports/', n_jobs=-2):
@@ -361,10 +361,10 @@ class Mapper():
         self.center_city = center_city
         map_dict = { 'city_x': row['long_m'].values[0].round(2),
                      'city_y': row['lat_m'].values[0].round(2),
-                        'stepx': 4E5,
-                        'stepy': 4E5,
+                        'stepx': 5E5,
+                        'stepy': 5E5,
                         'xmap_range': [0.8, 1.2],
-                        'ymap_range': [0.5, 0.5],
+                        'ymap_range': [0.3, 0.8],
                         'inter_range': [2, 2.5], 
                         'gridsize': 5E3,
                         'plot_height': 200,
@@ -443,7 +443,6 @@ class Mapper():
         self.avg_polldata = self.polldata[self.polldata['stationid'].isin(stationid_list)]
         self.avg_polldata  = self.avg_polldata.groupby('datetime').mean()
 
-
     def inter_pollution(self, datetime ):
         """Interpolate pollution data form different station to form a continuous grid
         
@@ -511,7 +510,6 @@ class Mapper():
         #this mapper is what transposes a numerical value to a color. 
         self.mapper = LinearColorMapper(palette=colors, low=0, high=poll_max)
 
-
     def add_poll_colormap(self, datetime):
         """Add pollution color map to the plot
 
@@ -538,8 +536,12 @@ class Mapper():
 
         p.add_layout(color_bar, 'right')
 
-        text = Label(x=self.map_dict['xmap_range'][1] , y=self.map_dict['ymap_range'][0]-self.map_dict['stepy']*0.55, text=' Datetime: '+str(datetime), text_font_size='15pt', text_color='black', background_fill_color='white', text_align='right')
-        p.add_layout(text)
+        #text = Label(x=self.map_dict['xmap_range'][1] , y=self.map_dict['ymap_range'][0]-self.map_dict['stepy']*0.5, text=' Datetime: '+str(datetime), text_font_size='15pt', text_color='black', background_fill_color='white', text_align='right')
+        #p.add_layout(text)
+        text = Title(text=' Datetime: '+str(datetime), align="left", text_color='black', text_font_size='12px')
+        p.add_layout(text, "above")
+
+        p.grid.grid_line_color = None
 
         return p
 
@@ -553,11 +555,9 @@ class Mapper():
         Returns: Bokeh figure object, pd.DataFrame of 24 hour moving average 
         
         """
-        if title==None:
-            title = self.pollutant
-            
+
         p = figure(plot_height=self.map_dict['plot_height'], x_axis_type='datetime', toolbar_location=None, title=title )    
-        p.circle(self.avg_polldata.index, self.avg_polldata[self.pollutant],line_width=2, line_color=color)
+        p.circle(self.avg_polldata.index, self.avg_polldata[self.pollutant],line_width=1, line_color=color, fill_color=color)
         
         moving_avg = self.avg_polldata[self.pollutant].rolling(24, min_periods=1 ).mean()
         
@@ -601,7 +601,6 @@ class Mapper():
 
         show(p)
 
-
     def add_fire(self, p, fire, datetime, duration=48, size=5):
         """Add burning hotspot on the basemap 
 
@@ -622,6 +621,10 @@ class Mapper():
     def get_datasamples(self, start_date, end_date, peak=True, freq='6H'):
         """Obtain the datetime sample, which are the datetime to plot the pollution map. 
         
+        Plotting the pollution map every hour will be too much. 
+        The hourly pollution fluctuation are highly influence by the effect of the wind. 
+        I decided to pick a subset of hourly data. I choose to plot the data at the peak pollution to show.
+
         Two options:
             1. Use peak detection to plot the datetime at the pollution peak
             2. Plot every constant time interval specified by freq input
@@ -661,17 +664,104 @@ class Mapper():
 
         self.data_samples = self.data_samples[[self.pollutant, 'level','color']]
 
-    def plot_datasample(p):
+    def plot_datasample(self, p):
         """Plot the self.data_samples attribute on the line plot. The plot is color code. 
 
         Args:
             p: bokeh figure object
 
         """
-        for color in self.datasamples['color'].unique():
-            temp = [self.datasamples['color']==color]
-            p.circle(temp.index, temp[self.pollutant],line_width=2, line_color=color)
+        for color in self.data_samples['color'].unique():
+            temp = self.data_samples[self.data_samples['color']==color]
+            p.circle(temp.index, temp[self.pollutant],line_width=1, line_color=color, fill_color=color)
 
+    def delete_old_images(self):
+        """Delete old images file in the folder 
+
+        """
+        # delete old png files
+        files = glob(self.image_folder + '*.png')
+        for file in files:
+            os.remove(file)
+
+    def build_ani_images(self, start_date, end_date, pollutant, fire=[], delete=False):
+        """Make and save animation images for building gif file 
+
+        Return: list
+            a list of filename to build the gif 
+
+        """
+        if delete:
+            self.delete_old_images()
+
+        title =  f'{self.pollutant} map from {start_date} to {end_date}'   
+        # set colorbar
+        self.set_pollutant_cbar(pollutant=pollutant)
+        
+        filenames = []
+        for i, datetime in enumerate(self.data_samples.index):
+            
+            # add line plot 
+            p1 = self.add_line_plot(title=f'{self.pollutant} level in {self.center_city}')
+            self.plot_datasample(p1)
+
+            # add vertical line 
+            color = self.data_samples.loc[datetime, 'color']
+            vline = Span(location=datetime, dimension='height', line_color=color, line_dash='dashed', line_width=2)
+            p1.add_layout(vline)
+
+            # add colormap
+            p2 = self.add_poll_colormap(datetime)
+            
+            if len(fire) !=0:
+                self.add_fire(p2, fire, datetime)
+
+            p = column(Div(text=f'<h3>{title}</h3>'), p1, p2)
+
+            filename = self.image_folder + f"{self.pollutant}_{start_date}_{end_date}_{i}.png"
+            filenames.append(filename)
+            export_png(p, filename=filename)
+
+        return filenames
+
+    def make_ani(self, start_date, end_date, pollutant, peak=True, fire=[], freq=None, delete=False, duration=1):
+        """ Create pollution map for each datasample date, save and used it to construct gif animation.
+
+        Args:
+            start_date:
+            end_date:
+            pollution: 
+            peak 
+            freq:
+            delete: if True, delete old png file before building a new one
+            duration: duration of each image in second 
+
+        Return: str
+            filename of the gif image 
+
+        """
+        if not hasattr(self, 'polldata'):
+            # preparing the data 
+            self.get_poll_by_daterange(start_date, end_date)
+
+        if not hasattr(self, 'avg_polldata'):
+            # preparing the data 
+            self.avg_city_poll()
+        
+        self.set_pollutant_cbar(pollutant=pollutant)
+        # get datasamples
+        self.get_datasamples(start_date, end_date, peak=peak, freq=freq) 
+        filenames = self.build_ani_images(start_date, end_date, pollutant, fire=fire, delete=delete)
+        
+        # create a gif showing pollution level for each month
+        images = []
+        for filename in filenames:
+            images.append(imageio.imread(filename))
+
+        ani_filename = self.report_folder + f'{self.pollutant}_{start_date}_{end_date}.gif'
+        imageio.mimsave(ani_filename, images, duration=duration)
+
+        return ani_filename
 
 
     def load_(self):
