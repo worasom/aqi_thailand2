@@ -413,13 +413,14 @@ def fill_missing_poll(df, limit: int = 6):
                      axis=0).groupby(level=0).mean()
 
 
-def add_wea_vec(wea_df:pd.DataFrame)-> pd.DataFrame:
+def add_wea_vec(wea_df:pd.DataFrame, roll_win=6, daily_avg=True)-> pd.DataFrame:
     """Add wind direction vector columns. This is to prepare the weather data for fire feature engineering.
     
     
     Args:
         wea_df: weather dataframe with datetime index 'Wind' and 'Wind Speed(kmph)' columns
-        
+        roll_win: rolling average windows 
+        daily_avg: if True, calculate the daily average value. 
     Returns: process weather dataframe
     
 
@@ -436,9 +437,10 @@ def add_wea_vec(wea_df:pd.DataFrame)-> pd.DataFrame:
     wea_proc['wind_vec_x'] =  wea_proc['Wind'].map(wind_vec_x_dict)
     wea_proc['wind_vec_y'] =  wea_proc['Wind'].map(wind_vec_y_dict)
     # rolling average smooth abrupt change. 
-    wea_proc = wea_proc.rolling(6, min_periods=1).mean()
-    # reample to daily average because the fire data is a daily data 
-    wea_proc = wea_proc.resample('d').mean().round()
+    wea_proc = wea_proc.rolling(roll_win, min_periods=1).mean()
+    if daily_avg:
+        # reample to daily average because the fire data is a daily data 
+        wea_proc = wea_proc.resample('d').mean().round()
     # normalize wind vector 
     norm_vec = np.linalg.norm(wea_proc[['wind_vec_x', 'wind_vec_y']].values, axis=1)
     wea_proc['wind_vec_x'] = wea_proc['wind_vec_x']/norm_vec

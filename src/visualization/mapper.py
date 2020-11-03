@@ -3,7 +3,9 @@ from ..imports import *
 from ..gen_functions import *
 import imageio
 from ..features.dataset import Dataset
+from ..features.build_features import add_wea_vec
 from ..data.read_data import *
+
 
 class Mapper():
     """Mapper object is in charge of visualizing pollution hotspots. 
@@ -561,7 +563,7 @@ class Mapper():
         
         moving_avg = self.avg_polldata[self.pollutant].rolling(24, min_periods=1 ).mean()
         
-        p.line(moving_avg.index, moving_avg.values, line_width=2, line_color=color, line_dash='dashed' )
+        p.line(moving_avg.index, moving_avg.values, line_width=3, line_color='dodgerblue', line_dash='dashed' )
     
         #p.xaxis.axis_label = 'date'
         p.yaxis.axis_label = get_unit(self.pollutant)
@@ -618,7 +620,29 @@ class Mapper():
         df = fire.loc[start_datetime:datetime]
         p.circle(df['long_km']*1000,df['lat_km']*1000,color='red',size=size, alpha=0.5, legend_label=f'hotspots {duration} hrs')
 
-    def get_datasamples(self, start_date, end_date, peak=True, freq='6H'):
+    def add_wind(self, p, wind, datetime, scale=10000):
+        """Add wind vector on the map
+
+        Args:
+            p: bokeh figure object
+            wind: wind direction dataframe, must have datetime index. 
+            datetime: datetime of the last hotspot
+            scale: vector scaling factor 
+
+        """
+
+        wind_row = wind.loc[datetime]
+        # add vector 
+        x_start = self.map_dict['city_x']
+        y_start = self.map_dict['city_y']
+        x_end = self.map_dict['city_x'] + wind_row['wind_vec_x']*scale
+        y_end = self.map_dict['city_y'] + wind_row['wind_vec_y']*scale
+
+        p.add_layout(Arrow(end=VeeHead(size=20, fill_color= 'lightgray'), line_color="lightgray", line_width= 4,
+                           x_start=x_start, y_start=y_start, x_end=x_end, y_end=y_end))
+
+
+    def get_datasamples(self, start_date, end_date, peak=True, freq:(str, int)='6H'):
         """Obtain the datetime sample, which are the datetime to plot the pollution map. 
         
         Plotting the pollution map every hour will be too much. 
@@ -635,7 +659,7 @@ class Mapper():
             start_date: start date of the data  
             end_date: last date of the data 
             peak: if True, use peak detection to get the time sample 
-            freq: if peak==False, use constant interval specified by this parameter
+            freq: if peak=True, freq is interpret as distance between two peaks. If peak==False,  freq is a string and determine a constant interval between two samples.
 
         Raises:
             AssertionError if self.avg_polldata doesn't exist. 
@@ -647,7 +671,7 @@ class Mapper():
         if peak:
             # extract pollution arr
             poll_arr = self.avg_polldata[self.pollutant].values
-            peaks, peak_dict = find_peaks(poll_arr,distance=4, prominence=2)
+            peaks, peak_dict = find_peaks(poll_arr, distance=freq, prominence=2)
             self.data_samples = self.avg_polldata.iloc[peaks]
         else:
             idxs = pd.date_range(start_date, end_date, freq=freq) 
@@ -684,8 +708,17 @@ class Mapper():
         for file in files:
             os.remove(file)
 
-    def build_ani_images(self, start_date, end_date, pollutant, add_title='', fire=[], delete=False):
+    def build_ani_images(self, start_date, end_date, pollutant, add_title='', fire=[], wind=[], delete=False):
         """Make and save animation images for building gif file 
+        
+        Args:
+            start_date: start date of the data  
+            end_date: last date of the data 
+            pollution: pollution name
+            add_title: string to append to the plot title
+            fire: fire dataframe
+            wind: wind direction and speed 
+            delete: if True, delete old png file before building a new one
 
         Return: list
             a list of filename to build the gif 
@@ -716,6 +749,9 @@ class Mapper():
             if len(fire) !=0:
                 self.add_fire(p2, fire, datetime)
 
+            if len(wind) != 0:
+                self.add_wind(p2, wind, datetime)
+
             p = column(Div(text=f'<h3>{title}</h3>'), p1, p2)
 
             filename = self.image_folder + f"{self.pollutant}_{start_date}_{end_date}_{i}.png"
@@ -724,17 +760,19 @@ class Mapper():
 
         return filenames
 
-    def make_ani(self, start_date, end_date, pollutant, add_title='', peak=True, fire=[], freq=None, delete=False, duration=1):
+    def make_ani(self, start_date, end_date, pollutant:str, add_title:str='', fire=[], wind=[], delete=False, peak=True, freq=4, duration=1):
         """ Create pollution map for each datasample date, save and used it to construct gif animation.
 
         Args:
-            start_date:
-            end_date:
-            pollution: 
-            add_title: 
-            peak 
-            freq:
+            start_date: start date of the data  
+            end_date: last date of the data 
+            pollution: pollution name
+            add_title: string to append to the plot title
+            fire: fire dataframe
+            wind: wind direction and speed 
             delete: if True, delete old png file before building a new one
+            peak: if True, use peak detection to get the time samples
+            freq: if peak=True, freq is interpret as distance between two peaks. If peak==False,  freq is a string and determine a constant interval between two samples.
             duration: duration of each image in second 
 
         Return: str
@@ -752,7 +790,15 @@ class Mapper():
         self.set_pollutant_cbar(pollutant=pollutant)
         # get datasamples
         self.get_datasamples(start_date, end_date, peak=peak, freq=freq) 
-        filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, delete=delete)
+        if len(wind):
+            wind = wind.loc[start_date:end_date]
+            wind = add_wea_vec(wind, daily_avg=False,roll_win=6)
+            #multiply wind vector with the wind speed 
+            wind['wind_vec_x'] *= wind['Wind Speed(kmph)']
+            wind['wind_vec_y'] *= wind['Wind Speed(kmph)']
+            wind = wind.fillna(0)
+
+        filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, wind=wind, delete=delete)
         
         # create a gif showing pollution level for each month
         images = []

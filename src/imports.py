@@ -57,7 +57,7 @@ from bokeh.models import (Span, Div, Label, Title,
                           LinearAxis,
                           Legend,
                           LegendItem,
-                          GeoJSONDataSource, FuncTickFormatter)
+                          GeoJSONDataSource, FuncTickFormatter, Arrow, VeeHead)
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.models.tickers import FixedTicker
 from bokeh.palettes import Viridis5
