@@ -703,6 +703,23 @@ class Dataset():
 
         return fire_cols, self.zone_list
 
+    def trim_fire_zone(self, step=50):
+        """Reduce last value in the fire zone_list by the step size, and update the zone_list attribute. 
+    
+        Args:
+            step: distance in km to reduce the outer most value 
+            
+        """
+        new_distance = self.zone_list[-1] - step 
+        if new_distance <= self.zone_list[-2]:
+            # the new outer distance is less than the second largest distance
+            # simply remove the outer distance
+            self.zone_list.remove(self.zone_list[-1])
+            
+        else:
+            self.zone_list[-1] = new_distance
+         
+
     def make_diff_col(self):
         """Add pollutant diff column for modeling the diff instead of the actual value.
         Drop all the columns with 'lag' name on it.
@@ -797,22 +814,24 @@ class Dataset():
             roll(optional): if True, use the calculate the rolling average of previous values and shift 1
 
         """
+        # check for an empty array
+        if len(lag_range) > 0:
 
-        lag_list = [self.data_org]
-        for n in lag_range:
-            lag_df = self.data_org[self.x_cols_org].copy()
-            lag_df.columns = [s + f'_lag_{n}' for s in lag_df.columns]
-            if roll:
-                # calculate the rolling average
-                lag_df = lag_df.rolling(n, min_periods=None).mean()
-                lag_df = lag_df.shift(1)
-            else:
-                lag_df = lag_df.shift(n)
-
-            lag_list.append(lag_df)
-
-        self.data = pd.concat(lag_list, axis=1, ignore_index=False)
-        self.data = self.data.dropna()
+            lag_list = [self.data_org]
+            for n in lag_range:
+                lag_df = self.data_org[self.x_cols_org].copy()
+                lag_df.columns = [s + f'_lag_{n}' for s in lag_df.columns]
+                if roll:
+                    # calculate the rolling average
+                    lag_df = lag_df.rolling(n, min_periods=None).mean()
+                    lag_df = lag_df.shift(1)
+                else:
+                    lag_df = lag_df.shift(n)
+    
+                lag_list.append(lag_df)
+    
+            self.data = pd.concat(lag_list, axis=1, ignore_index=False)
+            self.data = self.data.dropna()
 
     def save_(self):
         """Save the process data for fast loading without build.
