@@ -88,6 +88,7 @@ class Dataset():
             os.mkdir(self.report_folder)
 
         self.load_city_info()
+        self.add_weights = 1
 
     def load_city_info(self):
         """Load city information add as city_info dictionary.
@@ -779,6 +780,8 @@ class Dataset():
         y is specified by self.monitor attribute. Use the data specified by x_cols.
         If x_cols is an empty list, use entire columns in self.data
 
+        if self.add_weight is True, add weight on the data higher than quantile 80 and 90 and lower than quantile 10, if False. Use uniform weight. 
+
         Args:
             use_index: a list of datetime index for the dataset
             x_cols(optional): a list of columns for x data [default:[]]
@@ -787,6 +790,7 @@ class Dataset():
             x: x data matrix
             y: y data matrix
             x_cols: data columns
+            weights: np.array of sample weight 
 
         """
         try:
@@ -803,7 +807,22 @@ class Dataset():
             x = temp[x_cols]
 
         x_cols = x.columns.to_list()
-        return x.values, y, x_cols
+
+        weights = np.ones(len(y))
+        if self.add_weights:
+            q_list = np.quantile(y, [0.8, 0.10, 0.9])
+            # add weight for data more than q80
+            idxs = np.where(y> q_list[0])[0]
+            weights[idxs] = 2
+            # add weight for data less than q10
+            idxs = np.where(y<  q_list[1])[0]
+            weights[idxs] = 2
+            # add weight for data more than q90
+            idxs = np.where(y >  q_list[2])[0]
+            weights[idxs] = 4
+
+
+        return x.values, y, x_cols, weights
 
     def build_lag(self, lag_range: list, roll=True):
         """Build the lag data using number in lag_range.

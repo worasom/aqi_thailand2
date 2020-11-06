@@ -362,3 +362,19 @@ def wmark_bokeh(p, text='https://github.com/worasom/aqi_thailand2'):
     """
 
     p.add_layout(Title(text=text, align="right", text_color='grey',text_font_size='11px',text_font_style='italic'), "below")
+
+
+def set_logging(filename:str='../models/log.log', level=10):
+    """Set logging filename
+
+    Args:
+        filename:name of the log file
+        level: logging level 10 for debug and 20 for info.
+
+    """
+    #  create a log file
+    logging.basicConfig(
+        filename=filename,
+        level=level,
+        filemode='w',
+        format='%(asctime)s - %(name)s-%(funcName)s() - %(levelname)s -- %(message)s')

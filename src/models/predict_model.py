@@ -80,6 +80,8 @@ def load_model(
         cat_hour=poll_meta['cat_hour'],
         group_hour=poll_meta['group_hour'])
     dataset.fire_dict = poll_meta['fire_dict']
+    if 'zone_list' in poll_meta.keys():
+        dataset.zone_list = poll_meta['zone_list']
     fire_cols, zone_list = dataset.merge_fire(dataset.fire_dict, damp_surface=dataset.fire_dict['damp_surface'], wind_damp=dataset.fire_dict['wind_damp'], wind_lag=dataset.fire_dict['wind_lag'])
 
     #print('\n fire_columns', fire_cols)
@@ -102,13 +104,13 @@ def load_model(
     trn_index = dataset.split_list[0]
     test_index = dataset.split_list[1]
 
-    xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(
+    xtrn, ytrn, dataset.x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=dataset.x_cols)
-    xtest, ytest, _ = dataset.get_data_matrix(
+    xtest, ytest, *args = dataset.get_data_matrix(
         use_index=test_index, x_cols=dataset.x_cols)
 
     if update:
-        model.fit(xtrn, ytrn)
+        model.fit(xtrn, ytrn, weights)
 
     print(
         'raw model performance',
@@ -175,7 +177,7 @@ def cal_error(dataset, model, data_index):
     """
 
     # dataset.split_data(split_ratio=split_list)
-    xtrn, ytrn, _ = dataset.get_data_matrix(
+    xtrn, ytrn, *args = dataset.get_data_matrix(
         use_index=data_index, x_cols=dataset.x_cols)
     #xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[1], x_cols=dataset.x_cols)
 

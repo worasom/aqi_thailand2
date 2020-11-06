@@ -25,7 +25,7 @@ def set_config(dataset):
 
     # fire zone for each city
     zone_dict = {'Chiang Mai' : [0, 100, 200, 400, 700, 1000],
-             'Bangkok':  [0, 100, 200, 400, 600, 800, 1000],
+             'Bangkok':  [0, 100, 200, 400, 600, 800, 1200],
              'Nakhon Si Thammarat': [0, 200, 450,  1000],
              'Nakhon Ratchasima': [0, 130, 300, 600, 1200],
             'Da Nang': [0, 75, 300, 700,  1000],
