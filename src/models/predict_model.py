@@ -55,8 +55,7 @@ def load_model(
     # remove . from pollutant name for saving file
     poll_name = pollutant.replace('.', '')
     # load model_meta
-    model_meta = load_meta(dataset.model_folder + 'model_meta.json')
-    poll_meta = model_meta[pollutant]
+    poll_meta = load_meta(dataset.model_folder + 'model_meta.json')
     split_lists = poll_meta['split_lists']
 
     # load model
@@ -106,7 +105,7 @@ def load_model(
 
     xtrn, ytrn, dataset.x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=dataset.x_cols)
-    xtest, ytest, *args = dataset.get_data_matrix(
+    xtest, ytest, _, sample_weight = dataset.get_data_matrix(
         use_index=test_index, x_cols=dataset.x_cols)
 
     if update:
@@ -117,7 +116,7 @@ def load_model(
         cal_scores(
             ytest,
             model.predict(xtest),
-            header_str='test_'))
+            header_str='test_', sample_weight=sample_weight))
 
     # calculate the average error
     trn_error = cal_error(dataset, model, data_index=trn_index)
@@ -367,7 +366,7 @@ def get_data_samples(
     wea_cols = [
         'Temperature(C)',
         'Humidity(%)',
-        'Wind Speed(kmph)',
+        'Wind_Speed(kmph',
         'wind_CALM',
         'wind_E',
         'wind_N',

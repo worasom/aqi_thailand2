@@ -128,8 +128,9 @@ def convert_humidity_col(data_df, humidity_col):
 def convert_unit(data_df):
     # convert string data into number by removing the text in the unit. Put the text in the columns name.
     # convert temperature wand windspeed into metric system
-    temperature_col = ['Temperature', 'Dew Point']
-    wind_col = ['Wind Speed', 'Wind Gust']
+    data_df.columns = data_df.columns.str.replace(' ', '_')
+    temperature_col = ['Temperature', 'Dew_Point']
+    wind_col = ['Wind_Speed', 'Wind_Gust']
     pressure_col = ['Pressure']
     humidity_col = ['Humidity']
     precip_col =  ['Precip.']
@@ -207,10 +208,10 @@ def fix_temperature(df, lowest_t: int = 5, highest_t: int = 65):
     # remove abnormal tempearture reading from weather data
 
     idx = df[df['Temperature(C)'] < lowest_t].index
-    df.loc[idx, ['Temperature(C)', 'Dew Point(C)', 'Humidity(%)']] = np.nan
+    df.loc[idx, ['Temperature(C)', 'Dew_Point(C)', 'Humidity(%)']] = np.nan
 
     idx = df[df['Temperature(C)'] > highest_t].index
-    df.loc[idx, ['Temperature(C)', 'Dew Point(C)', 'Humidity(%)']] = np.nan
+    df.loc[idx, ['Temperature(C)', 'Dew_Point(C)', 'Humidity(%)']] = np.nan
 
     return df
 
@@ -321,7 +322,7 @@ def proc_open_weather(wea_df):
     replace_dict = {'humidity': 'Humidity(%)',
                     'temp': 'Temperature(C)',
                     'wind_deg': 'Wind',
-                    'wind_speed': 'Wind Speed(kmph)',
+                    'wind_speed': 'Wind_Speed(kmph)',
                     'pressure': 'Pressure(hPa)',
                     'rain_3h': 'Precip.(mm)',
                     'weather_main': 'Condition'}
@@ -347,12 +348,12 @@ def proc_open_weather(wea_df):
     wea_df = wea_df.rename(columns=replace_dict)
     # keep only the column exist in underground weather website
     keep_cols = ['datetime', 'Time', 'Temperature(C)', 'Humidity(%)',
-                 'Wind', 'Wind Speed(kmph)', 'Pressure(hPa)',
+                 'Wind', 'Wind_Speed(kmph)', 'Pressure(hPa)',
                  'Precip.(mm)', 'Condition']
     wea_df = wea_df[keep_cols]
 
     # convert Wind speed from meter/sec to kmph
-    wea_df['Wind Speed(kmph)'] *= 3.6
+    wea_df['Wind_Speed(kmph)'] *= 3.6
     # convert Pressure from hpa to in
     #wea_df['Pressure(in)'] *= 0.02953
 

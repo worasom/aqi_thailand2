@@ -144,7 +144,7 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
 
         xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
             use_index=trn_index, x_cols=x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight = dataset.get_data_matrix(
             use_index=val_index, x_cols=x_cols)
 
         # obtain the baseline data
@@ -152,32 +152,32 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
         base_score = cal_scores(
             yval,
             model.predict(xval),
-            header_str='')['r2_score']
+            header_str='', sample_weight=sample_weight)['mean_squared_error']
 
         new_cols = x_cols.copy()
         new_cols.remove(col)
         xtrn, ytrn, new_x_cols, weights = dataset.get_data_matrix(
             use_index=trn_index, x_cols=new_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight = dataset.get_data_matrix(
             use_index=val_index, x_cols=new_cols)
 
         model.fit(xtrn, ytrn, weights)
         score = cal_scores(
             yval,
             model.predict(xval),
-            header_str='')['r2_score']
+            header_str='', sample_weight=sample_weight)['mean_squared_error']
 
-        if score > base_score:
+        if score < base_score:
             x_cols.remove(col)
-            logger.info('drop  {col}')
+            logger.info('drop  {col} improve the RMSE score from {base_score} to {score}')
 
     # obtain the final model
 
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
-    xval, yval, *args = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+    xval, yval, _, sample_weight = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
     model.fit(xtrn, ytrn, weights)
-    score_dict = cal_scores(yval, model.predict(xval), header_str='')
+    score_dict = cal_scores(yval, model.predict(xval), header_str='', sample_weight=sample_weight)
 
     #print('use columns', x_cols)
     msg = f'score after dropping columns  {score_dict}'
@@ -233,20 +233,20 @@ def sk_op_fire(dataset,
     val_index=dataset.split_list[1]
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
-    xval, yval, *args = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+    xval, yval, _, sample_weight= dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
 
     model.fit(xtrn, ytrn, weights)
     if mse:
-        best_score = mean_squared_error(yval, model.predict(xval))
+        best_score = mean_squared_error(yval, model.predict(xval), sample_weight=sample_weight)
     else:
-        best_score = -r2_score(yval, model.predict(xval))
+        best_score = -r2_score(yval, model.predict(xval), sample_weight=sample_weight)
 
     best_fire_dict = dataset.fire_dict
     damp_surface = best_fire_dict['damp_surface']
     wind_damp = best_fire_dict['wind_damp']
     wind_lag = best_fire_dict['wind_lag']
 
-    logging.info(f'old score {cal_scores(yval, model.predict(xval))} fire dict {best_fire_dict}')
+    logging.info(f'old score {cal_scores(yval, model.predict(xval), sample_weight=sample_weight)} fire dict {best_fire_dict}')
 
     print('optimizing fire parameter using skopt optimizer. This will take about 20 mins')
     
@@ -282,15 +282,15 @@ def sk_op_fire(dataset,
         val_index=dataset.split_list[1]
         xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
                 use_index=trn_index, x_cols=dataset.x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight = dataset.get_data_matrix(
                 use_index=val_index, x_cols=dataset.x_cols)
 
         model.fit(xtrn, ytrn, weights)
         y_pred = model.predict(xval)
         if mse:
-            return mean_squared_error(yval, y_pred)
+            return mean_squared_error(yval, y_pred, sample_weight=sample_weight)
         else:
-            return -r2_score(yval, y_pred)
+            return -r2_score(yval, y_pred, sample_weight=sample_weight)
 
 
     gp_result = gp_minimize(
@@ -352,13 +352,13 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
     trn_index=dataset.split_list[0] 
     val_index=dataset.split_list[1]
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(use_index=trn_index, x_cols=x_cols)
-    xval, yval, *args = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+    xval, yval, _, sample_weight = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
 
     model.fit(xtrn, ytrn, weights)
     if mse:
-        best_score = mean_squared_error(yval, model.predict(xval))
+        best_score = mean_squared_error(yval, model.predict(xval), sample_weight=sample_weight)
     else:
-        best_score = -r2_score(yval, model.predict(xval))
+        best_score = -r2_score(yval, model.predict(xval), sample_weight=sample_weight)
 
     best_fire_dict = dataset.fire_dict
 
@@ -397,15 +397,15 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
         val_index=dataset.split_list[1]
         xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
                     use_index=trn_index, x_cols=dataset.x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight = dataset.get_data_matrix(
                     use_index=val_index, x_cols=dataset.x_cols)
 
         model.fit(xtrn, ytrn, weights)
         y_pred = model.predict(xval)
         if mse:
-            return mean_squared_error(yval, y_pred)
+            return mean_squared_error(yval, y_pred, sample_weight=sample_weight)
         else:
-            return -r2_score(yval, y_pred)
+            return -r2_score(yval, y_pred, sample_weight=sample_weight)
     
     gp_result = gp_minimize(func=fit_with, dimensions=dimensions, n_jobs=n_jobs)
 
@@ -440,7 +440,7 @@ def op_lag(
     model,
     split_ratio,
     lag_range=[
-        2,
+        1,
         100],
         step_range=[
             1,
@@ -461,20 +461,23 @@ def op_lag(
     """
     logger = logging.getLogger(__name__)
 
+    # function to return the score (smaller better)
+    best_lag = dataset.lag_dict 
+    dataset.build_lag(lag_range=np.arange(1, best_lag['n_max'], best_lag['step']), roll=best_lag['roll'])
+    dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
     dataset.split_data(split_ratio=split_ratio)
-    trn_index=dataset.split_list[0] 
-    val_index=dataset.split_list[1]
-    xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(use_index=trn_index, x_cols=dataset.x_cols_org)
-    xval, yval, *args = dataset.get_data_matrix(use_index=val_index, x_cols=dataset.x_cols_org)
-
+    xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
+        use_index=dataset.split_list[0], x_cols=dataset.x_cols)
+    xval, yval, _, sample_weight = dataset.get_data_matrix(
+        use_index=dataset.split_list[1], x_cols=dataset.x_cols)
     model.fit(xtrn, ytrn, weights)
     if mse:
-        best_score = mean_squared_error(yval, model.predict(xval))
+        best_score = mean_squared_error(yval, model.predict(xval), sample_weight=sample_weight)
     else:
-        best_score = -r2_score(yval, model.predict(xval))
+        best_score = -r2_score(yval, model.predict(xval), sample_weight=sample_weight)
 
      
-    logger.info(f'old score before adding lag {cal_scores(yval, model.predict(xval))}')
+    logger.info(f'old score before adding lag {cal_scores(yval, model.predict(xval), header_str="val_", sample_weight=sample_weight)}')
 
     # build search space
     n_max = Integer(low=lag_range[0], high=lag_range[1], name='n_max')
@@ -491,15 +494,15 @@ def op_lag(
         dataset.split_data(split_ratio=split_ratio)
         xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
             use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight = dataset.get_data_matrix(
             use_index=dataset.split_list[1], x_cols=dataset.x_cols)
         model.fit(xtrn, ytrn, weights)
         y_pred = model.predict(xval)
 
         if mse:
-            return mean_squared_error(yval, y_pred)
+            return mean_squared_error(yval, y_pred, sample_weight=sample_weight)
         else:
-            return -r2_score(yval, ypred)
+            return -r2_score(yval, ypred, sample_weight=sample_weight)
 
     gp_result = gp_minimize(
         func=fit_with,
@@ -516,26 +519,22 @@ def op_lag(
         logger.info(msg)
         print(msg)
 
-
         # score after optimize is better 
-        lag_dict = {'n_max': int(n_max),
+        best_lag = {'n_max': int(n_max),
         'step': int(step),
         'roll': True}
 
     else:
-        msg = f' using no lag is still better than lagged data ={best_score}'
+        msg = f' using old lag is still better than lagged data ={best_score}'
         logger.info(msg)
         print(msg)
         
-        lag_dict = {'n_max': int(1),
-        'step': int(step),
-        'roll': True}
-        
 
-    msg = f'using lag dict  {lag_dict}'
+    msg = f'final lag dict is {best_lag}'
     logger.info(msg)
+    print(msg)
 
-    return lag_dict, gp_result
+    return best_lag, gp_result
 
 def op_lag_fire(
     dataset,
@@ -604,12 +603,12 @@ def op_lag_fire(
         dataset.split_data(split_ratio=split_ratio)
         xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
             use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
+        xval, yval, _, sample_weight= dataset.get_data_matrix(
             use_index=dataset.split_list[1], x_cols=dataset.x_cols)
         model.fit(xtrn, ytrn, weights)
         y_pred = model.predict(xval)
 
-        return mean_squared_error(yval, y_pred)
+        return mean_squared_error(yval, y_pred, sample_weight=sample_weight)
 
     gp_result = gp_minimize(
         func=fit_with,
@@ -672,302 +671,13 @@ def feat_importance(model, x, y, x_cols, score=r2_score, n_iter=20):
         drop=True)
 
 
-def train_city_s0(
-        city: str = 'Chiang Mai',
-        pollutant: str = 'PM2.5',
-        build=False,
-        model=None,
-        fire_dict=None,
-        x_cols_org=[],
-        lag_dict=None,
-        x_cols=[]):
-    """Training pipeline from process raw data, hyperparameter tune, and save model.
-
-        #. If build True, build the raw data from files
-        #. Process draw data into data using default values
-        #. Optimization 1: optimize for the best randomforest model
-        #. Optimization 2: remove unncessary columns
-        #. Optimization 3: find the best fire feature
-        #. Optimization 4: optimize for lag columns
-        #. Optimization 5: drop unncessary lag columns
-        #. Optimization 6: optimize for the best RF again
-        #. Build pollution meta and save
-
-    Args:
-        city: city name
-        pollutant(optional): pollutant name
-        build(optional): if True, also build the data
-        model(optional):
-        op_fire(optional):
-        x_cols_org(optional):
-        lag_dict(optional):
-        x_cols(optional):
-
-    Returns:
-        dataset
-        model
-        poll_meta(dict)
-
-    """
-
-    dataset = Dataset(city)
-    # remove . from pollutant name for saving file
-    poll_name = pollutant.replace('.', '')
-    if build:
-        # build data from scratch
-        dataset.build_all_data(build_fire=True, build_holiday=False)
-
-    # load model meta to setup parameters
-    model_meta = load_meta(dataset.model_folder + 'model_meta.json')
-    poll_meta = model_meta[pollutant]
-    split_lists = poll_meta['split_lists']
-
-
-    # load raw data
-    dataset.load_()
-    # if rolling_win:
-    #    rolling_win = dataset.roll_dict[pollutant]
-    # else:
-    #rolling_win = 1
-
-    # build the first dataset
-    dataset.feature_no_fire(
-        pollutant=pollutant,
-        rolling_win=poll_meta['rolling_win'],
-        fill_missing=poll_meta['fill_missing'],
-        cat_hour=poll_meta['cat_hour'],
-        group_hour=poll_meta['group_hour'])
-    if fire_dict is None:
-        # use default fire feature
-        fire_cols, *args = dataset.merge_fire(wind_damp=wind_damp)
-    else:
-        dataset.fire_dict = fire_dict
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict)
-    dataset.monitor = dataset.pollutant = pollutant
-
-    # . Optimization 1: optimize for the best randomforest model
-
-    if (model is None) or (len(x_cols_org) == 0):
-        # split the data into 3 set
-        print('=================optimize 1: find the best RF model=================')
-        dataset.split_data(split_ratio=split_lists[0])
-        xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
-            use_index=dataset.split_list[0])
-        xval, yval, *args = dataset.get_data_matrix(
-            use_index=dataset.split_list[1])
-        dataset.x_cols = x_cols
-
-        model = do_rf_search(xtrn, ytrn, cv_split='other')
-        score_dict = cal_scores(yval, model.predict(xval), header_str='val_')
-        print('optimize 1 score', score_dict)
-
-        print('=================optimize 2: remove unncessary columns=================')
-        importances = model.feature_importances_
-        feat_imp = pd.DataFrame(
-            importances,
-            index=x_cols,
-            columns=['importance'])
-        feat_imp = feat_imp.sort_values(
-            'importance', ascending=False).reset_index()
-        #show_fea_imp(
-        #    feat_imp,
-        #    filename=dataset.report_folder +
-        #    f'{poll_name}_fea_imp_op1.png',
-        #    title='rf feature of importance(raw)')
-
-        # columns to consider droping are columns with low importance
-        to_drop = feat_imp['index'].to_list()
-        # keep weather and fire columns for in case it matter later on 
-        to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
-            to_drop.remove(s)
-        to_drop.reverse()
-        model, x_cols_org = reduce_cols(
-            dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
-
-    if fire_dict is None:
-        print('================= optimization 3: find the best fire feature ===================')
-        dataset.x_cols = x_cols_org
-        dataset.fire_dict, gp_result = sk_op_fire(dataset, model, split_ratio=split_lists[0], wind_damp=wind_damp )
-        
-        fire_cols, *args = dataset.merge_fire(dataset.fire_dict, wind_damp=wind_damp)
-
-    if lag_dict is None:
-        print('================= optimization 4: improve model performance by adding lag columns =================')
-        # prepare no-lag columns
-        dataset.x_cols_org = x_cols_org
-        dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
-        print('model parameters', model.get_params())
-        # look for the best lag
-        #dataset.lag_dict, gp_result = op_lag(data, model, split_ratio=[0.45, 0.25, 0.3])
-        dataset.lag_dict, gp_result = op_lag(
-            dataset, model, split_ratio=split_lists[1])
-        #dataset.lag_dict = {'n_max': 2, 'step': 5}
-        dataset.build_lag(
-            lag_range=np.arange(
-                1,
-                dataset.lag_dict['n_max'],
-                dataset.lag_dict['step']),
-            roll=dataset.lag_dict['roll'])
-        #print('data.column with lag', dataset.data.columns)
-        dataset.x_cols = dataset.data.columns.drop(dataset.monitor)
-
-        print('x_cols', dataset.x_cols)
-        dataset.split_data(split_ratio=split_lists[1])
-        xtrn, ytrn, dataset.x_cols, weights = dataset.get_data_matrix(
-            use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-        xval, yval, *args = dataset.get_data_matrix(
-            use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-        xtest, ytest, *args = dataset.get_data_matrix(
-            use_index=dataset.split_list[2], x_cols=dataset.x_cols)
-        print('xtrn has shape', xtrn.shape)
-        model.fit(xtrn, ytrn, weights)
-        score_dict = cal_scores(yval, model.predict(xval), header_str='val_')
-        print('op4 score', score_dict)
-        print(
-            'op4 test score',
-            cal_scores(
-                ytest,
-                model.predict(xtest),
-                header_str='test_'))
-
-        print('================= optimization 5: remove unncessary lag columns =================')
-        importances = model.feature_importances_
-        feat_imp = pd.DataFrame(
-            importances,
-            index=dataset.x_cols,
-            columns=['importance'])
-        feat_imp = feat_imp.sort_values(
-            'importance', ascending=False).reset_index()
-
-        # optimize 1 drop unuse cols
-        to_drop = feat_imp['index'].to_list()
-        if dataset.city_name== 'Chiang Mai':
-            no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + [a for a in dataset.x_cols_org if 'fire' in a]
-            for s in no_drop:
-                to_drop.remove(s)
-        to_drop.reverse()
-        model, dataset.x_cols = reduce_cols(
-            dataset=dataset, x_cols=dataset.x_cols, to_drop=to_drop, model=model, trn_i=0, val_i=1)
-
-    else:
-        dataset.lag_dict = lag_dict
-        dataset.x_cols_org = x_cols_org
-        dataset.data_org = dataset.data[[dataset.monitor] + dataset.x_cols_org]
-        dataset.build_lag(
-            lag_range=np.arange(
-                1,
-                dataset.lag_dict['n_max'],
-                dataset.lag_dict['step']),
-            roll=True)
-        dataset.x_cols = x_cols
-
-    # print('================= optimization 7: optimize for the best fire dict again =================')
-
-    # xtrn, ytrn, dataset.x_cols = dataset.get_data_matrix(use_index=dataset.split_list[0],x_cols=dataset.x_cols)
-    # xval, yval, _ = dataset.get_data_matrix(use_index=dataset.split_list[1],x_cols=dataset.x_cols)
-    # xtest, ytest, _ = dataset.get_data_matrix(use_index=dataset.split_list[2], x_cols=dataset.x_cols)
-    # print('val score before op7', cal_scores(yval, model.predict(xval), header_str='val_'))
-    # print('test score before op7', cal_scores(ytest, model.predict(xtest), header_str='test_'))
-
-    # dataset.fire_dict, gp_result  = sk_op_fire(data, model, trn_index=dataset.split_list[0], val_index=dataset.split_list[1], with_lag=True)
-    # _, *args = dataset.merge_fire(dataset.fire_dict)
-    # dataset.data_org = dataset.data[ [dataset.monitor] + dataset.x_cols_org]
-    # dataset.build_lag(lag_range=np.arange(1, dataset.lag_dict['n_max'], dataset.lag_dict['step']), roll=dataset.lag_dict['roll'])
-
-    print('================= optimization 6: optimize for the best rf again =================')
-    dataset.split_data(split_ratio=split_lists[1])
-
-    #print('x_cols in op7', dataset.x_cols)
-    xtrn, ytrn, dataset.x_cols, weights = dataset.get_data_matrix(
-        use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-    xval, yval, *args = dataset.get_data_matrix(
-        use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-    xtest, ytest, *args = dataset.get_data_matrix(
-        use_index=dataset.split_list[2], x_cols=dataset.x_cols)
-    print(
-        'val score before refit',
-        cal_scores(
-            yval,
-            model.predict(xval),
-            header_str='val_'))
-    print(
-        'test score before refit',
-        cal_scores(
-            ytest,
-            model.predict(xtest),
-            header_str='test_'))
-
-    #model = do_rf_search(xtrn, ytrn,cv_split='other')
-    #score_dict = cal_scores(yval, model.predict(xval), header_str ='val_')
-
-    #print('val score after op8', cal_scores(yval, model.predict(xval), header_str='val_'))
-    #print('test score after op8', cal_scores(ytest, model.predict(xtest), header_str='test_'))
-
-    # final split
-    dataset.split_data(split_ratio=split_lists[2])
-    xtrn, ytrn, dataset.x_cols, weights = dataset.get_data_matrix(
-        use_index=dataset.split_list[0], x_cols=dataset.x_cols)
-    xtest, ytest, *args = dataset.get_data_matrix(
-        use_index=dataset.split_list[1], x_cols=dataset.x_cols)
-    model.fit(xtrn, ytrn, weights)
-    score_dict = cal_scores(ytest, model.predict(xtest), header_str='test_')
-    print('final score for test set', score_dict)
-
-    pickle.dump(
-        model,
-        open(
-            dataset.model_folder +
-            f'{poll_name}_rf_model.pkl',
-            'wb'))
-
-    # build feature of importance using build in rf
-    try:
-        importances = model.feature_importances_
-        feat_imp = pd.DataFrame(
-            importances,
-            index=dataset.x_cols,
-            columns=['importance'])
-        feat_imp = feat_imp.sort_values(
-            'importance', ascending=False).reset_index()
-        #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(default)')
-    except:
-        # custom feature of importance
-        feat_imp = feat_importance(
-            model, xtrn, ytrn, dataset.x_cols, n_iter=50)
-        #show_fea_imp(feat_imp,filename=dataset.report_folder + f'{poll_name}_rf_fea_op2.png', title='rf feature of importance(shuffle)')
-
-    # obtain feature of importance without lag
-    feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
-    feat_imp = feat_imp.groupby('index').sum()
-    feat_imp = feat_imp.sort_values(
-        'importance', ascending=False).reset_index()
-    show_fea_imp(feat_imp, filename=dataset.report_folder +
-                 f'{poll_name}_rf_fea_op2_nolag.png', title='')
-
-    poll_meta.update({'x_cols_org': dataset.x_cols_org,
-                      'x_cols': dataset.x_cols,
-                      'fire_cols': fire_cols,
-                      'fire_dict': dataset.fire_dict,
-                      'lag_dict': dataset.lag_dict,
-                      'rf_score': score_dict,
-                      'rf_params': model.get_params(),
-                      })
-
-    model_meta[pollutant] = poll_meta
-    save_meta(dataset.model_folder + 'model_meta.json', model_meta)
-
-    dataset.save_()
-
-    return dataset, model, poll_meta
-
-
 class Trainer():
     """Trainer object contains is incharge of various optimization process, and keeps track of the training parameters, which are stored as attributes.    
 
     Args:
         city_name: lower case of city name
         pollutant(optional): pollutant name [default: 'PM2.5']
+        with_interact: add interaction term in the data matrix 
         main_data_folder(optional): main data folder for initializing Dataset object [default:'../data/]
         model_folder(optional): model folder  for initializing Dataset object [default:'../models/']
         report_folder(optional): folder to save figure for initializing Dataset object [default:'../reports/']
@@ -989,32 +699,50 @@ class Trainer():
 
     def __init__(
             self,
-            city: str, pollutant: str = 'PM2.5',
+            city: str, pollutant: str = 'PM2.5', with_interact=False,
             main_data_folder: str = '../data/',
             model_folder='../models/', report_folder='../reports/', n_jobs=-2):
 
         """Initialize dataset object and add as attribute
 
         """
+        logger = logging.getLogger(__name__)
 
         self.dataset = Dataset(city, main_data_folder, model_folder, report_folder)
+        # string to add to the model filename 
+        
+        if with_interact:
+            self.dataset.with_interact = True
+            self.model_str = 'inter_'
+        else:
+            self.dataset.with_interact = False
+            self.model_str = ''
+        # set number of cpu
+        self.n_jobs = -2
         # load raw data
         self.dataset.load_()
         # assigning the pollution name
         self.dataset.monitor = self.dataset.pollutant = pollutant
         self.pollutant = pollutant
-        # remove . from pollutant name for saving file
+        # remove. from pollutant name for saving file
         self.poll_name = pollutant.replace('.', '')
         # load model meta to setup parameters
-        model_meta = load_meta(self.dataset.model_folder + 'model_meta.json')
-        if pollutant in model_meta:
-            poll_meta = model_meta[pollutant]
-            self.poll_meta = poll_meta
-        else:
+         
+        try:
+            self.poll_meta = load_meta(self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json')
+        except:
             self.get_default_meta()
 
+        logger.info(f'pollution meta {self.poll_meta}')
+        
         self.split_lists = self.poll_meta['split_lists']
         self.dataset.fire_dict = self.poll_meta['fire_dict']
+        try:
+            self.dataset.lag_dict = self.poll_meta['lag_dict']
+        except:
+            # no lag dict in the meta, use the default value
+            self.dataset.lag_dict = {"n_max": 1, "step": 12, "roll": True}
+
         if 'zone_list' in self.poll_meta.keys():
             self.dataset.zone_list = self.poll_meta['zone_list']
 
@@ -1027,7 +755,6 @@ class Trainer():
             group_hour=self.poll_meta['group_hour'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
-
 
         # number of CPUS
         self.n_jobs = n_jobs
@@ -1057,11 +784,13 @@ class Trainer():
         # check x_cols attributes
         if not hasattr(self.dataset, 'x_cols'):
             self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
+
+        logger.info( f'x_cols  {self.dataset.x_cols}')
          
         self.dataset.split_data(split_ratio=self.split_lists[0])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1])
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
@@ -1069,7 +798,7 @@ class Trainer():
         logger.info(f'xtrn has shape {xtrn.shape}')
 
         self.model = do_rf_search(xtrn, ytrn, cv_split='other', sample_weight=weights, n_jobs=self.n_jobs)
-        self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_')
+        self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
         msg = f'val score after op_rf {self.score_dict}'
         print(msg)
         logger.info(msg)
@@ -1085,7 +814,10 @@ class Trainer():
 
     def choose_cat_hour(self, and_save=True):
         """Try to see if changing cat hour option is better. Perform after the first op_rf 
-
+        
+        Args:
+            and_save(optional): if True, update and save model meta file and model file 
+        
         """
         logger = logging.getLogger(__name__)
 
@@ -1114,13 +846,13 @@ class Trainer():
         self.dataset.split_data(split_ratio=self.split_lists[0])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1])
          
         self.model.fit(xtrn, ytrn, weights)
-        new_score = cal_scores(yval,self.model.predict(xval),header_str='val_')['val_mean_squared_error']
+        new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
         if new_score < old_score:
-            msg = 'change cat hour option from ' + str(self.poll_meta['cat_hour']) + 'to' + str(new_meta['cat_hour'])
+            msg = 'change cat hour option from ' + str(self.poll_meta['cat_hour']) + ' to ' + str(new_meta['cat_hour'])
             print(msg)
             logger.info(msg)
             # update the model 
@@ -1143,30 +875,33 @@ class Trainer():
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
 
         self.dataset.split_data(split_ratio=self.split_lists[0])
-        xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
+        xtrn, ytrn, self.dataset.x_cols_orgs, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1])
 
         self.model.fit(xtrn, ytrn, weights)
-        self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_')
+        self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
+        logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         msg = 'val score after cat_hour()' + str(self.score_dict)
         logger.info(msg)
         print(msg)
+        
         
 
     def op2_rm_cols(self,and_save=True): 
         """ optimize 2: remove unncessary columns
 
         Args:
-            and_save(optional): if True, update and save model meta file 
+            and_save(optional): if True, update and save model meta file.
 
         Raises:
             AssertionError: if the self.model attribute doesn't exist. 
 
         """
-        logger = logging.getLogger(__name__)
 
+        logger = logging.getLogger(__name__)
         print('================ remove unncessary columns no lag=================')
 
         if not hasattr(self, 'model'):
@@ -1183,11 +918,14 @@ class Trainer():
         to_drop = feat_imp['index'].to_list()
         # keep weather and fire columns for in case it matter later on 
         to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)']:
+        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
             to_drop.remove(s)
         to_drop.reverse()
         self.model, self.dataset.x_cols_org = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
+
+        logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
 
         if and_save:
             self.update_poll_meta(x_cols=self.dataset.x_cols, x_cols_org = self.dataset.x_cols)
@@ -1218,6 +956,7 @@ class Trainer():
             raise AssertionError('dataset object need fire_dict attribute, assign the default fire_dict first')
 
         self.dataset.x_cols = x_cols
+        logger.info( f'x_cols  {self.dataset.x_cols}')
         if search_wind_damp:
             # look for fire dict using default wind_damp and wind_lag 
             self.dataset.fire_dict, gp_result = sk_op_fire_w_damp(self.dataset, self.model, split_ratio=self.split_lists[0], mse=mse, n_jobs=self.n_jobs)
@@ -1226,6 +965,9 @@ class Trainer():
             self.dataset.fire_dict, gp_result = sk_op_fire(self.dataset, self.model, split_ratio=self.split_lists[0], with_lag=with_lag, mse=mse, n_jobs=self.n_jobs)
         # use the optimized columns 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
+        
+        logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         if and_save:
             self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict)
             self.save_meta()
@@ -1267,18 +1009,19 @@ class Trainer():
             logger.exception(msg)
             raise AssertionError(msg)
 
+        logger.info( f'x_cols  {self.dataset.x_cols}')
         # check old score 
         self.dataset.split_data(split_ratio=self.split_lists[1])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         self.model.fit(xtrn, ytrn, weights)
         old_zone_list = self.dataset.zone_list.copy() 
-        old_score = cal_scores(yval, self.model.predict(xval), header_str='val_')['val_mean_squared_error']
+        old_score = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
         logger.info(f'old score before triming fire zone {old_score} using zone list {old_zone_list}')
 
-        for i in range(6):
+        for i in range(10):
         #for i in range(3):
              
             self.dataset.trim_fire_zone(step=step)
@@ -1291,12 +1034,12 @@ class Trainer():
             self.dataset.split_data(split_ratio=self.split_lists[1])
             xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
                 use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-            xval, yval, *args = self.dataset.get_data_matrix(
+            xval, yval, _, sample_weight = self.dataset.get_data_matrix(
                 use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
 
             # check new score 
             self.model.fit(xtrn, ytrn, weights)
-            score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_')
+            score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
             #print('score for ', self.dataset.zone_list, 'is', score_dict)
             new_score = score_dict['val_mean_squared_error']
             if new_score < old_score:
@@ -1314,18 +1057,20 @@ class Trainer():
         self.dataset.x_cols = [col for col in self.dataset.x_cols  if 'fire' not in col]  + self.fire_cols
         
         self.dataset.split_data(split_ratio=self.split_lists[1])
-        xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
+        xtrn, ytrn, self.dataset.x_cols_org, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
 
         # check new score 
         self.model.fit(xtrn, ytrn, weights)
-        self.score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_')
+        self.score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
 
         msg = f'final zone list {self.dataset.zone_list} give score {self.score_dict}'
         logger.info(msg)
         print(msg)
+        logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
 
         if and_save:
             self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict, zone_list=self.dataset.zone_list)
@@ -1359,6 +1104,7 @@ class Trainer():
 
         print('===== improve model performance by adding lag columns =====')
          
+        logger.info( f'x_cols_org before op lag_dict {self.dataset.x_cols_org}')
         # save dataframe without lag 
         self.dataset.data_org = self.dataset.data[[self.pollutant] + self.dataset.x_cols_org]
          
@@ -1376,18 +1122,18 @@ class Trainer():
          
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant)
 
-        #print('x_cols', self.dataset.x_cols)
+        logger.info( f'x_cols after op lag_dict {self.dataset.x_cols}')
         # see the scores after the lag columns are added
         self.dataset.split_data(split_ratio=self.split_lists[1])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight= self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
         logger.info(f'xtrn has shape  {xtrn.shape}')
         self.model.fit(xtrn, ytrn, weights)
-        self.score_dict   = cal_scores(yval, self.model.predict(xval), header_str='val_')
+        self.score_dict   = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
         msg = f'op4 score {self.score_dict}'
         print(msg)
         logger.info(msg)
@@ -1406,13 +1152,14 @@ class Trainer():
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
         if self.dataset.city_name== 'Chiang Mai':
-            no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind Speed(kmph)'] + [a for a in self.dataset.x_cols_org if 'fire' in a]
+            no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)'] + [a for a in self.dataset.x_cols_org if 'fire' in a]
             for s in no_drop:
                 to_drop.remove(s)
         to_drop.reverse()
         self.model, self.dataset.x_cols = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
         
+        logger.info( f'x_cols after remove columns {self.dataset.x_cols}')
         if and_save:
             self.update_poll_meta()
             self.save_meta()
@@ -1428,10 +1175,10 @@ class Trainer():
 
         self.dataset.split_data(split_ratio=self.split_lists[1])
 
-        #print('x_cols in op7', dataset.x_cols)
+        logger.info(f'x_cols {self.dataset.x_cols}')
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xval, yval, *args = self.dataset.get_data_matrix(
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
@@ -1440,7 +1187,7 @@ class Trainer():
         self.score_dict = cal_scores(
         yval,
         self.model.predict(xval),
-        header_str='val_')
+        header_str='val_', sample_weight=sample_weight)
 
         msg = f'val score after op6 {self.score_dict}'
         print(msg)
@@ -1457,19 +1204,58 @@ class Trainer():
         """Merge train and validation data to perform the final fit
 
         """
+
+        logger = logging.getLogger(__name__)
         # final split
         self.dataset.split_data(split_ratio=self.split_lists[2])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
-        xtest, ytest, *args = self.dataset.get_data_matrix(
+        xtest, ytest, _, test_weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         self.model.fit(xtrn, ytrn, weights)
-        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
+        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_', sample_weight=test_weights)
         msg = f'final score for test set {self.score_dict}'
         print(msg)
         logger.info(msg)
 
-    
+    def search_tpot(self):
+        """Search for TPOT model, explore the best pipeline, and print out the best score. This step is done after obtaining best fire parameter and lag dict.
+
+        """
+
+        # feature engineering settting
+        self.dataset.lag_dict = self.poll_meta['lag_dict']
+        self.dataset.x_cols_org = self.poll_meta['x_cols_org']
+        
+        # build data matrix 
+        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
+        self.dataset.build_lag(
+        lag_range=np.arange(
+            1,
+            self.dataset.lag_dict['n_max'],
+            self.dataset.lag_dict['step']),
+        roll=self.dataset.lag_dict['roll'])
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant)
+        self.dataset.split_data(split_ratio=self.split_lists[2])
+
+        xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
+        #xval, yval, _, sample_weight = self.dataset.get_data_matrix(
+        #    use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        xtest, ytest, _, sample_weight = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+
+        #ask TPOT to hunt for the best model
+        tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2)
+        tpot.fit(xtrn, ytrn, sample_weight=weights)
+
+        score_dict = cal_scores(ytest, tpot.predict(xtest), header_str='test_', sample_weight=sample_weight)
+        print(f'Tpot test score is {score_dict}')
+        tpot.export(self.dataset.model_folder+f'{self.pollutant}_tpot_pipeline.py')
+
+        pickle.dump(tpot, open( self.dataset.model_folder + f'{self.poll_name}_tpot_model.pkl', 'wb'))
+
+
     def save_feat_imp(self, filename=None, title=''):
         """Build feature of importance plots and save the plot as png file
         
@@ -1508,9 +1294,13 @@ class Trainer():
             keywords arguments for overiding default poll_meta
 
         """
+        logger = logging.getLogger(__name__)
+        logger.info('use default meta')
+        print('use default meta')
         poll_meta = {"rolling_win": 1, "cat_hour": True, "fill_missing": True, "group_hour": 2, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
         poll_meta.update(kwargs)
         poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface': 2, 'wind_damp': False, 'wind_lag': False}
+        poll_meta['lag_dict'] ={"n_max": 1, "step": 12, "roll": True}
 
         self.poll_meta = poll_meta
 
@@ -1538,19 +1328,19 @@ class Trainer():
 
         """
         # load model meta to setup parameters
-        model_meta = load_meta(self.dataset.model_folder + 'model_meta.json')
+        poll_meta = load_meta(self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json')
         if 'fire_dict' in self.poll_meta.keys():
             self.poll_meta['fire_dict']['wind_damp'] = int(bool(self.poll_meta['fire_dict']['wind_damp']))
             self.poll_meta['fire_dict']['wind_lag'] = int(bool(self.poll_meta['fire_dict']['wind_lag']))
-        model_meta[self.pollutant] = self.poll_meta
-        save_meta(self.dataset.model_folder + 'model_meta.json', model_meta)
+        
+        save_meta(self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json', self.poll_meta)
 
     def save_model(self):
         """Save trained model 
 
         """
 
-        pickle.dump(self.model, open( self.dataset.model_folder + f'{self.poll_name}_rf_model.pkl', 'wb'))
+        pickle.dump(self.model, open( self.dataset.model_folder + self.model_str+f'{self.poll_name}_rf_model.pkl', 'wb'))
 
     def save_all(self):
         """Save model meta, model file and dataset data 
@@ -1575,7 +1365,7 @@ class Trainer():
             pass
 
 
-def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, choose_cat_hour=False, op_fire_twice=False, main_data_folder: str = '../data/',
+def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, choose_cat_hour=False, op_fire_twice=False, search_tpot=False, with_interact=False, main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
@@ -1587,6 +1377,8 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
         search_wind_damp(optional): if True, search in four options of the fire features.
         choose_cat_hour(optional): if True, see if not switching cat hour option is beter
         op_fire_twice(optiohnal): if True, optimize fire data after optimizing lag 
+        search_tpot(optional): If True, also search for other model using TPOT
+        with_interact(optional): if True, add interaction term in the dataset. 
         main_data_folder(optional): main data folder for initializing Dataset object [default:'../data/]
         model_folder(optional): model folder  for initializing Dataset object [default:'../models/']
         report_folder(optional): folder to save figure for initializing Dataset object [default:'../reports/']
@@ -1602,14 +1394,16 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
     set_logging(level=10)
     logger = logging.getLogger(__name__)
     # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant)
+    trainer = Trainer(city=city, pollutant=pollutant, with_interact=with_interact)
     trainer.n_jobs = n_jobs
 
     if default_meta:
         trainer.get_default_meta()
 
-    if hasattr(trainer.dataset, 'x_cols_org'):
+    if 'x_cols_org' in trainer.poll_meta.keys():
+        trainer.dataset = trainer.poll_meta['x_cols_org']
         trainer.dataset.x_cols = trainer.dataset.x_cols_org
+    
     # look for the best rf model 
     trainer.op_rf(fire_dict=trainer.dataset.fire_dict)
     if choose_cat_hour:
@@ -1623,17 +1417,19 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
     
     # see if adding lag improve things 
     trainer.op4_lag()
-    trainer.op_fire_zone(step=50)
     if op_fire_twice:
         trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=search_wind_damp)
     # serach rf model again
     trainer.op6_rf()
     trainer.final_fit()
     # save plot
-    trainer.save_feat_imp(filename=trainer.dataset.report_folder + f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
+    trainer.save_feat_imp(filename=trainer.dataset.report_folder + trainer.model_str +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
     trainer.save_all()
+
+    if search_tpot:
+        trainer.search_tpot()
 
     # turn of logging 
     logging.shutdown()
 
-    return trainer.dataset, trainer.model, trainer.poll_meta, trainner 
+    return trainer.dataset, trainer.model, trainer

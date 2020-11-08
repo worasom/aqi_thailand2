@@ -89,6 +89,7 @@ class Dataset():
 
         self.load_city_info()
         self.add_weights = 1
+        self.with_interact = 0
 
     def load_city_info(self):
         """Load city information add as city_info dictionary.
@@ -430,7 +431,7 @@ class Dataset():
                 filename.replace(' ', '_') + '.csv'
             wea = pd.read_csv(filename)
             wea = fill_missing_weather(wea, limit=12)
-            number_cols = ['Temperature(C)', 'Humidity(%)', 'Wind Speed(kmph)', 'Precip.(mm)', 'Pressure(hPa)']
+            number_cols = ['Temperature(C)', 'Humidity(%)', 'Wind_Speed(kmph)', 'Precip.(mm)', 'Pressure(hPa)']
             # for col in number_cols:
             #     # remove outliers from the data 
             #     #q_hi = wea[col].quantile(0.99)
@@ -544,7 +545,7 @@ class Dataset():
             'Temperature(C)',
             'Humidity(%)',
             'Wind',
-            'Wind Speed(kmph)',
+            'Wind_Speed(kmph)',
             'Condition']
         # merge pollution and wind data
 
@@ -633,7 +634,7 @@ class Dataset():
          
         if wind_lag:
             # overide the index of the fire with the new arrival time 
-            fire_df.index = cal_arrival_time(detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=fire_df['Wind Speed(kmph)'])
+            fire_df.index = cal_arrival_time(detection_time=fire_df.index, distance=fire_df['distance'], wind_speed=fire_df['Wind_Speed(kmph)'])
         # set at attribute
         self.damped_fire = fire_df
 
@@ -644,6 +645,7 @@ class Dataset():
         Call src.features.build_features.get_fire_feature() to calcuate the daming due to distance and shift due to effective wind_speed. 
 
         The fire_proc dataframe is merged with the rest of the pollution, and weather dataframe. 
+        After building the fire columns, add the interaction term if self.with_interact==True. 
 
         Args:
             fire_dict(optional): fire dictionary containing wind_speed, shift and roll as keys [default:None] 
@@ -702,7 +704,26 @@ class Dataset():
         data = data.loc[~data.index.duplicated(keep='first')]
         self.data = data
 
+        if self.with_interact:
+            self.build_inter_data()
+
         return fire_cols, self.zone_list
+
+    def build_inter_data(self):
+        """Add second degree interaction term in the self.data attribute. Omitted the pollution column from the interaction. 
+
+        """
+        poly = PolynomialFeatures(2, interaction_only=True, include_bias=False)
+        # set the pollution columns aside 
+        poll_df = self.data[self.pollutant]
+
+        x_inter = poly.fit_transform(self.data.drop(self.pollutant, axis=1).values)
+        inter_columns = poly.get_feature_names(self.data.columns.drop(self.pollutant))
+        inter_columns = [s.replace(' ', '_n_') for s in inter_columns]
+        self.data = pd.DataFrame(x_inter, columns=inter_columns, index=poll_df.index)
+        # put the pollution column back
+        self.data = pd.concat([poll_df, self.data], axis=1)
+        self.data = self.data.dropna()
 
     def trim_fire_zone(self, step=50):
         """Reduce last value in the fire zone_list by the step size, and update the zone_list attribute. 
@@ -833,6 +854,8 @@ class Dataset():
             roll(optional): if True, use the calculate the rolling average of previous values and shift 1
 
         """
+        logger = logging.getLogger(__name__)
+        logger.debug(f'lag range {lag_range}, roll = {roll}')
         # check for an empty array
         if len(lag_range) > 0:
 
@@ -960,8 +983,8 @@ class Dataset():
             self.wea = pd.read_csv(self.data_folder + 'weather.csv')
             try:
                 self.wea.drop(['Time',
-                               'Dew Point(C)',
-                               'Wind Gust(kmph)'],
+                               'Dew_Point(C)',
+                               'Wind_Gust(kmph)'],
                               axis=1,
                               inplace=True)
             except BaseException:

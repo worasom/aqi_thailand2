@@ -129,7 +129,7 @@ def get_gas_color_list(gas_list, gas_color_dict=None):
 
 def cal_scores(
         ytrue: np.array,
-        ypred: np.array,
+        ypred: np.array, sample_weight=[],
         score_list: list = [
             r2_score,
             mean_squared_error, mean_absolute_error],
@@ -140,6 +140,7 @@ def cal_scores(
     Inputs:
         ytrue: 2D numpy array of true sensors data
         ypred: 2D numpy array of predicted data
+        sample_weight: sample weights
         score_list(optional): a list of function to calculate score [default: [r2_score,mean_squared_error]]
         header_str(optional): string to add to the result_dict key. Useful for separating test_ and training data [default='test_']
         to_print: print the result to the console or result the dictionary
@@ -150,11 +151,13 @@ def cal_scores(
     """
 
     result_dict = {}
+    if len(sample_weight) ==0:
+        sample_weight = None
 
     for score_fun in score_list:
         try:
             result_dict.update(
-                {header_str + score_fun.__name__: score_fun(ytrue, ypred)})
+                {header_str + score_fun.__name__: score_fun(ytrue, ypred, sample_weight=sample_weight)})
         except BaseException:
             result_dict.update(
                 {header_str + score_fun.__name__: np.nan})
