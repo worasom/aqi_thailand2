@@ -1077,10 +1077,11 @@ class Trainer():
             self.save_meta()
 
          
-    def op4_lag(self, and_save=True):
+    def op4_lag(self, lag_range=[1,100], and_save=True):
         """optimization 4: improve model performance by adding lag columns and remove unncessary lag columns
 
         Args:
+            lag_range(optional): maximum lagging value
             and_save(optional): if True, update and save model meta file 
 
         Raises:
@@ -1111,7 +1112,7 @@ class Trainer():
         # look for the best lag
          
         self.dataset.lag_dict, gp_result = op_lag(
-            self.dataset, self.model, split_ratio=self.split_lists[1], n_jobs=self.n_jobs)
+            self.dataset, self.model, split_ratio=self.split_lists[1], lag_range=lag_range, n_jobs=self.n_jobs)
         #dataset.lag_dict = {'n_max': 2, 'step': 5}
         self.dataset.build_lag(
             lag_range=np.arange(
@@ -1416,7 +1417,11 @@ def train_city_s1(city: str = 'Chiang Mai', pollutant= 'PM2.5', n_jobs=-2, defau
     trainer.op_fire_zone(step=50)
     
     # see if adding lag improve things 
-    trainer.op4_lag()
+    if with_interact:
+        # use smaller lag range 
+        trainer.op4_lag(lag_range=[1, 20])
+    else:
+        trainer.op4_lag()
     if op_fire_twice:
         trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=search_wind_damp)
     # serach rf model again

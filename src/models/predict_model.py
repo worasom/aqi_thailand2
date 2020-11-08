@@ -366,7 +366,7 @@ def get_data_samples(
     wea_cols = [
         'Temperature(C)',
         'Humidity(%)',
-        'Wind_Speed(kmph',
+        'Wind_Speed(kmph)',
         'wind_CALM',
         'wind_E',
         'wind_N',

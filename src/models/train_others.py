@@ -391,7 +391,7 @@ def train_city_s1_v2(
         # columns to consider droping are columns with low importance
         to_drop = feat_imp['index']
         to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph']:
+        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
             to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
@@ -447,7 +447,7 @@ def train_city_s1_v2(
 
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
-        no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph'] + \
+        no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)'] + \
             [a for a in data.x_cols_org if 'fire' in a]
         for s in no_drop:
             to_drop.remove(s)
@@ -648,7 +648,7 @@ def train_city_s0(
         to_drop = feat_imp['index'].to_list()
         # keep weather and fire columns for in case it matter later on 
         to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph']:
+        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
             to_drop.remove(s)
         to_drop.reverse()
         model, x_cols_org = reduce_cols(
@@ -712,7 +712,7 @@ def train_city_s0(
         # optimize 1 drop unuse cols
         to_drop = feat_imp['index'].to_list()
         if dataset.city_name== 'Chiang Mai':
-            no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph'] + [a for a in dataset.x_cols_org if 'fire' in a]
+            no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)'] + [a for a in dataset.x_cols_org if 'fire' in a]
             for s in no_drop:
                 to_drop.remove(s)
         to_drop.reverse()

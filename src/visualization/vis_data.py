@@ -705,7 +705,7 @@ def compare_seson_avg(
         poll='PM2.5',
         wea_col=[
             'Temperature(C)',
-            'Wind_Speed(kmph'],
+            'Wind_Speed(kmph)'],
     agg='mean',
         filename=None):
     """Compare seasonal pattern of pollution data, fire and weather pattern.

@@ -418,7 +418,7 @@ def add_wea_vec(wea_df:pd.DataFrame, roll_win=6, daily_avg=True)-> pd.DataFrame:
     
     
     Args:
-        wea_df: weather dataframe with datetime index 'Wind' and 'Wind_Speed(kmph' columns
+        wea_df: weather dataframe with datetime index 'Wind' and 'Wind_Speed(kmph)' columns
         roll_win: rolling average windows 
         daily_avg: if True, calculate the daily average value. 
     Returns: process weather dataframe
@@ -432,7 +432,7 @@ def add_wea_vec(wea_df:pd.DataFrame, roll_win=6, daily_avg=True)-> pd.DataFrame:
                        'SSE': 0.92, 'S': 1.0, 'SSW': 0.92, 'SW': 0.71, 'WSW': 0.38, 'W': 0.0, 'WNW': -0.38, 'NW': -0.71, 'NNW': -0.92}
     
     # keep only wind direction and wind speed columns
-    wea_proc = wea_df[['Wind', 'Wind_Speed(kmph']].copy()
+    wea_proc = wea_df[['Wind', 'Wind_Speed(kmph)']].copy()
     # create a winvector columns
     wea_proc['wind_vec_x'] =  wea_proc['Wind'].map(wind_vec_x_dict)
     wea_proc['wind_vec_y'] =  wea_proc['Wind'].map(wind_vec_y_dict)

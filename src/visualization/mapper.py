@@ -794,8 +794,8 @@ class Mapper():
             wind = wind.loc[start_date:end_date]
             wind = add_wea_vec(wind, daily_avg=False,roll_win=6)
             #multiply wind vector with the wind speed 
-            wind['wind_vec_x'] *= wind['Wind_Speed(kmph']
-            wind['wind_vec_y'] *= wind['Wind_Speed(kmph']
+            wind['wind_vec_x'] *= wind['Wind_Speed(kmph)']
+            wind['wind_vec_y'] *= wind['Wind_Speed(kmph)']
             wind = wind.fillna(0)
 
         filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, wind=wind, delete=delete)

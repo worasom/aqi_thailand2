@@ -840,7 +840,7 @@ class Dataset():
             weights[idxs] = 2
             # add weight for data more than q90
             idxs = np.where(y >  q_list[2])[0]
-            weights[idxs] = 4
+            weights[idxs] = 5
 
 
         return x.values, y, x_cols, weights

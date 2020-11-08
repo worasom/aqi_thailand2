@@ -386,10 +386,13 @@ def main(
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Cambodia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Malaysia/']
     
     for url in b_data_list:
-        # gather all data for Thailand
-        download_b_data(
-            data_folder=f'{main_folder}pm25/',
-            url=url)
+        # gather all data 
+        try:
+            download_b_data(
+                data_folder=f'{main_folder}pm25/',
+                url=url)
+        except:
+            print(f'fail to download file for {url}')
 
     # print('\n Download Data for Vietnam')
     # download_b_data(
