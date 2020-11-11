@@ -1,2 +1,5 @@
 *.exe
 _*.py
+/data/*.exe
+/data/build/
+/data/dist/

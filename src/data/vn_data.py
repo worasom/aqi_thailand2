@@ -167,8 +167,8 @@ def download_vn_data(
     """
     # open the webpage and wait
     # the page sometimes is slow, so need to wait a bit.
-
-    executable_path = f'C:/Users/Benny/Documents/Fern/aqi_thailand2/notebooks/geckodriver.exe'
+    dir_name = os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')
+    executable_path = f'{dir_name}/geckodriver.exe'
     browser = webdriver.Firefox(executable_path=executable_path)
     browser.get(url)
     time.sleep(60)
@@ -243,6 +243,8 @@ def concat_vn_data(save_folder='../data/vn_epa/'):
         save_folder: folder to save the data
 
     """
+    save_folder = os.path.abspath(save_folder).replace('\\', '/') + '/'
+    print(f'save data folder ={save_folder}')
     # look for scraped csv files
     old_files = glob(save_folder + '*.csv')
     new_df = []

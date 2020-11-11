@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
+# -*- coding: utf-8 -*-
+import os
+import sys
+
+if __package__: 
+    from ..imports import *
+else:
+    # run as a script, use absolute import
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
 
 """Scrape weather data and weather information
 

@@ -19,20 +19,22 @@ def load_meta(meta_filename: str):
         pollutant_meta dictionary for that pollutant
 
     """
+    
     if os.path.exists(meta_filename):
         with open(meta_filename) as f:
             model_meta = json.load(f)
     else:
+        print('model meta file doe not exist')
         model_meta = {}
 
     return model_meta
 
 
 def load_model(
-        city: str = 'Chiang Mai',
+        city:str,
         pollutant: str = 'PM2.5',
         build=False,
-        update=True):
+        update=True, with_interact=False):
     """Load and update the model without optimization steps. Use parameters from model_meta file.
 
     Use for small data update without parameters change.
@@ -54,8 +56,16 @@ def load_model(
     dataset.monitor = dataset.pollutant = pollutant
     # remove . from pollutant name for saving file
     poll_name = pollutant.replace('.', '')
+    if with_interact:
+        dataset.with_interact = True
+        model_str = 'inter_'
+    else:
+        dataset.with_interact = False
+        model_str = ''
     # load model_meta
-    poll_meta = load_meta(dataset.model_folder + 'model_meta.json')
+     
+    poll_meta = load_meta(dataset.model_folder + f'{model_str}{poll_name}_model_meta.json')
+   
     split_lists = poll_meta['split_lists']
 
     # load model

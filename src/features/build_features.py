@@ -260,7 +260,7 @@ def get_fire_feature(
         roll: int = 48,
         w_speed: (
             float,
-        int) = 1):
+        int) = 1, split_direct=False):
     """ Separate fire from different distance and take the average. This function use average wind speed. 
     
     Args:
@@ -271,6 +271,7 @@ def get_fire_feature(
         shift: row to lag the fire data
         roll: rolling sum factor  
         w_speed: average wind speed in km per hour
+        split_direct(optional): split hotspot further based on the direction of hotspot N, E, W, S
     
     Returns: (pd.DataFrame, list)
         new_fire: new fire feature ready to merge with the weather data
@@ -286,21 +287,42 @@ def get_fire_feature(
     # weight the fire columns by confidence 
     #fire[fire_col] *= fire['confidence']
     for start, stop in zip(zone_list, zone_list[1:]):
-        col_name = f'fire_{start}_{stop}'
+        top_col_name = f'fire_{start}_{stop}'
+        
+       
+        if split_direct:
+            # select sub-data baseline the distance
+            fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col, 'spot_direct', 'distance']].copy()
 
-        fire_col_list.append(col_name)
-        # select sub-data baseline the distance
-        fire_s = fire[(fire['distance'] < stop) & (
-            fire['distance'] >= start)][[fire_col, 'distance']].copy()
-        fire_s = shift_fire(
-            fire_s,
-            fire_col=fire_col,
-            damp_surface=damp_surface,
-            shift=shift,
-            roll=roll,
-            w_speed=w_speed)
-        fire_s.name = col_name
-        new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)
+            for direction in fire_s['spot_direct'].unique():
+                # split fire further based on the direction
+                fire_temp = fire_s[fire_s['spot_direct'] == direction]
+                # there is a possibility of an empty df check that first 
+                # if empty, then skip that direction 
+                if len(fire_temp) > 0:
+                    fire_temp = shift_fire(fire_temp, fire_col=fire_col,
+                        damp_surface=damp_surface,
+                        shift=shift,
+                        roll=roll,
+                        w_speed=w_speed) 
+                    col_name = top_col_name + '_' + direction
+                    fire_temp.name = col_name
+                    fire_col_list.append(col_name)
+                    new_fire = pd.concat([new_fire, fire_temp], axis=1, ignore_index=False)
+        else:
+
+            # select sub-data baseline the distance
+            fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col, 'distance']].copy()
+
+            fire_s = shift_fire(fire_s,
+                fire_col=fire_col,
+                damp_surface=damp_surface,
+                shift=shift,
+                roll=roll,
+                w_speed=w_speed)
+            fire_s.name = top_col_name
+            fire_col_list.append(top_col_name)
+            new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)
 
     new_fire = new_fire.fillna(0)
     new_fire.index.name = 'datetime'
@@ -335,6 +357,28 @@ def sep_fire_zone(fire, fire_col, zone_list=[0, 100, 200, 400, 800, 1000]):
 
     return new_fire, fire_col_list
 
+def add_fire_direct(city_x:float, city_y:float, fire:pd.DataFrame, bins:list=[-181, -135, -45, 45, 135, 181], labels:list=['W', 'S', 'E', 'N','W']):
+    """Add direction in degree and label the direction of the fire relative to the  city center
+
+    Args:
+        city_x: longitude in km of the city center
+        city_y: latitude in km of the city center
+        fire: fire dataframe
+        bins: bins to separate the degree
+        labels: direction label
+
+    Returns: pd.Dataframe
+        the new fire dataframe with degree added 
+
+    """
+    # add direction of the fire relatived to the city 
+    direct_arr = [fire['long_km'].values - city_x, fire['lat_km'].values - city_y ]
+    # normalize 
+    direct_arr /= np.linalg.norm(direct_arr, axis=0)
+    # get the degree
+    fire['degree'] = np.degrees(np.arctan2(direct_arr[1, :], direct_arr[0, :] )).round()
+    fire['spot_direct'] = pd.cut(fire['degree'], bins=[-181, -135, -45, 45, 135, 181], labels=['W', 'S', 'E', 'N','W'] , right =False, ordered=False )
+    return fire 
 
 def dummy_time_of_day(df, col='time_of_day', group_hour=3):
     """One hot encode time_of_day columns. df must have datetime index.

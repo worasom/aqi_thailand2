@@ -114,3 +114,7 @@ target/
 /models/nakhon_si_thammarat/
 /models/*.json
 models/*
+/build/
+/dist/
+vn_data*
+

@@ -88,8 +88,11 @@ class Dataset():
             os.mkdir(self.report_folder)
 
         self.load_city_info()
+        # add weight when extracting the data matrix
         self.add_weights = 1
+        # add interaction term when making the data matrix 
         self.with_interact = 0
+         
 
     def load_city_info(self):
         """Load city information add as city_info dictionary.
@@ -414,6 +417,9 @@ class Dataset():
                 'frp'],
                 axis=1)
 
+        # add direction of the hotspot
+        fire = add_fire_direct(city_x=self.city_info['long_km'], city_y=self.city_info['lat_km'], fire=fire)
+
         # save fire data
         fire.to_csv(filename)
 
@@ -526,6 +532,7 @@ class Dataset():
             AssertionError: if pollutant not in self.poll_df
 
         """
+        logger = logging.getLogger(__name__)
         if not hasattr(self, 'poll_df') or not hasattr(self, 'wea'):
             self.load_()
 
@@ -612,7 +619,7 @@ class Dataset():
         data.sort_index(inplace=True)
         data = data.loc[~data.index.duplicated(keep='first')]
 
-        print('data no fire has shape', data.shape)
+        logger.info('data no fire has shape  {data.shape}')
         self.data_no_fire = data
 
     def get_wind_damp_fire(self, wind_lag):
@@ -638,7 +645,7 @@ class Dataset():
         # set at attribute
         self.damped_fire = fire_df
 
-    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp =False, wind_lag=False):
+    def merge_fire(self, fire_dict=None, damp_surface='sphere', wind_damp =False, wind_lag=False, split_direct=False):
         """Process raw hotspot data into fire feature and merge with the rest of the data
         If wind_damp is True, use self.damped_fire attribute for fire data, if False, use self.fire attribute.  
 
@@ -652,6 +659,7 @@ class Dataset():
             damp_surface(optional): damping surface, either 'sphere', or 'cicle' 
             wind_damp(optional): if True, use fire_damp attribute for fire feature calculation instead of fire. If fire_damp hasn't exsited, calculate it. 
             wind_lag(optional): if True, use real wind speed for arrivial time 
+            split_direct(optional): split hotspot further based on the direction of hotspot N, E, W, S
 
         Returns: (list, list)
             fire_cols: list of the fire columns
@@ -664,7 +672,7 @@ class Dataset():
             # set self.fire_dict attribute 
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag }
+                fire_dict = {'w_speed': 1, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag, 'split_direct': split_direct }
                 self.fire_dict = fire_dict
 
             # check if has damped_fire attribute
@@ -684,15 +692,15 @@ class Dataset():
             # set self.fire_dict attribute
             if fire_dict is None:
                 print('use default fire feature')
-                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag}
+                fire_dict = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface':damp_surface, 'wind_damp': wind_damp, 'wind_lag': wind_lag, 'split_direct': split_direct}
                 self.fire_dict = fire_dict
             # use raw fire data        
             fire_df = self.fire
-
+        
         # obtain processed fire dataframe and the fire columns     
         fire_proc, fire_cols = get_fire_feature(fire_df, zone_list=self.zone_list,
                                                 fire_col=fire_col, damp_surface=damp_surface,
-                                                shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'])
+                                                shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'], split_direct=fire_dict['split_direct'])
 
         # merge with fire data
         data = self.data_no_fire.merge(
@@ -840,7 +848,7 @@ class Dataset():
             weights[idxs] = 2
             # add weight for data more than q90
             idxs = np.where(y >  q_list[2])[0]
-            weights[idxs] = 5
+            weights[idxs] = 2
 
 
         return x.values, y, x_cols, weights
@@ -940,7 +948,7 @@ class Dataset():
                 # save with index
                 self.data.to_csv(self.data_folder + 'data.csv')
 
-    def load_(self, fire='MODIS'):
+    def load_(self, fire:str='MODIS'):
         """Load the process pollution data from the disk without the build
 
         Load if the file exist for.
@@ -949,6 +957,9 @@ class Dataset():
         - data no fire
         - data_org
         - data
+
+        Args:
+            fire: name of the hotspot instrument. Either 'MODIS' or 'VIIRS' 
 
         """
 
@@ -969,8 +980,10 @@ class Dataset():
 
         if fire == 'MODIS':
             filename = self.data_folder + 'fire_m.csv'
-        else:
+        elif fire == 'VIIRS':
             filename = self.data_folder + 'fire_v.csv'
+        else:
+            raise AssertionError('not a type of fire instrument')
 
         if os.path.exists(filename):
             self.fire = pd.read_csv(filename)

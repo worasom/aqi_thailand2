@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
-# import os
-# import sys
-# PACKAGE_PARENT = '..//..'
-# SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-# sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-
-
-from ..imports import *
-from .weather_data import *
+import os
+import sys
 from selenium.webdriver.support.select import Select
 
+if __package__: 
+    from ..imports import *
+    from .weather_data import *
+else:
+    # run as a script, use absolute import
+    _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from weather_data import *
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
 
-"""Functions for downloading Berkeley Data, air4thai data.
+
+"""Functions for downloading Berkeley Data, air4thai data, us embassy data.
 
 """
 
@@ -90,7 +97,10 @@ def update_last_air4Thai(
     """
     print('download more pollution data from Thailand PCD')
     # use Firefox to open the website
-    browser = webdriver.Firefox()
+    dir_name = os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')
+    executable_path = f'{dir_name}/geckodriver.exe'
+    browser = webdriver.Firefox(executable_path=executable_path)
+
     browser.get(url)
     time.sleep(1)
     # find all station names and parameters from the webpage
@@ -105,7 +115,7 @@ def update_last_air4Thai(
     # print(para_selector_list)
     assert os.path.exists(data_folder), f'no data folder {data_folder}'
 
-    for sta_id, sta_name in tqdm_notebook(
+    for sta_id, sta_name in tqdm(
             zip(sta_selector_list, station_name_list)):
         get_station_data_save(
             url,
@@ -309,7 +319,7 @@ def download_cdc_data(
             station_info_list = json.load(f)
 
     # download data for all station
-    for station_dict in tqdm_notebook(station_info_list):
+    for station_dict in tqdm(station_info_list):
 
         station_id = station_dict['dustboy_id']
         # download the data
@@ -380,6 +390,9 @@ def main(
         build_json: if True also build city information
 
     """
+    # fix relative folder 
+    main_folder = os.path.abspath(main_folder).replace('\\', '/') + '/'
+    print(f'main data folder ={main_folder}')
     b_data_list = ['http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/', 
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Myanmar/',
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Singapore/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Laos/',
@@ -393,15 +406,6 @@ def main(
                 url=url)
         except:
             print(f'fail to download file for {url}')
-
-    # print('\n Download Data for Vietnam')
-    # download_b_data(
-    # data_folder=f'{main_folder}pm25/', url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/')
-
-    # print('\n Download Data for Jakarta')
-    # download_province_data(
-    #     grab_url='http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/Jakarta/',
-    #     data_folder=f'{main_folder}pm25/')
 
     if build_json:
         # Build City info json for Berkeley Data
@@ -445,7 +449,7 @@ def main(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
     len(weather_station_info)
 
-    for city_json in tqdm_notebook(weather_station_info):
+    for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
         start_date = datetime(2020, 8, 22)
         end_date = datetime.now() - timedelta(days=1)
