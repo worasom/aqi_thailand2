@@ -109,14 +109,19 @@ class Dataset():
                 break
 
         # add lattitude and longtitude in km
-        self.city_info['lat_km'] = (
-            merc_y(
-                self.city_info['Latitude']) /
-            1000).round()
-        self.city_info['long_km'] = (
-            merc_x(
-                self.city_info['Longitude']) /
-            1000).round()
+        # self.city_info['lat_km'] = (
+        #     merc_y(
+        #         self.city_info['Latitude']) /
+        #     1000).round()
+        # self.city_info['long_km'] = (
+        #     merc_x(
+        #         self.city_info['Longitude']) /
+        #     1000).round()
+
+        coor = to_merc((self.city_info['Longitude'], self.city_info['Latitude']))
+
+        self.city_info['long_m'] = coor[0]
+        self.city_info['lat_m'] = coor[1]
 
         if self.city_info['Country'] == 'Viet Nam':
             # fix the name of Vietnam

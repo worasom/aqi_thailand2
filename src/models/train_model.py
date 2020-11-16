@@ -86,7 +86,7 @@ def do_rf_search(
                 'max_depth': [3, None],
                 'max_features': ['auto', 'sqrt', 'log2']}
         else:
-            param_dict = {'n_estimators': range(20, 200, 20),
+            param_dict = {'n_estimators': range(20, 280, 20),
                           'max_depth': [3, None],
                           'min_samples_split': [2, 5, 10, 20, 50],
                           'max_features': ['auto', 'sqrt', 'log2'],
@@ -745,8 +745,6 @@ class Trainer():
         self.dataset.monitor = self.dataset.pollutant = pollutant
         self.pollutant = pollutant
        
-       
-         
         # unpack default setting 
         self.split_lists = self.poll_meta['split_lists']
         self.dataset.fire_dict = self.poll_meta['fire_dict']
@@ -804,6 +802,11 @@ class Trainer():
 
         print('=================find the best RF model=================')
 
+        n_jobs_temp = self.n_jobs
+        if (0 <= datetime.now().hour <= 5) or (21 <= datetime.now().hour <= 23):
+            # use all cpu during the night
+            self.n_jobs = -1
+
         if fire_dict is None:
             # use default fire feature
             self.fire_cols, *args = self.dataset.merge_fire( wind_damp=False, wind_lag=False)
@@ -812,22 +815,23 @@ class Trainer():
             self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'])
         
         # check x_cols attributes
-        if not hasattr(self.dataset, 'x_cols'):
-            self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
 
         logger.info( f'x_cols  {self.dataset.x_cols}')
          
         self.dataset.split_data(split_ratio=self.split_lists[0])
-        xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
+        xtrn, ytrn, self.dataset.x_cols_org, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
-            use_index=self.dataset.split_list[1])
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+        
 
         logger.info(f'xtrn has shape {xtrn.shape}')
 
         self.model = do_rf_search(xtrn, ytrn, cv_split='other', sample_weight=weights, n_jobs=self.n_jobs)
+        self.n_jobs = n_jobs_temp
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
         msg = f'val score after op_rf {self.score_dict}'
         print(msg)
@@ -852,6 +856,7 @@ class Trainer():
 
         old_score = self.score_dict['val_mean_squared_error']
         new_meta = self.poll_meta.copy()
+         
 
         if self.poll_meta['cat_hour']:
             # use cat hour before, try to use cat hour ==False
@@ -865,18 +870,18 @@ class Trainer():
         #build the new dataset 
         self.dataset.feature_no_fire(
             pollutant=self.pollutant,
-            rolling_win=new_meta['rolling_win'],
+            rolling_win=self.poll_meta['rolling_win'],
             fill_missing=self.poll_meta['fill_missing'],
-            cat_hour=self.poll_meta['cat_hour'],
+            cat_hour=new_meta['cat_hour'],
             group_hour=new_meta['group_hour'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
-
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
         self.dataset.split_data(split_ratio=self.split_lists[0])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
-            use_index=self.dataset.split_list[1])
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
          
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
@@ -891,6 +896,7 @@ class Trainer():
             msg = 'keep old cat hour option, which is ' + str( self.poll_meta['cat_hour'])
             print(msg)
             logger.info(msg)
+            
 
         # update the model 
         #build the new dataset 
@@ -902,16 +908,17 @@ class Trainer():
             group_hour=self.poll_meta['group_hour'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
-
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
         self.dataset.split_data(split_ratio=self.split_lists[0])
         xtrn, ytrn, self.dataset.x_cols_orgs, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
-            use_index=self.dataset.split_list[1])
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
 
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
         logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         msg = 'val score after cat_hour()' + str(self.score_dict)
         logger.info(msg)
@@ -982,6 +989,10 @@ class Trainer():
         """
         logger = logging.getLogger(__name__)
         print('================= find the best fire feature ===================')
+        n_jobs_temp = self.n_jobs
+        if (0 <= datetime.now().hour <= 5) or (21 <= datetime.now().hour <= 23):
+            # use all cpu during the night
+            self.n_jobs = -1
         # check attributes
         if not hasattr(self, 'model'):
             raise AssertionError('model not load, use self.op_rf(), or load the model')
@@ -1003,6 +1014,8 @@ class Trainer():
         logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
 
         self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict)
+
+        self.n_jobs = n_jobs_temp
         if and_save:
             self.save_meta()
 
@@ -1124,6 +1137,11 @@ class Trainer():
         """
         logger = logging.getLogger(__name__)
 
+        n_jobs_temp = self.n_jobs
+        if (0 <= datetime.now().hour <= 5) or (21 <= datetime.now().hour <= 23):
+            # use all cpu during the night
+            self.n_jobs = -1
+
         # check attributes
         if not hasattr(self.dataset, 'x_cols_org'):
             raise AssertionError('dataset object need x_cols_org attribute. Call self.op2_rm_cols() or load one')
@@ -1177,6 +1195,8 @@ class Trainer():
         score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
         logger.info(f'op4 test score {score_dict}')
 
+        self.n_jobs = n_jobs_temp
+
         print('================= remove unncessary lag columns =================')
         importances = self.model.feature_importances_
         feat_imp = pd.DataFrame(
@@ -1213,6 +1233,11 @@ class Trainer():
         """
         logger = logging.getLogger(__name__)
 
+        n_jobs_temp = self.n_jobs
+        if (0 <= datetime.now().hour <= 5) or (21 <= datetime.now().hour <= 23):
+            # use all cpu during the night
+            self.n_jobs = -1
+
         self.dataset.split_data(split_ratio=self.split_lists[1])
 
         logger.info(f'x_cols {self.dataset.x_cols}')
@@ -1224,6 +1249,7 @@ class Trainer():
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
 
         self.model = do_rf_search(xtrn, ytrn,cv_split='other', sample_weight=weights, n_jobs=self.n_jobs)
+        self.n_jobs = n_jobs_temp
         self.score_dict = cal_scores(
         yval,
         self.model.predict(xval),
@@ -1524,28 +1550,23 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
     logger.info(f'len of search {len(param_list)}')
 
     
-    # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant, with_interact=False)
-    trainer.n_jobs = n_jobs
-
-    if default_meta:
-        trainer.get_default_meta()
-
-    if ~ add_weight:
-        trainer.dataset.add_weight = 0
-
+    
+    poll_name = pollutant.replace('.', '')
     # load explored parameters 
-    search_filename =  trainer.dataset.model_folder +f'{trainer.poll_name}_search.csv'
+    search_filename =  model_folder + f'{city}/' + f'{ poll_name}_search.csv'
     try: 
+        print('found exisiting search file')
         explored_df = pd.read_csv(search_filename)
-        explored = list(zip(explored_df['search_split_direct'], explored_df['search_with_interact'], explored_df['search_with_traffic']))
+        
+        explored = list(zip(explored_df['split_direct'], explored_df['with_interact'], explored_df['with_traffic']))
+        print(f'explored parameter {explored}')
     except:
         explored = []
 
     # remove explored item
     param_list = [ item for item in param_list if item not in explored]
 
-    result_df = pd.DataFrame()
+    #result_df = pd.DataFrame()
     for params in tqdm(param_list):
         print(f'parameter {params}')
         # build a dictionary 
@@ -1560,8 +1581,16 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         except:
             with_traffic = 1
 
-        # build dataset.feature_no_fire()
-        trainer.build_feature_no_fire()
+        # initialize a trainer object
+        trainer = Trainer(city=city, pollutant=pollutant, with_interact=False)
+        trainer.n_jobs = n_jobs
+
+        if default_meta:
+            trainer.get_default_meta()
+
+        if ~ add_weight:
+            trainer.dataset.add_weight = 0
+    
 
         if not with_traffic:
             try: 
@@ -1591,13 +1620,13 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         print(f'validation score {trainer.score_dict}')
         result_dict.update(test_score_dict)
 
-        trainer.final_fit(and_save=False)
+        trainer.final_fit()
         # add score dict into the result
         result_dict.update(trainer.score_dict)
-        print(f'final test score {trainer.score_dict}')
+        #print(f'final test score {trainer.score_dict}')
 
         # add parameters 
-        key_list = ['cat_hour', 'fire_dict', 'lag_dict', 'zone_list',  'fire_cols' ]
+        key_list = ['cat_hour']
         result_dict.update( { k: trainer.poll_meta[k] for k in key_list })
         result_dict['len_cols'] = len(trainer.dataset.x_cols)
 
@@ -1605,7 +1634,11 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         logger.info(f'search parameter gives result {result_dict}')
        
 
-        result_df = pd.concat([result_df, pd.DataFrame(result_dict, index=[0])], ignore_index=True)
-        result_df.to_csv( search_filename, index=False )
+        result_df =  pd.DataFrame(result_dict, index=[0]) 
+
+        if os.path.exists(search_filename):
+            result_df.to_csv(search_filename, header=False, mode='a', index=False)
+        else:
+            result_df.to_csv( search_filename, index=False )
 
     return result_df

@@ -27,8 +27,9 @@ def read_fire(
     f = pd.read_csv(file)
 
     # convert lat
-    f['lat_km'] = (f['latitude'].apply(merc_y) / 1E3).round().astype(int)
-    f['long_km'] = (merc_x(f['longitude']) / 1E3).round().astype(int)
+    #f['lat_km'] = (f['latitude'].apply(merc_y) / 1E3).round().astype(int)
+    #f['long_km'] = (merc_x(f['longitude']) / 1E3).round().astype(int)
+    f = add_merc_col(f, lat_col='latitude', long_col='longitude', unit='m')
     # remove by lat
     f = f[(f['lat_km'] <= (lat_km + distance)) &
           (f['lat_km'] >= (lat_km - distance))]

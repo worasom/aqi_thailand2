@@ -25,6 +25,8 @@ from glob import glob
 import math
 from itertools import combinations, product
 from pyproj import Proj, transform
+from pyproj import Transformer
+from pyproj import CRS
 
 
 # webscraping

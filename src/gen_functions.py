@@ -1,12 +1,54 @@
 from .imports import *
-from bokeh.models import Title
+
+from pyproj import Transformer
 
 """ Unit conversion function
 
 """
 
+def to_merc_row(row, transformer,  lat_col='latitude', long_col='longitude', unit='m'):
+    """Function to add  latitude and longitude in mercator to a panda DataFrame given latitude and longitude
+    
+    Arg: 
+        row: a row of pd.Dataframe
+        transformer object
+        lat_col: name of the latitude columns
+        long_col: name of the longitude columns
+        unit: unit of the new column can be meter or km 
+        
+    Return row
+    """
+    
+    coor = (row[lat_col], row[long_col])
+    coor_out = transformer.transform(*coor)
+    if unit == 'm':
+        row['long_m'] = coor_out[0]
+        row['lat_m'] = coor_out[1]
+    elif unit == 'km':
+        row['long_km'] = coor_out[0]/1000
+        row['lat_km'] = coor_out[1]/1000
+    else:
+        raise AssertionError('invalid unit')
+        
+    return row
 
-def merc_x(lon):
+def add_merc_col(df, lat_col='latitude', long_col='longitude', unit='m'):
+    """Add mercator coodinate column to a dataframe given latitude and longitude columns 
+    
+    Args:
+        df: dataframe with latitude and longitud
+        lat_col: name of the latitude columns
+        long_col: name of the longitude columns
+        unit: unit of the new column can be meter or km 
+        
+    Return: pd.DataFrame
+    """
+    
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857") 
+    
+    return df.apply(to_merc_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col)
+
+def merc_x(lon, r_major = 6371007.181):
     # convert logitude in degree to mercadian in meter
     # Earth radius in meter
     # from https://wiki.openstreetmap.org/wiki/Mercator
@@ -14,11 +56,10 @@ def merc_x(lon):
         lon = float(lon)
     except BaseException:
         pass
-    r_major = 6378137.000
+    
     return r_major * np.radians(lon)
 
-
-def merc_y(lat, shift=False):
+def merc_y(lat, shift=False, r_major=6371007.181, r_minor=6356752.3142, equal_r=False):
     # convert latitude in degree to mercadian in meter
     try:
         lat = float(lat)
@@ -33,10 +74,13 @@ def merc_y(lat, shift=False):
         lat = 89.5
     if lat < -89.5:
         lat = -89.5
-
-    r_major = 6378137.000
-    r_minor = 6356752.3142
-    temp = r_minor / r_major
+    
+    if equal_r:
+        # EPSG 3857, use equal r
+        temp = 1
+    else:
+        # EPSG 3395, use different r
+        temp = r_minor / r_major
     eccent = np.sqrt(1 - temp**2)
     phi = np.radians(lat)
     sinphi = np.sin(phi)
@@ -47,28 +91,36 @@ def merc_y(lat, shift=False):
     y = 0 - r_major * np.log(ts)
     return y
 
+def to_merc(xy:tuple):
 
-def to_latlon(xy:tuple):
     """ Convert x and y mercator coordinate to latitude and longtitude
     Args:
         xy: a tuple of xy
 
-    Return (float,float)
+    Return np.array
 
     """
-    try:
-        y = float(y)
-    except BaseException:
-        pass
+    # switch x and y position
+    coor  = (xy[1], xy[0])
 
-    try:
-        x = float(x)
-    except BaseException:
-        pass
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857") 
+    return np.array(transformer.transform(*coor))
 
-    inProj = Proj('epsg:3395')
-    outProj = Proj('epsg:4326')
-    return np.array(transform(inProj, outProj, *xy))
+
+def to_latlon(xy:tuple):
+    """ Convert x and y mercator coordinate to latitude and longtitude
+
+    Args:
+        xy: a tuple of xy
+
+    Return np.array
+
+    """
+     
+    transformer = Transformer.from_crs("EPSG:3857", "EPSG:4326") 
+    coor_out = transformer.transform(*xy)
+    # switch position of the coordinate 
+    return np.array( [coor_out[1], coor_out[0]])
 
 
 def merc_lon(x):

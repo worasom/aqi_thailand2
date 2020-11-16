@@ -71,8 +71,10 @@ class Mapper():
 
         # obtain Berkeley data location information 
         # add mercadian coordinates in meter 
-        b_stations['long_m'] = b_stations['Longitude'].apply(merc_x)
-        b_stations['lat_m'] = b_stations['Latitude'].apply(merc_y, shift=True)
+        #b_stations['long_m'] = b_stations['Longitude'].apply(merc_x)
+        #b_stations['lat_m'] = b_stations['Latitude'].apply(merc_y, shift=True)
+
+        b_stations = add_merc_col(b_stations, lat_col='Latitude', long_col='Longitude', unit='m')
         # add station id (preparing to merge with other station jsons)
         b_stations['id'] = [f'{prefix}{num}' for num in np.arange(len(b_stations))]
         # add data source 
@@ -115,9 +117,9 @@ class Mapper():
         pcd_stations.columns = pcd_stations.columns.str.replace( 'stationID', 'id')
         
         # add mercadian coordinates
-        pcd_stations['long_m'] = pcd_stations['Longitude'].apply(merc_x)
-        pcd_stations['lat_m'] = pcd_stations['Latitude'].apply(merc_y,shift=True)
-        
+        #pcd_stations['long_m'] = pcd_stations['Longitude'].apply(merc_x)
+        #pcd_stations['lat_m'] = pcd_stations['Latitude'].apply(merc_y,shift=True)
+        pcd_stations = add_merc_col(pcd_stations, lat_col='Latitude', long_col='Longitude', unit='m')
         # add city/country info (preparing to merge with other station jsons)
         pcd_stations['Country'] = 'Thailand'
         temp  = pcd_stations['areaEN'].str.split(',', expand=True)
@@ -153,8 +155,10 @@ class Mapper():
         cmu_stations.columns = cmu_stations.columns.str.replace( 'dustboy_id', 'id')
         
         # add mercadian coordinates
-        cmu_stations['long_m'] = cmu_stations['Longitude'].apply(merc_x)
-        cmu_stations['lat_m'] = cmu_stations['Latitude'].apply(merc_y, shift=True)
+        #cmu_stations['long_m'] = cmu_stations['Longitude'].apply(merc_x)
+        #cmu_stations['lat_m'] = cmu_stations['Latitude'].apply(merc_y, shift=True)
+
+        cmu_stations = add_merc_col(cmu_stations, lat_col='Latitude', long_col='Longitude', unit='m')
         
         # add city/country info (preparing to merge with other station jsons)
         cmu_stations['Country'] = 'Thailand'
@@ -179,8 +183,10 @@ class Mapper():
         folder =  self.main_folder + folder
         usemb_stations = pd.read_csv(folder+'station_info.csv')
         # add mercadian coordinates
-        usemb_stations['long_m'] = usemb_stations['Longitude'].apply(merc_x)
-        usemb_stations['lat_m'] = usemb_stations['Latitude'].apply(merc_y, shift=True)
+        #usemb_stations['long_m'] = usemb_stations['Longitude'].apply(merc_x)
+        #usemb_stations['lat_m'] = usemb_stations['Latitude'].apply(merc_y, shift=True)
+
+        usemb_stations = add_merc_col(usemb_stations, lat_col='Latitude', long_col='Longitude', unit='m')
 
         # add data source 
         usemb_stations['source'] = label 

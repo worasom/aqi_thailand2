@@ -396,7 +396,11 @@ def main(
     b_data_list = ['http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/', 
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Myanmar/',
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Singapore/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Laos/',
-                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Cambodia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Malaysia/']
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Cambodia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Malaysia/',
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/China/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Bhutan/',
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Bangladesh/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/India/',
+                    'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Brunei_Darussalam/', 
+                    ]
     
     for url in b_data_list:
         # gather all data 
