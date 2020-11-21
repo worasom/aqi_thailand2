@@ -122,6 +122,8 @@ class Dataset():
 
         self.city_info['long_m'] = coor[0]
         self.city_info['lat_m'] = coor[1]
+        self.city_info['long_km'] = round(coor[0]/1000)
+        self.city_info['lat_km'] = round(coor[1]/1000)
 
         if self.city_info['Country'] == 'Viet Nam':
             # fix the name of Vietnam
@@ -732,7 +734,8 @@ class Dataset():
 
         x_inter = poly.fit_transform(self.data.drop(self.pollutant, axis=1).values)
         inter_columns = poly.get_feature_names(self.data.columns.drop(self.pollutant))
-        inter_columns = [s.replace(' ', '_n_') for s in inter_columns]
+        #inter_columns = [s.replace(' ', '_n_') for s in inter_columns]
+        inter_columns = ['_n_'.join(sorted(s.split(' '))) for s in inter_columns]
         self.data = pd.DataFrame(x_inter, columns=inter_columns, index=poll_df.index)
         # put the pollution column back
         self.data = pd.concat([poll_df, self.data], axis=1)

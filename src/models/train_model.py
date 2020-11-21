@@ -86,7 +86,7 @@ def do_rf_search(
                 'max_depth': [3, None],
                 'max_features': ['auto', 'sqrt', 'log2']}
         else:
-            param_dict = {'n_estimators': range(20, 280, 20),
+            param_dict = {'n_estimators': range(20, 300, 20),
                           'max_depth': [3, None],
                           'min_samples_split': [2, 5, 10, 20, 50],
                           'max_features': ['auto', 'sqrt', 'log2'],
@@ -354,7 +354,7 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
     dataset.split_data(split_ratio=split_ratio)
     trn_index=dataset.split_list[0] 
     val_index=dataset.split_list[1]
-    xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(use_index=trn_index, x_cols=x_cols)
+    xtrn, ytrn, _, weights = dataset.get_data_matrix(use_index=trn_index, x_cols=x_cols)
     xval, yval, _, sample_weight = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
 
     model.fit(xtrn, ytrn, weights)
@@ -706,7 +706,7 @@ class Trainer():
             self,
             city: str, pollutant: str = 'PM2.5', 
             main_data_folder: str = '../data/',
-            model_folder='../models/', report_folder='../reports/', n_jobs=-2 , with_interact=False):
+            model_folder='../models/', report_folder='../reports/', n_jobs=-2):
 
         """Initialize dataset object and add as attribute
 
@@ -720,12 +720,7 @@ class Trainer():
         self.poll_name = pollutant.replace('.', '')
         # string to add to the model filename 
         
-        if with_interact:
-            self.dataset.with_interact = True
-            self.model_str = 'inter_'
-        else:
-            self.dataset.with_interact = False
-            self.model_str = ''
+        
         # load model meta to setup parameters
         modelmeta_filename = self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json' 
         logger.debug(f'model meta filename {modelmeta_filename}')
@@ -733,6 +728,7 @@ class Trainer():
         try:
             self.poll_meta = load_meta(modelmeta_filename)
         except:
+            print('get defaul meta')
             self.get_default_meta()
 
         logger.info(f'pollution meta {self.poll_meta}')
@@ -757,6 +753,18 @@ class Trainer():
         if 'zone_list' in self.poll_meta.keys():
             self.dataset.zone_list = self.poll_meta['zone_list']
 
+        if 'with_interact' in self.poll_meta['with_interact'].keys():
+            self.dataset.with_interact = self.poll_meta['with_interact']
+            
+        else:
+            self.dataset.with_interact =  0
+
+        if 'split_direct' in self.poll_meta['split_direct'].keys():
+            trainer.dataset.fire_dict['split_direct'] = self.poll_meta['split_direct']
+
+        else:
+            trainer.dataset.fire_dict['split_direct'] = 0
+
         #build the first dataset only have to do this once 
         self.dataset.feature_no_fire(
             pollutant=pollutant,
@@ -764,6 +772,20 @@ class Trainer():
             fill_missing=self.poll_meta['fill_missing'],
             cat_hour=self.poll_meta['cat_hour'],
             group_hour=self.poll_meta['group_hour'])
+
+        if 'with_traffic' in self.poll_meta['with_interact'].keys():
+            with_traffic = self.poll_meta['with_interact']
+        else:
+            with_traffic = 1
+
+        if not with_traffic:
+            try: 
+                # do not want traffic data 
+                logger.info(f'before dropping traffic {trainer.dataset.data_no_fire.shape}')
+                trainer.dataset.data_no_fire = trainer.dataset.data_no_fire.drop('traffic_index', axis=1)
+                logger.info(f'after dropping traffic {trainer.dataset.data_no_fire.shape}')
+            except:
+                pass
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
 
@@ -832,6 +854,8 @@ class Trainer():
 
         self.model = do_rf_search(xtrn, ytrn, cv_split='other', sample_weight=weights, n_jobs=self.n_jobs)
         self.n_jobs = n_jobs_temp
+        # set the number of cpu
+        self.model.set_params(n_jobs=self.n_jobs)
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
         msg = f'val score after op_rf {self.score_dict}'
         print(msg)
@@ -1450,7 +1474,7 @@ class Trainer():
             pass
 
 
-def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, choose_cat_hour=False, add_weight=True, op_fire_twice=False, search_tpot=False, with_interact=False, main_data_folder: str = '../data/',
+def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, choose_cat_hour=False, add_weight=True, op_fire_twice=False, search_tpot=False, main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
@@ -1464,7 +1488,6 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, s
         choose_cat_hour(optional): if True, see if not switching cat hour option is beter
         op_fire_twice(optiohnal): if True, optimize fire data after optimizing lag 
         search_tpot(optional): If True, also search for other model using TPOT
-        with_interact(optional): if True, add interaction term in the dataset. 
         main_data_folder(optional): main data folder for initializing Dataset object [default:'../data/]
         model_folder(optional): model folder  for initializing Dataset object [default:'../models/']
         report_folder(optional): folder to save figure for initializing Dataset object [default:'../reports/']
@@ -1480,7 +1503,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, s
     set_logging(level=10)
     logger = logging.getLogger(__name__)
     # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant, with_interact=with_interact)
+    trainer = Trainer(city=city, pollutant=pollutant)
     trainer.n_jobs = n_jobs
 
     if default_meta:
@@ -1503,7 +1526,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, s
     trainer.op_fire_zone(step=50)
     
     # see if adding lag improve things 
-    if with_interact:
+    if trainer.dataset.with_interact:
         # use smaller lag range 
         trainer.op4_lag(lag_range=[1, 20])
     else:
@@ -1582,7 +1605,7 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
             with_traffic = 1
 
         # initialize a trainer object
-        trainer = Trainer(city=city, pollutant=pollutant, with_interact=False)
+        trainer = Trainer(city=city, pollutant=pollutant)
         trainer.n_jobs = n_jobs
 
         if default_meta:
@@ -1595,7 +1618,9 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         if not with_traffic:
             try: 
                 # do not want traffic data 
-                trainer.dataset.data_no_fire = trainer.dataset.data_no_fire.drop('traffic', axis=1)
+                print('before dropping traffic', trainer.dataset.data_no_fire.shape)
+                trainer.dataset.data_no_fire = trainer.dataset.data_no_fire.drop('traffic_index', axis=1)
+                print('after dropping traffic', trainer.dataset.data_no_fire.shape)
             except:
                 pass
             
@@ -1640,5 +1665,13 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
             result_df.to_csv(search_filename, header=False, mode='a', index=False)
         else:
             result_df.to_csv( search_filename, index=False )
+
+        result_df = result_df.sort_values('test_mean_squared_error')
+        best_params_dict = result_df.loc[0, search_list].to_list()
+
+        # save the best parameter into poll_meta 
+        for k in best_params_dict.keys():
+            trainer.update_poll_meta(k = best_params_dict[k])
+        trainer.save_meta()
 
     return result_df

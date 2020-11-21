@@ -294,21 +294,24 @@ def get_fire_feature(
             # select sub-data baseline the distance
             fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col, 'spot_direct', 'distance']].copy()
 
-            for direction in fire_s['spot_direct'].unique():
+            for direction in ['E', 'N', 'S', 'W']:
                 # split fire further based on the direction
                 fire_temp = fire_s[fire_s['spot_direct'] == direction]
                 # there is a possibility of an empty df check that first 
                 # if empty, then skip that direction 
                 if len(fire_temp) > 0:
                     fire_temp = shift_fire(fire_temp, fire_col=fire_col,
-                        damp_surface=damp_surface,
-                        shift=shift,
-                        roll=roll,
-                        w_speed=w_speed) 
-                    col_name = top_col_name + '_' + direction
-                    fire_temp.name = col_name
-                    fire_col_list.append(col_name)
-                    new_fire = pd.concat([new_fire, fire_temp], axis=1, ignore_index=False)
+                            damp_surface=damp_surface,
+                            shift=shift,
+                            roll=roll,
+                            w_speed=w_speed) 
+                else:
+                    fire_temp = pd.Series()
+
+                col_name = top_col_name + '_' + direction
+                fire_temp.name = col_name
+                fire_col_list.append(col_name)
+                new_fire = pd.concat([new_fire, fire_temp], axis=1, ignore_index=False)
         else:
 
             # select sub-data baseline the distance
