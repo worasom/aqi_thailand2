@@ -58,13 +58,13 @@ def load_model(
     poll_name = pollutant.replace('.', '')
     if with_interact:
         dataset.with_interact = True
-        model_str = 'inter_'
+        
     else:
         dataset.with_interact = False
-        model_str = ''
+       
     # load model_meta
      
-    poll_meta = load_meta(dataset.model_folder + f'{model_str}{poll_name}_model_meta.json')
+    poll_meta = load_meta(dataset.model_folder + f'{poll_name}_model_meta.json')
    
     split_lists = poll_meta['split_lists']
 

@@ -722,7 +722,7 @@ class Trainer():
         
         
         # load model meta to setup parameters
-        modelmeta_filename = self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json' 
+        modelmeta_filename = self.dataset.model_folder + f'{self.poll_name}_model_meta.json' 
         logger.debug(f'model meta filename {modelmeta_filename}')
 
         try:
@@ -992,8 +992,8 @@ class Trainer():
         if and_save:
             self.save_meta()
             # save feature of importance 
-            feat_imp.to_csv(self.dataset.model_folder+f'{self.model_str}{self.poll_name}_op2_featimp.py', index=False )
-            show_fea_imp(feat_imp,filename=self.dataset.report_folder + f'_{self.model_str}{self.poll_name}_rf_fea_op2.png', title='rf feature of importance(op2)')
+            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op2_featimp.py', index=False )
+            show_fea_imp(feat_imp,filename=self.dataset.report_folder + f'_{self.poll_name}_rf_fea_op2.png', title='rf feature of importance(op2)')
 
     def op_fire(self, x_cols, mse=True, search_wind_damp=False, with_lag=False, and_save=True):
         """optimization 3: find the best fire feature before lag columns 
@@ -1245,7 +1245,7 @@ class Trainer():
         self.update_poll_meta()
         if and_save:
             # save feature of importance 
-            feat_imp.to_csv(self.dataset.model_folder+f'{self.model_str}{self.poll_name}_op5_featimp.py', index=False )
+            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op5_featimp.py', index=False )
             self.save_meta()
 
     def op6_rf(self, and_save=True):
@@ -1376,7 +1376,7 @@ class Trainer():
         feat_imp = feat_imp.groupby('index').sum()
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
-        feat_imp.to_csv(self.dataset.model_folder+f'{self.model_str}{self.poll_name}_final_featimp_with_interact.py', index=False )
+        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.py', index=False )
 
         # split the interaction terms if exist 
         temp = feat_imp['index'].str.split('_n_', expand=True)
@@ -1392,7 +1392,7 @@ class Trainer():
         feat_imp = feat_imp.sort_values(
                     'importance', ascending=False).reset_index()
 
-        feat_imp.to_csv(self.dataset.model_folder+f'{self.model_str}{self.poll_name}_final_featimp.py', index=False )
+        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp.py', index=False )
         show_fea_imp(feat_imp, filename=filename, title=title)
 
     def get_default_meta(self, **kwargs):
@@ -1436,20 +1436,20 @@ class Trainer():
 
         """
         # load model meta to setup parameters
-        poll_meta = load_meta(self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json')
+        poll_meta = load_meta(self.dataset.model_folder + f'{self.poll_name}_model_meta.json')
         if 'fire_dict' in self.poll_meta.keys():
             self.poll_meta['fire_dict']['wind_damp'] = int(bool(self.poll_meta['fire_dict']['wind_damp']))
             self.poll_meta['fire_dict']['wind_lag'] = int(bool(self.poll_meta['fire_dict']['wind_lag']))
             self.poll_meta['fire_dict']['split_direct'] = int(bool(self.poll_meta['fire_dict']['split_direct']))
         
-        save_meta(self.dataset.model_folder + self.model_str+ f'{self.poll_name}_model_meta.json', self.poll_meta)
+        save_meta(self.dataset.model_folder + f'{self.poll_name}_model_meta.json', self.poll_meta)
 
     def save_model(self):
         """Save trained model 
 
         """
 
-        pickle.dump(self.model, open( self.dataset.model_folder + self.model_str+f'{self.poll_name}_rf_model.pkl', 'wb'))
+        pickle.dump(self.model, open( self.dataset.model_folder +f'{self.poll_name}_rf_model.pkl', 'wb'))
 
     def save_all(self):
         """Save model meta, model file and dataset data 
