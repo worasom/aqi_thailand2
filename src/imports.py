@@ -11,7 +11,7 @@ import scipy
 from scipy.interpolate import Rbf
 from scipy.signal import find_peaks
 import pandas as pd
-import swifter
+#import swifter
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.dates as mdates

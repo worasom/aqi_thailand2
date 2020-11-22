@@ -760,10 +760,10 @@ class Trainer():
             self.dataset.with_interact =  0
 
         if 'split_direct' in self.poll_meta.keys():
-            trainer.dataset.fire_dict['split_direct'] = self.poll_meta['split_direct']
+            self.dataset.fire_dict['split_direct'] = self.poll_meta['split_direct']
 
         else:
-            trainer.dataset.fire_dict['split_direct'] = 0
+            self.dataset.fire_dict['split_direct'] = 0
 
         #build the first dataset only have to do this once 
         self.dataset.feature_no_fire(
