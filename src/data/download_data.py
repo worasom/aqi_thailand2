@@ -66,6 +66,7 @@ def get_city_info(data_folder='../data/pm25/'):
     """Obtain city information from .txt files in Berkeley data, and save as json.
 
     """
+   
     # find all .txt file
     txt_files = glob(data_folder + '*.txt')
     cities_info = []
@@ -75,11 +76,12 @@ def get_city_info(data_folder='../data/pm25/'):
             city_info = {}
             for i in range(9):
                 line = f.readline()
+                if ':' in line:
                 # remove %
-                line = line.replace('% ', '')
-                line = line.replace('\n', '')
-                k, v = line.split(': ')
-                city_info[k] = v
+                    line = line.replace('% ', '')
+                    line = line.replace('\n', '')
+                    k, v = line.split(': ')
+                    city_info[k] = v
 
         cities_info.append(city_info)
 

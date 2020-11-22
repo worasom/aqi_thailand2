@@ -773,7 +773,7 @@ class Trainer():
             cat_hour=self.poll_meta['cat_hour'],
             group_hour=self.poll_meta['group_hour'])
 
-        if 'with_traffic' in self.poll_meta['with_interact'].keys():
+        if 'with_traffic' in self.poll_meta.keys():
             with_traffic = self.poll_meta['with_interact']
         else:
             with_traffic = 1
