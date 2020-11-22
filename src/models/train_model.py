@@ -753,13 +753,13 @@ class Trainer():
         if 'zone_list' in self.poll_meta.keys():
             self.dataset.zone_list = self.poll_meta['zone_list']
 
-        if 'with_interact' in self.poll_meta['with_interact'].keys():
+        if 'with_interact' in self.poll_meta.keys():
             self.dataset.with_interact = self.poll_meta['with_interact']
             
         else:
             self.dataset.with_interact =  0
 
-        if 'split_direct' in self.poll_meta['split_direct'].keys():
+        if 'split_direct' in self.poll_meta.keys():
             trainer.dataset.fire_dict['split_direct'] = self.poll_meta['split_direct']
 
         else:
@@ -1575,8 +1575,9 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
     
     
     poll_name = pollutant.replace('.', '')
+    city_name = city.lower().replace(' ', '_')
     # load explored parameters 
-    search_filename =  model_folder + f'{city}/' + f'{ poll_name}_search.csv'
+    search_filename =  model_folder + f'{city_name}/' + f'{ poll_name}_search.csv'
     try: 
         print('found exisiting search file')
         explored_df = pd.read_csv(search_filename)
