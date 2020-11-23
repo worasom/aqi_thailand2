@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import logging
 
 if __package__: 
     from ..imports import *

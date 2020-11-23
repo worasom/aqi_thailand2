@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
+import os
+import sys
 import imageio
-from ..features.dataset import Dataset
-from ..features.build_features import add_wea_vec
-from ..data.read_data import *
 
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+    from ..dataset import Dataset
+    from ..features.build_features import add_wea_vec
+    from ..data.read_data import *
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
+    from gen_functions import *
+    from features.dataset import Dataset
+    from features.build_features import add_wea_vec
+    from data.read_data import *
 
 class Mapper():
     """Mapper object is in charge of visualizing pollution hotspots. 

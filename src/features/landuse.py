@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
+import os
+import sys
 from pyproj import CRS
 from pyproj import Transformer
 import gdal
 import re
 from math import ceil
 import swifter
+
+
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
+    from gen_functions import *
 
 """Function to analyse landuse data 
 
