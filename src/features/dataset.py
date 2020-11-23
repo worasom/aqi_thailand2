@@ -131,9 +131,10 @@ class Dataset():
             city_info_list = json.load(f)
 
         for city_json in city_info_list:
-            if self.city_name == city_json['City']:
-                self.city_info = city_json
-                break
+            if 'City' in city_json.keys():
+                if self.city_name == city_json['City']:
+                    self.city_info = city_json
+                    break
 
         # add lattitude and longtitude in km
         # self.city_info['lat_km'] = (

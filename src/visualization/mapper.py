@@ -6,7 +6,7 @@ import imageio
 if __package__: 
     from ..imports import *
     from ..gen_functions import *
-    from ..dataset import Dataset
+    from ..features.dataset import Dataset
     from ..features.build_features import add_wea_vec
     from ..data.read_data import *
 

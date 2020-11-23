@@ -10,7 +10,8 @@ if __package__:
 
 else:
     # run as a script, use absolute import
-    _i = os.path.dirname(os.path.dirname(os.path.abspath('..')))
+    _i = os.path.abspath('..')
+   
     if _i not in sys.path:
         sys.path.insert(0, _i)
     from src.models.train_model import train_hyper_search
@@ -19,9 +20,15 @@ else:
 if __name__ == '__main__':
 
     #main(main_folder='../../data/', cdc_data=True, build_json=True)
-    print(sys.argv)
+
+    city = sys.argv[1]
+    pollutant = sys.argv[2]
+    if len(sys.argv) > 4:
+        n_jobs = sys.argv[3]
+    else:
+        n_jobs = -2
 
     data_folder = os.path.abspath('../data/') + '/'
 
-    print(data_folder)
+    train_hyper_search(city=city, pollutant=pollutant, n_jobs =n_jobs)
 
