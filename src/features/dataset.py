@@ -1,11 +1,36 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
-from ..data.read_data import *
-from ..data.fire_data import *
-from ..data.weather_data import *
-from .build_features import *
-from .config import set_config
+import os
+import sys
+import pandas as pd
+import numpy as np
+import json
+from glob import glob
+
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+    from ..data.read_data import *
+    from ..data.fire_data import *
+    from ..data.weather_data import *
+    from .build_features import *
+    from .config import set_config
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
+    from gen_functions import *
+    from data.read_data import *
+    from data.fire_data import *
+    from data.weather_data import *
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+
+    from build_feaures import *
+    from config import set_config
+
 
 
 
@@ -73,10 +98,11 @@ class Dataset():
             self.wea_name = self.city_wea_dict[self.city_name]
         # the city exist in the database set folders attributes    
         city_name = city_name.lower().replace(' ', '_')
-        self.main_folder = main_data_folder
-        self.data_folder = main_data_folder + city_name + '/'
-        self.model_folder = model_folder + city_name + '/'
-        self.report_folder = report_folder + city_name + '/'
+        
+        self.main_folder = os.path.abspath(main_data_folder).replace('\\', '/') + '/'
+        self.data_folder = self.main_folder + city_name + '/'
+        self.model_folder = os.path.abspath(model_folder).replace('\\', '/') + '/' + city_name + '/'
+        self.report_folder = os.path.abspath(report_folder).replace('\\', '/') + '/' + city_name + '/'
             
         if not os.path.exists(self.data_folder):
             os.mkdir(self.data_folder)

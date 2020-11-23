@@ -1,10 +1,32 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
-from ..features.dataset import Dataset
-from ..visualization.vis_model import *
-from .predict_model import *
+ 
+import os
+import sys
 
+
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+    from ..features.dataset import Dataset
+    from ..visualization.vis_model import *
+    from .predict_model import *
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
+    from gen_functions import *
+    from features.dataset import Dataset
+    from visualization.vis_model import *
+    # run as a script, use absolute import
+    _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+
+    from predict_model import *
+    
 """Trainer object and optimization functions used during training.
 
 """

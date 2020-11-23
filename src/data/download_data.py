@@ -153,7 +153,7 @@ def get_station_data_save(
     """
 
     # display the data on the webpage
-    select_data(url, browser, sta_id, para_selector_list, wait_time=5)
+    select_data(url, browser, sta_id, para_selector_list, wait_time=10)
     # parse data into dataframe
     data = extract_data(browser)
     # add station id and station name
@@ -211,7 +211,7 @@ def extract_parameters(soup):
     return para_selector_list, para_name_list
 
 
-def select_data(url, browser, sta_id, para_selector_list, wait_time=5):
+def select_data(url, browser, sta_id, para_selector_list, wait_time=10):
     """Select station_name (sta_id) and all parameters in para_selector_list on the webpage and display it. And wait for wait_time.
 
     """

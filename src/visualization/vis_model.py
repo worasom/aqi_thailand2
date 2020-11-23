@@ -1,8 +1,29 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
-from ..models.predict_model import *
-from .vis_data import *
+import os
+import sys
+
+
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+    from ..models.predict_model import *
+    from .vis_data import *
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+    from imports import *
+    from gen_functions import *
+    from models.predict_model import *
+
+    # run as a script, use absolute import
+    _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+
+    from vis_data import *
 
 
 def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):

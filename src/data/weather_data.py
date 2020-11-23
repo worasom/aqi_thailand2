@@ -1,16 +1,25 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 import os
 import sys
+import pandas as pd
+import numpy as np
+import json
 
-if __package__: 
-    from ..imports import *
-else:
-    # run as a script, use absolute import
-    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
-    if _i not in sys.path:
-        sys.path.insert(0, _i)
-    from imports import *
+# webscraping
+import requests
+import wget
+from bs4 import BeautifulSoup
+from selenium import webdriver
+
+
+# if __package__: 
+#     from ..imports import *
+# else:
+#     # run as a script, use absolute import
+#     _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+#     if _i not in sys.path:
+#         sys.path.insert(0, _i)
+#     from imports import *
 
 """Scrape weather data and weather information
 

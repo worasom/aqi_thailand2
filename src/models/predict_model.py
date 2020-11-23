@@ -1,12 +1,34 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
-from ..gen_functions import *
-from ..features.dataset import Dataset
-from ..features.build_features import *
-from .train_model import *
-from ..visualization.vis_data import *
-from ..visualization.vis_model import *
+import os
+import sys
 
+if __package__: 
+    from ..imports import *
+    from ..gen_functions import *
+    from ..features.dataset import Dataset
+    from ..visualization.vis_data import *
+    from ..visualization.vis_model import *
+    from .train_model import *
+
+else:
+    # import anything in the upper directory 
+    _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+
+    from imports import *
+    from gen_functions import *
+    from features.dataset import Dataset
+    from visualization.vis_model import *
+    from visualization.vis_data import *
+
+    # run as a script, use absolute import
+    _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _i not in sys.path:
+        sys.path.insert(0, _i)
+
+    from train_model import *
+    
 
 def load_meta(meta_filename: str):
     """Read model_meta dictionary and return model_meta dicitonary

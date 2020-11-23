@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-from ..imports import *
+import sys
+import os
+from tqdm import tqdm, tqdm_notebook
+import json
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import pacf
+
 
 
 def add_is_holiday(
@@ -8,6 +15,9 @@ def add_is_holiday(
     """ add is_holiday columns. df must have 'datetime' columns
 
     """
+
+    # conver to abpath
+    holiday_file = os.path.abspath(holiday_file).replace('\\', '/') + '/'
     # prepare datetime columns
 
     try:
