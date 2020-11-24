@@ -238,7 +238,7 @@ def label_landuse_fire(data_folder, landuse_file, instr='MODIS', fire_chunk=1E5,
 
     gl_prop = load_gl(landuse_file)
     # keep some columns
-    cols = ['datetime', 'latitude', 'longitude', 'country', 'distance']
+    cols = ['datetime', 'latitude', 'longitude', 'distance']
     lc_list = ['LC_Prop2', 'LC_Type1', 'LC_Type5']
 
 

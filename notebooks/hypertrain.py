@@ -23,10 +23,10 @@ if __name__ == '__main__':
 
     city = sys.argv[1]
     pollutant = sys.argv[2]
-    if len(sys.argv) > 4:
-        n_jobs = sys.argv[3]
+    if len(sys.argv) >= 4:
+        n_jobs = int(sys.argv[3])
     else:
-        n_jobs = -2
+        n_jobs = -1
 
     data_folder = os.path.abspath('../data/') + '/'
 
