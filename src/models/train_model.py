@@ -1206,8 +1206,10 @@ class Trainer():
         # save dataframe without lag 
         self.dataset.data_org = self.dataset.data[[self.pollutant] + self.dataset.x_cols_org]
 
-        if self.dataset.with_interact:
-            lag_range = [1, 36]
+        if (self.dataset.with_interact ) & (self.dataset.fire_dict['split_direct']):
+            lag_range = [1, 10]
+        elif if (self.dataset.with_interact ) & (not self.dataset.fire_dict['split_direct']):
+            lag_range = [1, 30]
         else:
             lag_range = [1, 100]
          
