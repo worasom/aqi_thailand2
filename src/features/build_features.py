@@ -19,7 +19,6 @@ def add_is_holiday(
     # conver to abpath
     holiday_file = os.path.abspath(holiday_file).replace('\\', '/') 
     # prepare datetime columns
-    print(holiday_file)
     try:
 
         df['datetime'] = pd.to_datetime(df['datetime'])

@@ -1207,7 +1207,7 @@ class Trainer():
         self.dataset.data_org = self.dataset.data[[self.pollutant] + self.dataset.x_cols_org]
 
         if self.dataset.with_interact:
-            lag_range = [1, 30]
+            lag_range = [1, 36]
         else:
             lag_range = [1, 100]
          
