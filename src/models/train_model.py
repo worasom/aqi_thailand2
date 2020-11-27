@@ -1693,12 +1693,12 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         else:
             result_df.to_csv( search_filename, index=False )
 
-        result_df = result_df.sort_values('test_mean_squared_error')
-        best_params_dict = result_df.loc[0, search_list].to_dict()
+    result_df = result_df.sort_values('test_mean_squared_error')
+    best_params_dict = result_df.loc[0, search_list].to_dict()
 
-        # save the best parameter into poll_meta 
-        for k in best_params_dict.keys():
-            trainer.update_poll_meta(k = best_params_dict[k])
-        trainer.save_meta()
+    # save the best parameter into poll_meta 
+    for k in best_params_dict.keys():
+        trainer.update_poll_meta(k = best_params_dict[k])
+    trainer.save_meta()
 
     return result_df
