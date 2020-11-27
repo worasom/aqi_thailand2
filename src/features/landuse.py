@@ -236,6 +236,8 @@ def label_landuse_fire(data_folder, landuse_file, instr='MODIS', fire_chunk=1E5,
     else:
         raise AssertionError('no fire data')
 
+    
+
     gl_prop = load_gl(landuse_file)
     # keep some columns
     cols = ['datetime', 'latitude', 'longitude', 'distance']

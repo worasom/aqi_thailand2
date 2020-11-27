@@ -1207,7 +1207,7 @@ class Trainer():
         self.dataset.data_org = self.dataset.data[[self.pollutant] + self.dataset.x_cols_org]
 
         if (self.dataset.with_interact ) & (self.dataset.fire_dict['split_direct']):
-            lag_range = [1, 12]
+            lag_range = [1, 20]
         elif  (self.dataset.with_interact ) & (not self.dataset.fire_dict['split_direct']):
             lag_range = [1, 36]
         else:
@@ -1225,8 +1225,9 @@ class Trainer():
             roll=self.dataset.lag_dict['roll'])
          
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant)
-
-        logger.info( f'x_cols after op lag_dict {self.dataset.x_cols}')
+        print(f'lag_dict is {self.dataset.lag_dict}')
+        logger.info(f'lag_dict is {self.dataset.lag_dict}')
+        logger.debug( f'x_cols after op lag_dict {self.dataset.x_cols}')
         # see the scores after the lag columns are added
         self.dataset.split_data(split_ratio=self.split_lists[1])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
@@ -1693,7 +1694,7 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
             result_df.to_csv( search_filename, index=False )
 
         result_df = result_df.sort_values('test_mean_squared_error')
-        best_params_dict = result_df.loc[0, search_list].to_list()
+        best_params_dict = result_df.loc[0, search_list].to_dict()
 
         # save the best parameter into poll_meta 
         for k in best_params_dict.keys():
