@@ -944,7 +944,6 @@ class Trainer():
             print(msg)
             logger.info(msg)
             
-
         # update the model 
         #build the new dataset 
         self.dataset.feature_no_fire(
@@ -1329,12 +1328,22 @@ class Trainer():
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xtest, ytest, _, test_weights = self.dataset.get_data_matrix(
-            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         self.model.fit(xtrn, ytrn, weights)
-        self.score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_', sample_weight=test_weights)
+        ytest_pred = self.model.predict(xtest)
+        self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_', sample_weight=test_weights)
         msg = f'final score for test set {self.score_dict}'
         print(msg)
         logger.info(msg)
+        # calculate the daily prediction error 
+        ytest_pred_df = pd.DataFrame(ytest, index=self.dataset.split_list[1], columns=['actual'])
+        ytest_pred_df['pred'] = ytest_pred 
+        ytest_pred_df = ytest_pred_df.resample('d').mean().dropna()
+        avg_score_dict = cal_scores(ytest_pred_df['actual'].values, ytest_pred_df['pred'].values, header_str='avg_trn_')
+        msg = f'daily avg score for test set {avg_score_dict}'
+        print(msg)
+        logger.info(msg)
+        self.update_poll_meta(rf_avg_score=avg_score_dict)
 
     def search_tpot(self):
         """Search for TPOT model, explore the best pipeline, and print out the best score. This step is done after obtaining best fire parameter and lag dict.
@@ -1431,7 +1440,7 @@ class Trainer():
         logger = logging.getLogger(__name__)
         logger.info('use default meta')
         print('use default meta')
-        poll_meta = {"rolling_win": 1, "cat_hour": True, "fill_missing": True, "group_hour": 2, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
+        poll_meta = {"rolling_win": 1, "cat_hour": True, "cat_month":True, "with_interact":False, "split_direct":False, "fill_missing": True, "group_hour": 2, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}
         poll_meta.update(kwargs)
         poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface': 2, 'wind_damp': False, 'wind_lag': False, 'split_direct': False}
         poll_meta['lag_dict'] ={"n_max": 1, "step": 12, "roll": True}
@@ -1500,7 +1509,10 @@ class Trainer():
             pass
 
 
-def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, search_wind_damp=False, choose_cat_hour=False, add_weight=True, op_fire_twice=False, search_tpot=False, main_data_folder: str = '../data/',
+def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
+        search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
+        add_weight=True, op_fire_twice=False, search_tpot=False, 
+        main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
 
@@ -1511,7 +1523,8 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, s
         default_meta(optional): if True, override meta setting with the default value 
         search_wind_damp(optional): if True, search in four options of the fire features.
         add_weight(optional): if True, use non-uniform weight when fitting and evaluating the model.
-        choose_cat_hour(optional): if True, see if not switching cat hour option is beter
+        choose_cat_hour(optional): if True, see if  adding/not adding hour as catergorical variable is better
+        choose_cat_month(optional): if True, see if adding/not adding month as catergorical variable is better 
         op_fire_twice(optiohnal): if True, optimize fire data after optimizing lag 
         search_tpot(optional): If True, also search for other model using TPOT
         main_data_folder(optional): main data folder for initializing Dataset object [default:'../data/]

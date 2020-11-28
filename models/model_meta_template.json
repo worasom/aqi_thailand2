@@ -1,0 +1,1 @@
+{"PM2.5": {"rolling_win": 1, "cat_hour": false, "fill_missing": true, "group_hour": 1, "split_lists": [[0.4, 0.3, 0.3], [0.45, 0.25, 0.3], [0.7, 0.3]]}}

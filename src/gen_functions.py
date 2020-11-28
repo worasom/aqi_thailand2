@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import logging
 from pyproj import Transformer
 import swifter 
+from statsmodels.stats.weightstats import DescrStatsW 
 
 """ Unit conversion function
 
@@ -186,13 +187,30 @@ def get_gas_color_list(gas_list, gas_color_dict=None):
     return [gas_color_dict[gas] if gas in gas_color_dict.keys()
             else 'royalblue' for gas in gas_list]
 
+def r2(ytrue: np.array, ypred: np.array, sample_weight=[]):
+    """Calcualte weighed correlation coefficient between ytrue and ypredict 
+    
+    Args:
+        ytrue: 2D numpy array of true sensors data
+        ypred: 2D numpy array of predicted data
+        sample_weight: sample weights
+
+    Return float 
+        weighed correlation coefficient 
+    """
+    if len(sample_weight) ==0:
+        sample_weight = None
+    
+    d = DescrStatsW(np.hstack(ytrue, ypred), weights=sample_weight)
+    
+    return d.corrcoef
 
 def cal_scores(
         ytrue: np.array,
         ypred: np.array, sample_weight=[],
         score_list: list = [
             r2_score,
-            mean_squared_error, mean_absolute_error],
+            mean_squared_error, mean_absolute_error, r2],
     header_str: str = 'test_',
         to_print=False):
     """Calculate the prediction score

@@ -298,7 +298,10 @@ def label_landuse_fire(data_folder, landuse_file='../data/landuse_asean/MCD12Q1.
     else:
         raise AssertionError('no fire data')
 
-    
+    # remove old file
+
+    if os.path.exists(save_filename):
+        os.remove(save_filename)
 
     gl_prop = load_gl(landuse_file)
     # keep some columns

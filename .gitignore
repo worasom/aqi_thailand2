@@ -105,15 +105,12 @@ target/
 /references/
 
 *Untitled*
-/models/bangkok/
-/models/chiang_mai/
-/models/chiang_mai/*
+
 /models/chiang_mai_back/
 /models/hanoi/
-/models/jakarta/
 /models/nakhon_si_thammarat/
-/models/*.json
-models/*
+/models/*/*.joblib
+ 
 /build/
 /dist/
 vn_data*
