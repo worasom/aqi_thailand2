@@ -110,7 +110,8 @@ def load_model(
         rolling_win=poll_meta['rolling_win'],
         fill_missing=poll_meta['fill_missing'],
         cat_hour=poll_meta['cat_hour'],
-        group_hour=poll_meta['group_hour'])
+        group_hour=poll_meta['group_hour'], 
+        cat_month=poll_meta['cat_month'])
     dataset.fire_dict = poll_meta['fire_dict']
     if 'zone_list' in poll_meta.keys():
         dataset.zone_list = poll_meta['zone_list']

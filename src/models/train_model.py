@@ -764,7 +764,7 @@ class Trainer():
         self.dataset.monitor = self.dataset.pollutant = pollutant
         self.pollutant = pollutant
        
-        # unpack default setting 
+        # unpack meta setting 
         self.split_lists = self.poll_meta['split_lists']
         self.dataset.fire_dict = self.poll_meta['fire_dict']
         try:
@@ -789,12 +789,7 @@ class Trainer():
             self.dataset.fire_dict['split_direct'] = 0
 
         #build the first dataset only have to do this once 
-        self.dataset.feature_no_fire(
-            pollutant=pollutant,
-            rolling_win=self.poll_meta['rolling_win'],
-            fill_missing=self.poll_meta['fill_missing'],
-            cat_hour=self.poll_meta['cat_hour'],
-            group_hour=self.poll_meta['group_hour'])
+        self.build_feature_no_fire()
 
         if 'with_traffic' in self.poll_meta.keys():
             with_traffic = self.poll_meta['with_interact']
@@ -830,7 +825,7 @@ class Trainer():
             rolling_win=self.poll_meta['rolling_win'],
             fill_missing=self.poll_meta['fill_missing'],
             cat_hour=self.poll_meta['cat_hour'],
-            group_hour=self.poll_meta['group_hour'])
+            group_hour=self.poll_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
 
         logger.info(f'data no fire columns {self.dataset.data_no_fire.columns}')
 
@@ -920,7 +915,7 @@ class Trainer():
             rolling_win=self.poll_meta['rolling_win'],
             fill_missing=self.poll_meta['fill_missing'],
             cat_hour=new_meta['cat_hour'],
-            group_hour=new_meta['group_hour'])
+            group_hour=new_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
@@ -932,6 +927,7 @@ class Trainer():
          
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
+        
         if new_score < old_score:
             msg = 'change cat hour option from ' + str(self.poll_meta['cat_hour']) + ' to ' + str(new_meta['cat_hour'])
             print(msg)
@@ -951,7 +947,7 @@ class Trainer():
             rolling_win=self.poll_meta['rolling_win'],
             fill_missing=self.poll_meta['fill_missing'],
             cat_hour=self.poll_meta['cat_hour'],
-            group_hour=self.poll_meta['group_hour'])
+            group_hour=self.poll_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
@@ -971,6 +967,85 @@ class Trainer():
         print(msg)
         
         
+    def choose_cat_month(self, and_save=True):
+        """Try to see if changing cat hour option is better. Perform after the first op_rf 
+    
+        Args:
+            and_save(optional): if True, update and save model meta file and model file 
+        
+        """
+        logger = logging.getLogger(__name__)
+    
+        old_score = self.score_dict['val_mean_squared_error']
+        new_meta = self.poll_meta.copy()
+         
+    
+        if self.poll_meta['cat_month']:
+            # use cat hour before, try to use cat hour ==False
+            new_meta['cat_month'] = 0
+    
+        else:
+            # did not cat hour before, try to cat hour 
+            new_meta['cat_month'] = 1
+      
+        #build the new dataset 
+        self.dataset.feature_no_fire(
+            pollutant=self.pollutant,
+            rolling_win=self.poll_meta['rolling_win'],
+            fill_missing=self.poll_meta['fill_missing'],
+            cat_hour=new_meta['cat_hour'],
+            group_hour=new_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
+
+        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
+        self.dataset.split_data(split_ratio=self.split_lists[0])
+        xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+         
+        self.model.fit(xtrn, ytrn, weights)
+        new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
+        
+        
+        if new_score < old_score:
+            msg = 'change cat month option from ' + str(self.poll_meta['cat_month']) + ' to ' + str(new_meta['cat_month'])
+            print(msg)
+            logger.info(msg)
+            # update the model 
+            self.poll_meta.update(new_meta)
+
+        else:
+            msg = 'keep old cat hour option, which is ' + str( self.poll_meta['cat_month'])
+            print(msg)
+            logger.info(msg)
+
+        # update the model 
+        #build the new dataset 
+        self.dataset.feature_no_fire(
+            pollutant=self.pollutant,
+            rolling_win=self.poll_meta['rolling_win'],
+            fill_missing=self.poll_meta['fill_missing'],
+            cat_hour=self.poll_meta['cat_hour'],
+            group_hour=self.poll_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
+
+        self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
+        self.dataset.split_data(split_ratio=self.split_lists[0])
+        xtrn, ytrn, self.dataset.x_cols_orgs, weights = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+
+        self.model.fit(xtrn, ytrn, weights)
+        self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
+        logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
+        logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
+        #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
+        msg = 'val score after cat_month()' + str(self.score_dict)
+        logger.info(msg)
+        print(msg)
+
 
     def op2_rm_cols(self, and_save=True): 
         """ optimize 2: remove unncessary columns
@@ -1557,6 +1632,9 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     trainer.op_rf(fire_dict=trainer.dataset.fire_dict)
     if choose_cat_hour:
         trainer.choose_cat_hour()
+
+    if choose_cat_month:
+        trainer.choose_cat_month()
     # remove columns
     trainer.op2_rm_cols()
     logger.info(f'current columns {trainer.dataset.x_cols_org}')

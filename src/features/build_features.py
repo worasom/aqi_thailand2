@@ -441,6 +441,24 @@ def dummy_day_of_week(df, col='day_of_week'):
     # drop old columns
     return  df.drop(col, axis=1)
 
+def dummy_month(df, col='month'):
+    """One hot encode month columns. df must have datetime index.
+
+    Args:
+        df: dataframe to add the encoded
+        col: column name
+         
+
+    Returns: processed dataframe
+
+    """
+    # add time of day column
+    df[col] = df.index.month
+    temp = pd.get_dummies(df[col], prefix=col)
+    df = pd.concat([df, temp], axis=1)
+    # drop old columns
+    return  df.drop(col, axis=1)
+
 def fill_missing_poll(df, limit: int = 6):
     """Fill missing pollution data. Only Work with one columns dataframe
 

@@ -551,7 +551,7 @@ class Dataset():
             rolling_win=24,
             fill_missing=False,
             cat_hour=False,
-            group_hour=2, cat_dayofweek=False):
+            group_hour=2, cat_dayofweek=False, cat_month=False):
         """Assemble pollution data, datetime and weather data. Omit the fire data for later step.
 
         #. Call self.load_() to load processed data
@@ -565,6 +565,7 @@ class Dataset():
             cat_hour(optional): if true, one hot encode the time_of_day column
             group_hour(optiona): hour to reduce the catergory of the time_of_day. This is needed if cat_hour==True
             cat_dayofweek(optional): if true, one hot encode the day_of_week column
+            cat_month(optional): if true, add one hot encode the month columns 
 
         Raises:
             AssertionError: if pollutant not in self.poll_df
@@ -643,6 +644,9 @@ class Dataset():
         
         if cat_dayofweek:
             data = dummy_day_of_week(data)
+
+        if cat_month:
+            data = dummy_month(data)
 
         # include traffic data if exist 
         if hasattr(self,'traffic'):
