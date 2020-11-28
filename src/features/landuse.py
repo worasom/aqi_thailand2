@@ -5,8 +5,11 @@ from pyproj import CRS
 from pyproj import Transformer
 import gdal
 import re
-from math import ceil
+from math import ceil, floor
 import swifter
+import geopandas as gpd
+from shapely.geometry import Polygon, MultiPoint, Point, MultiPolygon
+
 
 
 if __package__: 
@@ -159,10 +162,75 @@ def add_sinu_col(df, lat_col='latitude', long_col='longitude', unit='m'):
     
     return df.swifter.apply(to_merc_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col)
 
+def get_label_row(row, lc_name, data_arr, buffer_pix=5):
+    """Look up landuse data around the buffer pixels(buffer_pix). 
+    
+    Args:
+        row: a single row with xpix and ypix 
+        lc_name: lc_name to condition for crop, forrest 
+        data_arr: landuse data array
+        buffer_pix: buffer area (depends on the resolution of the data) I use 5 because the fire data has resolution of 1km, which about 2 time the landuse resolution.
+    
+    Return  a single label biased toward crop, forrest, and scrupland. 
+    
+    """
+    
+    x = np.arange(row['xpix'], row['xpix']+buffer_pix)
+    x = x[x < data_arr.shape[1]]
+    y = np.arange(row['ypix'], row['ypix']+buffer_pix)
+    y = y[y < data_arr.shape[0]]
+    xx, yy = np.meshgrid(x, y)
+    xx = xx.flatten()
+    yy = yy.flatten()
+    labels = data_arr.take(yy, axis=0)
+    labels = labels.take(xx, axis=1)
+    labels = np.diagonal(labels)
+     
+    
+    if lc_name == 'LC_Prop2':
+        if (25 in labels) or (35 in labels) or (36 in labels):
+            label = 25
+        elif 40 in labels:
+            label = 40
 
-def get_label(df, lc, lc_name, band_index, chunk=1000):
+        else:
+            label = np.bincount(labels).argmax()
+    
+    elif lc_name == 'LC_Type1':
+        
+        if (12 in labels) or (14 in labels):
+            label = 12
+        elif (6 in labels) or (7 in labels) or (9 in labels) or (10 in labels) or (16 in labels):
+            label = 6
+       
+        else:
+            label = np.bincount(labels).argmax()
+    
+    elif lc_name == 'LC_Type5':
+        if (8 in labels) or (7 in labels):
+            label = 8
+        elif (6 in labels) or (11 in labels) or (5 in labels) :
+            label = 6
+       
+        else:
+            label = np.bincount(labels).argmax()
+            
+    else: 
+        label = np.bincount(labels).argmax()
+        
+    return label 
+
+    
+def get_label(df, lc, lc_name, band_index, chunk=1000, buffer_pix=5):
     """Add lc land label to the dataframe using the lat_km and long_km columns. 
 
+    Args:
+        df: subset of fire dataframe 
+        lc: landuse dataset object
+        lc_name: name for the column
+        band_index: band_index from the year information
+        chunk: chunk size of the sattelite array 
+        buffer_pix: number of pixel around area. Should be odd number. 
 
     Return a series of labeled data. The colum name is the lc name  
 
@@ -174,10 +242,10 @@ def get_label(df, lc, lc_name, band_index, chunk=1000):
     xsize = lc.RasterXSize
     ysize = lc.RasterYSize 
 
-    # obtain the pixel 
-    df['xpix'] = round((df['long_m'] - GT[0])/GT[1]).astype(int)
+    # obtain the pixel and add buffer_pix offset 
+    df['xpix'] = round((df['long_m'] - GT[0])/GT[1]).astype(int) - floor(buffer_pix/2)
     # divide the size of the grid into four section 
-    df['ypix'] = round((df['lat_m'] - GT[3])/GT[5]).astype(int)
+    df['ypix'] = round((df['lat_m'] - GT[3])/GT[5]).astype(int) - floor(buffer_pix/2)
 
     # cannot load everything into the memory, so only load the land label in chunk 
     max_iter_y = ceil(ysize/chunk)
@@ -205,13 +273,7 @@ def get_label(df, lc, lc_name, band_index, chunk=1000):
             sub_df['ypix'] -= yoff
             data = lc.GetRasterBand(band_index) 
             data_arr = data.ReadAsArray(xoff=xoff, yoff=yoff, win_xsize=win_xsize, win_ysize=win_ysize)
-            idxs_arr =  sub_df[['ypix', 'xpix']].values
-            #extract y
-            labels = data_arr.take(idxs_arr[:,0], axis=0)
-            labels = labels.take(idxs_arr[:, 1], axis=1)
-    
-            # took only the diagonal values
-            labels = np.diagonal(labels)
+            labels = sub_df.swifter.apply(get_label_row, axis=1, lc_name=lc_name,data_arr=data_arr)
             sub_df[lc_name] = labels
             # obtain the labels
             label_df.append(sub_df[[lc_name]])
@@ -221,8 +283,8 @@ def get_label(df, lc, lc_name, band_index, chunk=1000):
     return label_df
 
 
-def label_landuse_fire(data_folder, landuse_file, instr='MODIS', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
-    """Load fire data in chunk, add different label types and save 
+def label_landuse_fire(data_folder, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', instr='MODIS', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
+    """Load fire data and satellite data in chunk to prevent out of memory error, add different label types and save as original filename + label.csv
 
     """
     if instr == 'MODIS':
@@ -253,7 +315,7 @@ def label_landuse_fire(data_folder, landuse_file, instr='MODIS', fire_chunk=1E5,
         fire = add_sinu_col(fire)
         years = fire['datetime'].dt.year.unique() 
 
-        for lc_name in tqdm(lc_list):
+        for lc_name in lc_list:
 
             label_all = []
             for year in years:
@@ -278,8 +340,80 @@ def label_landuse_fire(data_folder, landuse_file, instr='MODIS', fire_chunk=1E5,
         else:
             fire.to_csv(save_filename, index=False)
 
-                
+def locate_country(p, gdf):
+    """Find a country hosting the hotspot.
 
+    Args:
+        p: Point object
+        gdf: geopandas dataframe with albel 
+    
+    Returns: str 
+        name of the country 
+    """
+    try: 
+        country = gdf[gdf['geometry'].contains(p)]['NAME'].values[0]
+    except: 
+        country = np.nan
+        
+    return country
+                
+def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
+    """Add country label of the hotspot 
+
+    Args:
+        df:  dataframe with longitude and latitude
+        city_xy_km: [city_x_km, city_y_km] of the city center in mercator coordinate
+        max_distance 
+        map_file
+        country_list
+
+    Returns: (pd.DataFrame, geopanda.DataFrame)
+        df: df dataframe with country label
+        geodataframe used to labeling the country 
+
+    """
+    # prepare geopandas file 
+    # loading world map
+    gdf =  gpd.read_file(map_file)
+    gdf.columns = ['OBJECTID', 'NAME', 'geometry']
+    gdf = gdf[gdf['NAME'].isin(country_list)].reset_index(drop=True)
+
+    # remove burma from the name 
+    name_list = gdf['NAME'].to_list()
+    name_list = [s.replace('Myanmar (Burma)', 'Myanmar') for s in name_list]
+    gdf['NAME'] = name_list 
+    gdf = gdf.sort_values('NAME')
+
+    df['geometry'] = [Point(x,y) for x, y in zip(df['longitude'], df['latitude'])]
+    df['country'] = df['geometry'].swifter.apply(locate_country, gdf=gdf)
+    df.drop('geometry', axis=1)
+
+    # sometimes additional information is need such as the area of each country within maximum distance from df 
+    if len(city_xy_m) > 0:
+         
+        # create a 1000 km polygon in mercator in meter
+        circle_gons = get_circle(x_cen=city_xy_m[0], y_cen=city_xy_m[1], r=max_distance*1000, num_data=1E4)
+        # convert into a tuple 
+        circle_gons = {'geometry': Polygon(list(map(tuple, circle_gons.transpose())))}
+        circle_gons = gpd.GeoDataFrame(circle_gons, crs="EPSG:3857",index=[0])
+
+        # convert to 6933 to get he correct area 
+        circle_6933 = circle_gons['geometry'].to_crs(epsg=6933)
+        circle_6933 = circle_6933.values[0] 
+
+        temp = gdf.copy()
+        # convert to mercator
+        temp['geometry'] = gdf['geometry'].to_crs(epsg=6933)
+
+        inter_area = []
+        for i, row in temp.iterrows():
+            polygon1 = row['geometry'].intersection(circle_6933) 
+            inter_area.append(int(polygon1.area/10**6))
+
+        gdf['inter_area(km2)'] = inter_area
+            
+
+    return df, gdf
 
         
 

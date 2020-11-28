@@ -8,6 +8,7 @@ import matplotlib
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import logging
 from pyproj import Transformer
+import swifter 
 
 """ Unit conversion function
 
@@ -53,7 +54,7 @@ def add_merc_col(df, lat_col='latitude', long_col='longitude', unit='m'):
     
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857") 
     
-    return df.apply(to_merc_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col)
+    return df.swifter.apply(to_merc_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col,unit=unit)
 
 def merc_x(lon, r_major = 6371007.181):
     # convert logitude in degree to mercadian in meter

@@ -17,7 +17,49 @@ else:
 """ Functions for proess hospots data.
 
 """
+ 
+def add_merc_to_fire(fire_folder='../data/fire_map/world_2000-2020/', instr='MODIS', chunk=1E6, long_range=[81,150], lat_range=[-19, 98]):
+    """Add mercator coordinate to all the fire files in the folder and save as another folder
 
+    """
+
+    if instr =="MODIS":
+        from_folder = fire_folder + 'M6/'
+        to_folder = fire_folder + 'M6_proc/'
+    elif instr == "VIIRS":
+        from_folder = fire_folder + 'V1/'
+        to_folder = fire_folder + 'V1_proc/'
+    else:
+        raise AssertionError(
+                'instrument name can be either MODIS or VIIRS')
+
+    if not os.path.exists(to_folder):
+        os.mkdir(to_folder)
+         
+    files = glob(from_folder + '*.csv')
+    
+    for file in tqdm(files):
+        #print(f'working with {file}')
+        file = file.replace('\\', '/')
+        new_filename = to_folder + file.split('/')[-1] 
+         
+        if not os.path.exists(new_filename):
+            for df in pd.read_csv(file, chunksize=chunk):
+                # keep only the data in range
+                df = df[(df['longitude'] <= long_range[1]) & (df['longitude'] >= long_range[0])]
+                df = df[(df['latitude'] <= lat_range[1]) & (df['latitude'] >= lat_range[0])]
+                df = add_merc_col(df, lat_col='latitude', long_col='longitude', unit='km')
+                if os.path.exists(new_filename):
+                    df.to_csv(new_filename, mode='a', header=None, index=False)
+                else:
+                    df.to_csv(new_filename, index=False)
+                
+            #print(f'save as {new_filename}')
+
+        #else:
+            
+            #print(f'skip file {file}')
+        
 
 def read_fire(
     file: str,
@@ -42,13 +84,19 @@ def read_fire(
     # convert lat
     #f['lat_km'] = (f['latitude'].apply(merc_y) / 1E3).round().astype(int)
     #f['long_km'] = (merc_x(f['longitude']) / 1E3).round().astype(int)
-    f = add_merc_col(f, lat_col='latitude', long_col='longitude', unit='m')
-    # remove by lat
-    f = f[(f['lat_km'] <= (lat_km + distance)) &
-          (f['lat_km'] >= (lat_km - distance))]
-    # remove by long
-    f = f[(f['long_km'] <= (long_km + distance)) &
-          (f['long_km'] >= (long_km - distance))]
+
+    # if 'lat_km' not in f.columns: 
+    #     f = add_merc_col(f, lat_col='latitude', long_col='longitude', unit='km')
+    #     f.to_csv(file, index=False)
+        
+    #f['lat_km'] = (f['lat_m']/1000).astype(int)
+    #f['long_km'] = (f['long_m']/1000).astype(int)
+
+    # add distance columns
+    f['distance'] = np.sqrt((f['lat_km'] - lat_km)** 2 + ((f['long_km'] -long_km)**2))
+    # remove by distance 
+    f = f[f['distance'] <= distance]
+
     return f
 
 

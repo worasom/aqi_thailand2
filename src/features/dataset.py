@@ -34,7 +34,6 @@ else:
 
 
 
-
 """Pollution Dataset Object of a particular city. This object is contains the raw dataset
 and processed data, and is in charge of splitting data for training.
 
@@ -391,11 +390,14 @@ class Dataset():
         #    distance = 600
 
         # the instrument is either MODIS or VIIRS
+        # add mercator to all fire files
+        add_merc_to_fire(self.main_folder + fire_data_folder, instr=instr)
+
         if instr == 'MODIS':
-            folder = self.main_folder + fire_data_folder + 'M6/*.csv'
+            folder = self.main_folder + fire_data_folder + 'M6_proc/*.csv'
 
         elif instr == 'VIIRS':
-            folder = self.main_folder + fire_data_folder + 'V1/*.csv'
+            folder = self.main_folder + fire_data_folder + 'V1_proc/*.csv'
 
         else:
             raise AssertionError(
@@ -410,12 +412,17 @@ class Dataset():
 
         # use joblib to speed up the file reading process over 2 cpus
         fire = Parallel(
-            n_jobs=2)(
+            n_jobs=-2)(
             delayed(read_fire)(
                 file,
                 lat_km,
                 long_km,
-                distance) for file in files)
+                distance) for file in tqdm(files))
+
+        #fire = []
+        #for file in tqdm(files):
+        #    fire.append(read_fire(file, lat_km, long_km, distance))
+
         fire = pd.concat(fire, ignore_index=True)
         fire = fire.drop_duplicates(ignore_index=True)
 
@@ -427,11 +434,7 @@ class Dataset():
         elif instr == 'VIIRS':
             filename = self.data_folder + 'fire_v.csv'
 
-        # add distance columns
-        fire['distance'] = np.sqrt((fire['lat_km'] -
-                                    self.city_info['lat_km']) ** 2 +
-                                   ((fire['long_km'] -
-                                     self.city_info['long_km'])**2))
+        
         # create power column and drop unncessary columns
         fire['power'] = fire['scan'] * fire['track'] * fire['frp']
         fire['count'] = 1
