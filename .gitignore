@@ -108,8 +108,11 @@ target/
 
 /models/chiang_mai_back/
 /models/hanoi/
+/models/da_nang/
 /models/nakhon_si_thammarat/
+/models/nakhon_ratchasima/
 /models/*/*.joblib
+/models/*/*.pkl
  
 /build/
 /dist/
