@@ -1677,7 +1677,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     trainer.op6_rf()
     trainer.final_fit()
     # save plot
-    trainer.save_feat_imp(filename=trainer.dataset.report_folder + trainer.model_str +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
+    trainer.save_feat_imp(filename=trainer.dataset.report_folder  +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
     trainer.save_all()
 
     if search_tpot:

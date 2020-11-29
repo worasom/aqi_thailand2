@@ -283,21 +283,28 @@ def get_label(df, lc, lc_name, band_index, chunk=1000, buffer_pix=5):
     return label_df
 
 
-def label_landuse_fire(data_folder, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', instr='MODIS', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
+def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     """Load fire data and satellite data in chunk to prevent out of memory error, add different label types and save as original filename + label.csv
 
     """
-    if instr == 'MODIS':
-        filename = data_folder + 'fire_m.csv'
-        save_filename = data_folder + 'fire_m_label.csv'
+    # city_name = city.lower().replace(' ', '_')
+    # data_folder = data_folder + city_name + '/'
+     
 
-    elif instr == 'VIIRS':
-        filename = data_folder + 'fire_v.csv'
-        save_filename = data_folder + 'fire_v_label.csv'
+    # if instr == 'MODIS':
+    #     filename = data_folder + 'fire_m.csv'
+    #     save_filename = data_folder + 'fire_m_label.csv'
 
-    else:
-        raise AssertionError('no fire data')
+    # elif instr == 'VIIRS':
+    #     filename = data_folder + 'fire_v.csv'
+    #     save_filename = data_folder + 'fire_v_label.csv'
 
+    # else:
+    #     raise AssertionError('no fire data')
+
+    filename = os.path.abspath(filename).replace('\\', '/')
+    save_filename = filename.replace('.csv', '_label.csv')
+ 
     # remove old file
 
     if os.path.exists(save_filename):
