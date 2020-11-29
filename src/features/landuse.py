@@ -9,6 +9,7 @@ from math import ceil, floor
 import swifter
 import geopandas as gpd
 from shapely.geometry import Polygon, MultiPoint, Point, MultiPolygon
+from collections import Counter
 
 
 
@@ -282,6 +283,37 @@ def get_label(df, lc, lc_name, band_index, chunk=1000, buffer_pix=5):
 
     return label_df
 
+def combine_label_row(row, columns_list = ['LC_Prop2_label', 'LC_Type1_label', 'LC_Type5_label']):
+    """Combine all lc label columns into a single column named label. 
+    
+    Bias toward crop, shrubland 
+    
+    """
+    
+    label_list = row[columns_list].to_list()
+    
+    if 'crop' in label_list:
+        label = 'crop'
+        
+    elif 'shrubland' in label_list:
+        label = 'shrubland'
+
+    else:
+        c = Counter(label_list)
+        label = c.most_common(1)[0][0]
+        
+    return label
+
+def combine_label(df, lc_list=['LC_Prop2', 'LC_Type1', 'LC_Type5']):
+    """Add a label columns that combine all lc label columns into a single column named label. 
+    
+    """
+    columns_list = [s + '_label' for s in lc_list]
+    
+    df['label'] = df.swifter.apply(combine_label_row, axis=1, columns_list = columns_list)
+    
+    return df
+
 
 def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     """Load fire data and satellite data in chunk to prevent out of memory error, add different label types and save as original filename + label.csv
@@ -343,6 +375,7 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
             fire = fire.merge(label_all, left_index=True, right_index=True, how='left')
 
         fire = fire.drop(['long_m', 'lat_m'], axis=1)
+        fire = combine_label(fire, lc_list=lc_list)
         
         # save the file 
         if os.path.exists(save_filename):
@@ -366,22 +399,21 @@ def locate_country(p, gdf):
         country = np.nan
         
     return country
-                
-def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
-    """Add country label of the hotspot 
+
+def get_country_gdf(city_xy_m =[],max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
+    """Obtain ASEAN counties geopandas dataframe
 
     Args:
-        df:  dataframe with longitude and latitude
         city_xy_km: [city_x_km, city_y_km] of the city center in mercator coordinate
-        max_distance 
+        max_distance: maximum radius of the area considered in km
         map_file
         country_list
 
-    Returns: (pd.DataFrame, geopanda.DataFrame)
-        df: df dataframe with country label
+    Returns:  geopanda.DataFrame   
         geodataframe used to labeling the country 
 
     """
+
     # prepare geopandas file 
     # loading world map
     gdf =  gpd.read_file(map_file)
@@ -392,11 +424,6 @@ def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/worl
     name_list = gdf['NAME'].to_list()
     name_list = [s.replace('Myanmar (Burma)', 'Myanmar') for s in name_list]
     gdf['NAME'] = name_list 
-    gdf = gdf.sort_values('NAME')
-
-    df['geometry'] = [Point(x,y) for x, y in zip(df['longitude'], df['latitude'])]
-    df['country'] = df['geometry'].swifter.apply(locate_country, gdf=gdf)
-    df.drop('geometry', axis=1)
 
     # sometimes additional information is need such as the area of each country within maximum distance from df 
     if len(city_xy_m) > 0:
@@ -421,9 +448,34 @@ def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/worl
             inter_area.append(int(polygon1.area/10**6))
 
         gdf['inter_area(km2)'] = inter_area
-            
 
-    return df, gdf
+        print(inter_area)
+
+    return gdf
+                
+def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
+    """Add country label of the hotspot 
+
+    Args:
+        df:  dataframe with longitude and latitude
+        city_xy_km: [city_x_km, city_y_km] of the city center in mercator coordinate
+        max_distance 
+        map_file
+        country_list
+
+    Returns: (pd.DataFrame, geopanda.DataFrame)
+        df: df dataframe with country label
+        geodataframe used to labeling the country 
+
+    """
+    # label the country 
+    gdf = get_country_gdf(city_xy_m, max_distance, map_file, country_list)
+    df['geometry'] = [Point(x,y) for x, y in zip(df['longitude'], df['latitude'])]
+    df['country'] = df['geometry'].swifter.apply(locate_country, gdf=gdf)
+    df = df.drop('geometry', axis=1)
+
+
+    return df
 
         
 
