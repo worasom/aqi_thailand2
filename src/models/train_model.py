@@ -778,15 +778,11 @@ class Trainer():
 
         if 'with_interact' in self.poll_meta.keys():
             self.dataset.with_interact = self.poll_meta['with_interact']
-            
-        else:
-            self.dataset.with_interact =  0
+        
 
-        if 'split_direct' in self.poll_meta.keys():
-            self.dataset.fire_dict['split_direct'] = self.poll_meta['split_direct']
+        if 'log_poll' in self.poll_meta.keys():
+            self.dataset.log_poll = self.poll_meta['log_poll']
 
-        else:
-            self.dataset.fire_dict['split_direct'] = 0
 
         #build the first dataset only have to do this once 
         self.build_feature_no_fire()
@@ -1403,9 +1399,12 @@ class Trainer():
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xtest, ytest, _, test_weights = self.dataset.get_data_matrix(
-             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)    
+
+
         self.model.fit(xtrn, ytrn, weights)
         ytest_pred = self.model.predict(xtest)
+
         self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_', sample_weight=test_weights)
         msg = f'final score for test set {self.score_dict}'
         print(msg)
@@ -1418,7 +1417,30 @@ class Trainer():
         msg = f'daily avg score for test set {avg_score_dict}'
         print(msg)
         logger.info(msg)
+
         self.update_poll_meta(rf_avg_score=avg_score_dict)
+
+        if self.dataset.log_poll:
+            score_dict_log = self.score_dict 
+            ytest = np.exp(ytest)
+            ytest_pred = np.exp(ytest_pred)
+            self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_', sample_weight=test_weights)
+            msg = f'final score for test set after removing log {self.score_dict}'
+            print(msg)
+            logger.info(msg)
+
+            avg_score_dict_log = avg_score_dict
+
+            # calculate the daily prediction error 
+            ytest_pred_df = pd.DataFrame(ytest, index=self.dataset.split_list[1], columns=['actual'])
+            ytest_pred_df['pred'] = ytest_pred 
+            ytest_pred_df = ytest_pred_df.resample('d').mean().dropna()
+            avg_score_dict = cal_scores(ytest_pred_df['actual'].values, ytest_pred_df['pred'].values, header_str='avg_trn_')
+            msg = f'daily avg score for test set after removing log {avg_score_dict}'
+            print(msg)
+            logger.info(msg)
+            self.update_poll_meta(rf_avg_score=avg_score_dict,  score_dict_log = score_dict_log, avg_score_dict_log = avg_score_dict_log )
+
 
     def search_tpot(self):
         """Search for TPOT model, explore the best pipeline, and print out the best score. This step is done after obtaining best fire parameter and lag dict.

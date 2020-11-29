@@ -86,7 +86,6 @@ def load_model(
         dataset.with_interact = False
        
     # load model_meta
-     
     poll_meta = load_meta(dataset.model_folder + f'{poll_name}_model_meta.json')
    
     split_lists = poll_meta['split_lists']
@@ -103,6 +102,17 @@ def load_model(
         dataset.build_all_data(build_fire=True, build_holiday=False)
     # load raw data
     dataset.load_()
+
+    if 'zone_list' in poll_meta.keys():
+        dataset.zone_list = poll_meta['zone_list']
+
+    if 'with_interact' in poll_meta.keys():
+        dataset.with_interact = poll_meta['with_interact']
+
+    if 'log_poll' in poll_meta.keys():
+        dataset.log_poll = poll_meta['log_poll']
+
+ 
     # build the first dataset
     #print('rolling_win', poll_meta['rolling_win'])
     dataset.feature_no_fire(
@@ -512,7 +522,7 @@ def make_band(ypred_df, q_list=[0.01, 0.25, 0.5, 0.75, 0.99]):
     return pd.concat(band_df, axis=1)
 
 
-def make_senario(model, data_samples, features, per_cut):
+def make_senario(model, data_samples, features, per_cut, log_poll=False):
     """Make prediction of the data sample with some feature value reduced.
 
     Args:
@@ -521,6 +531,7 @@ def make_senario(model, data_samples, features, per_cut):
         features: columns to cut down
         per_cut: percent reduction must be between 0 - 1
         x_cols: x_columns to use for the model
+        log_poll: if True, the model try to predict log of pollution and exp value must be used 
 
     Returns: pd.DataFrame, pd.DataFrame
         ypred_df: predicted value for calculate band
@@ -537,6 +548,9 @@ def make_senario(model, data_samples, features, per_cut):
     data_senario[cols_to_cut] = data_samples[cols_to_cut] * (1 - per_cut)
     x = data_senario.values
     y = model.predict(x)
+
+    if log_poll:
+        y = np.exp(y)
 
     return pd.Series(y, index=data_samples.index)
 

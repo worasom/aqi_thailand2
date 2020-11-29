@@ -189,7 +189,10 @@ def plot_model_perf(
     for a in ax:
         a.legend(loc='upper left')
         a.set_xlabel('date')
-        a.set_ylabel(dataset.monitor)
+        if dataset.log_poll:
+            a.set_ylabel( 'log '+ dataset.monitor)
+        else:
+            a.set_ylabel(dataset.monitor)
         if len(xlim) > 0:
             a.set_xlim(xlim)
         if len(ylim) > 0:

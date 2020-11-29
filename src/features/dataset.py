@@ -118,6 +118,9 @@ class Dataset():
         self.add_weights = 1
         # add interaction term when making the data matrix 
         self.with_interact = 0
+        # log pollution
+        self.log_poll = 0
+
          
 
     def load_city_info(self):
@@ -893,6 +896,8 @@ class Dataset():
             idxs = np.where(y >  q_list[2])[0]
             weights[idxs] = 2
 
+        if self.log_poll:
+            y = np.log(y)
 
         return x.values, y, x_cols, weights
 

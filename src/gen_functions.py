@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import logging
 from pyproj import Transformer
 import swifter 
-from statsmodels.stats.weightstats import DescrStatsW 
+from scipy.stats import pearsonr
 
 """ Unit conversion function
 
@@ -198,12 +198,9 @@ def r2(ytrue: np.array, ypred: np.array, sample_weight=[]):
     Return float 
         weighed correlation coefficient 
     """
-    if len(sample_weight) ==0:
-        sample_weight = None
+     
     
-    d = DescrStatsW(np.hstack(ytrue, ypred), weights=sample_weight)
-    
-    return d.corrcoef
+    return pearsonr(ytrue, ypred )[0]
 
 def cal_scores(
         ytrue: np.array,
