@@ -1439,7 +1439,10 @@ class Trainer():
             msg = f'daily avg score for test set after removing log {avg_score_dict}'
             print(msg)
             logger.info(msg)
-            self.update_poll_meta(rf_avg_score=avg_score_dict,  score_dict_log = score_dict_log, avg_score_dict_log = avg_score_dict_log )
+
+            self.poll_meta['rf_avg_score'] = avg_score_dict
+            self.poll_meta['score_dict_log'] = score_dict_log
+            self.poll_meta['avg_score_dict_log'] = avg_score_dict_log
 
 
     def search_tpot(self):

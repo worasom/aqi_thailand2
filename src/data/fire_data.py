@@ -213,3 +213,34 @@ def cal_repeat_spots(
         summary[rep] = repeat_per
 
     return pd.Series(summary)
+
+
+def cal_repeat_spots_ex_year(df, repeat_list=[2,3,5,10] , accum=True, start_month='-12-01', end_month='-04-30'):
+    """Calculate % of hotspots repeat withint the same year or different year
+    Args:
+        df: fire data series with datetime index
+        repeat_list: number of repetition
+     
+    """
+    df = add_season(df, start_month, end_month)
+    # remove the data from other season
+    df = df[df['season'] != 'other']
+    
+    # group by year and latitude to get unique long_km and lat_km
+    df = df.groupby(['year', 'long_km', 'lat_km'], as_index=True).count()['count']
+    df = df.reset_index()
+    # overide the count to 1 to remove repeating spots within the same year
+    df['count'] = 1
+
+    rep_df = df.groupby(['long_km', 'lat_km']).count()['count'] 
+
+    summary = {}
+    for rep in repeat_list:
+        if accum:
+            repeat_per = int(len(rep_df[rep_df>= rep]) / len(rep_df) * 100)
+        else:
+            repeat_per = int(len(rep_df[rep_df == rep]) / len(rep_df) * 100)
+
+        summary[rep] = repeat_per
+
+    return pd.Series(summary)
