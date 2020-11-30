@@ -34,8 +34,8 @@ def to_merc_row(row, transformer,  lat_col='latitude', long_col='longitude', uni
         row['long_m'] = coor_out[0]
         row['lat_m'] = coor_out[1]
     elif unit == 'km':
-        row['long_km'] = coor_out[0]/1000
-        row['lat_km'] = coor_out[1]/1000
+        row['long_km'] = int(coor_out[0]/1000)
+        row['lat_km'] = int(coor_out[1]/1000)
     else:
         raise AssertionError('invalid unit')
         

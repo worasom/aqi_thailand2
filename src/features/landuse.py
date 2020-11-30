@@ -144,7 +144,33 @@ def get_lc_data(lc_name, year, gl, lc_dict, label_list):
     
     
     return lc, band_index, label_dict 
+
+def to_sinu_row(row, transformer,  lat_col='latitude', long_col='longitude', unit='m'):
+    """Function to add  latitude and longitude in mercator to a panda DataFrame given latitude and longitude
     
+    Arg: 
+        row: a row of pd.Dataframe
+        transformer object
+        lat_col: name of the latitude columns
+        long_col: name of the longitude columns
+        unit: unit of the new column can be meter or km 
+        
+    Return row
+    """
+    
+    coor = (row[lat_col], row[long_col])
+    coor_out = transformer.transform(*coor)
+    if unit == 'm':
+        row['long_sinu_m'] = coor_out[0]
+        row['lat_sinu_m'] = coor_out[1]
+    elif unit == 'km':
+        row['long_sinu_km'] = int(coor_out[0]/1000)
+        row['lat_sinu_km'] = int(coor_out[1]/1000)
+    else:
+        raise AssertionError('invalid unit')
+        
+    return row
+
 def add_sinu_col(df, lat_col='latitude', long_col='longitude', unit='m'):
     """Add MODIS sinusocial coodinate column to a dataframe given latitude and longitude columns 
     
@@ -161,7 +187,7 @@ def add_sinu_col(df, lat_col='latitude', long_col='longitude', unit='m'):
 
     transformer = Transformer.from_crs("EPSG:4326", crs_9112) 
     
-    return df.swifter.apply(to_merc_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col)
+    return df.swifter.apply(to_sinu_row, axis=1, transformer=transformer, lat_col=lat_col, long_col=long_col)
 
 def get_label_row(row, lc_name, data_arr, buffer_pix=5):
     """Look up landuse data around the buffer pixels(buffer_pix). 
@@ -244,9 +270,9 @@ def get_label(df, lc, lc_name, band_index, chunk=1000, buffer_pix=5):
     ysize = lc.RasterYSize 
 
     # obtain the pixel and add buffer_pix offset 
-    df['xpix'] = round((df['long_m'] - GT[0])/GT[1]).astype(int) - floor(buffer_pix/2)
+    df['xpix'] = round((df['long_sinu_m'] - GT[0])/GT[1]).astype(int) - floor(buffer_pix/2)
     # divide the size of the grid into four section 
-    df['ypix'] = round((df['lat_m'] - GT[3])/GT[5]).astype(int) - floor(buffer_pix/2)
+    df['ypix'] = round((df['lat_sinu_m'] - GT[3])/GT[5]).astype(int) - floor(buffer_pix/2)
 
     # cannot load everything into the memory, so only load the land label in chunk 
     max_iter_y = ceil(ysize/chunk)
@@ -315,7 +341,7 @@ def combine_label(df, lc_list=['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     return df
 
 
-def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=1E5, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
+def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=5E4, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     """Load fire data and satellite data in chunk to prevent out of memory error, add different label types and save as original filename + label.csv
 
     """
@@ -336,6 +362,8 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
 
     filename = os.path.abspath(filename).replace('\\', '/')
     save_filename = filename.replace('.csv', '_label.csv')
+
+    print(save_filename)
  
     # remove old file
 
@@ -344,7 +372,7 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
 
     gl_prop = load_gl(landuse_file)
     # keep some columns
-    cols = ['datetime', 'latitude', 'longitude', 'distance']
+    cols = ['datetime', 'latitude', 'longitude', 'distance', 'long_km', 'lat_km']
     lc_list = ['LC_Prop2', 'LC_Type1', 'LC_Type5']
 
 
@@ -374,7 +402,8 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
             label_all = pd.concat(label_all, ignore_index=False)
             fire = fire.merge(label_all, left_index=True, right_index=True, how='left')
 
-        fire = fire.drop(['long_m', 'lat_m'], axis=1)
+        fire = fire.drop(['long_sinu_m', 'lat_sinu_m'], axis=1)
+        #fire = add_merc_col(fire, unit='km')
         fire = combine_label(fire, lc_list=lc_list)
         
         # save the file 
