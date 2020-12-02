@@ -6,6 +6,7 @@ import numpy as np
 import json
 from glob import glob
 import logging
+from joblib import Parallel
 
 if __package__: 
     from ..imports import *
@@ -429,7 +430,7 @@ class Dataset():
         fire = pd.concat(fire, ignore_index=True)
         fire = fire.drop_duplicates(ignore_index=True)
 
-        fire = process_fire_data(filename=None, fire=fire, and_save=False)
+        fire = process_fire_data(filename=None, fire=fire, and_save=False, timezone=self.city_info['Time Zone'])
 
         if instr == 'MODIS':
             filename = self.data_folder + 'fire_m.csv'

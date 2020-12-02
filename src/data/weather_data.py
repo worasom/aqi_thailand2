@@ -11,6 +11,8 @@ import wget
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from datetime import datetime, timedelta
+import time
+from tqdm import tqdm
 
 
 # if __package__: 

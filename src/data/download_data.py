@@ -59,8 +59,10 @@ def download_province_data(grab_url: str, data_folder: str):
         except BaseException:
             pass
         # download the data
-        wget.download(data_url, name)
-
+        try:
+            wget.download(data_url, name)
+        except:
+            pass
 
 def get_city_info(data_folder='../data/pm25/'):
     """Obtain city information from .txt files in Berkeley data, and save as json.
@@ -412,6 +414,8 @@ def main(
                 url=url)
         except:
             print(f'fail to download file for {url}')
+
+    #Parallel(n_jobs=-2)(delayed(download_b_data)(data_folder=f'{main_folder}pm25/', url=url) for url in tqdm(b_data_list))
 
     if build_json:
         # Build City info json for Berkeley Data

@@ -336,30 +336,16 @@ def combine_label(df, lc_list=['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     """
     columns_list = [s + '_label' for s in lc_list]
     
-    df['label'] = df.swifter.apply(combine_label_row, axis=1, columns_list = columns_list)
+    df['label'] = df.apply(combine_label_row, axis=1, columns_list = columns_list)
     
     return df
 
 
-def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=5E4, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
+def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006_500m_aid0001.nc', fire_chunk=1E4, lc_list= ['LC_Prop2', 'LC_Type1', 'LC_Type5']):
     """Load fire data and satellite data in chunk to prevent out of memory error, add different label types and save as original filename + label.csv
 
     """
-    # city_name = city.lower().replace(' ', '_')
-    # data_folder = data_folder + city_name + '/'
-     
-
-    # if instr == 'MODIS':
-    #     filename = data_folder + 'fire_m.csv'
-    #     save_filename = data_folder + 'fire_m_label.csv'
-
-    # elif instr == 'VIIRS':
-    #     filename = data_folder + 'fire_v.csv'
-    #     save_filename = data_folder + 'fire_v_label.csv'
-
-    # else:
-    #     raise AssertionError('no fire data')
-
+   
     filename = os.path.abspath(filename).replace('\\', '/')
     save_filename = filename.replace('.csv', '_label.csv')
 
@@ -371,8 +357,9 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
         os.remove(save_filename)
 
     gl_prop = load_gl(landuse_file)
-    # keep some columns
+    # keep some columns of the original file
     cols = ['datetime', 'latitude', 'longitude', 'distance', 'long_km', 'lat_km']
+    # select the landuse labels types
     lc_list = ['LC_Prop2', 'LC_Type1', 'LC_Type5']
 
 
@@ -381,7 +368,7 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
         fire['datetime'] = pd.to_datetime(fire['datetime'] )
         fire = fire[cols]
 
-        # add sinusodal coordinate 
+        # add sinusodal coordinate using longitude and latitude
         fire = add_sinu_col(fire)
         years = fire['datetime'].dt.year.unique() 
 
@@ -404,12 +391,14 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
 
         fire = fire.drop(['long_sinu_m', 'lat_sinu_m'], axis=1)
         #fire = add_merc_col(fire, unit='km')
+        
         fire = combine_label(fire, lc_list=lc_list)
         
         # save the file 
         if os.path.exists(save_filename):
             fire.to_csv(save_filename, mode='a', header=None, index=False)
         else:
+            
             fire.to_csv(save_filename, index=False)
 
 def locate_country(p, gdf):
@@ -478,11 +467,10 @@ def get_country_gdf(city_xy_m =[],max_distance=1000, map_file = '../data/world_m
 
         gdf['inter_area(km2)'] = inter_area
 
-        print(inter_area)
 
     return gdf
                 
-def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
+def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ], filename=None):
     """Add country label of the hotspot 
 
     Args:
@@ -491,6 +479,7 @@ def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/worl
         max_distance 
         map_file
         country_list
+        and_save:
 
     Returns: (pd.DataFrame, geopanda.DataFrame)
         df: df dataframe with country label
@@ -502,6 +491,9 @@ def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/worl
     df['geometry'] = [Point(x,y) for x, y in zip(df['longitude'], df['latitude'])]
     df['country'] = df['geometry'].swifter.apply(locate_country, gdf=gdf)
     df = df.drop('geometry', axis=1)
+
+    if filename:
+        df.to_csv(filename, index=False)
 
 
     return df

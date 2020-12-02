@@ -100,7 +100,7 @@ def read_fire(
     return f
 
 
-def add_datetime_fire(fire):
+def add_datetime_fire(fire, timezone='Asia/Bangkok'):
     # add datetime conlumns to hotspot data
     # assemble datetime column \
     fire['datetime'] = fire['acq_date'] + ' ' + fire['acq_time'].astype(str)
@@ -108,14 +108,14 @@ def add_datetime_fire(fire):
         fire['datetime'], format='%Y-%m-%d %H%M', utc=True)
 
     # convert to Bangkok time zone and remove time zone information
-    fire['datetime'] = fire['datetime'].dt.tz_convert('Asia/Bangkok')
+    fire['datetime'] = fire['datetime'].dt.tz_convert(timezone)
     fire['datetime'] = fire['datetime'].dt.tz_localize(None)
     fire = fire.sort_values('datetime')
 
     return fire
 
 
-def process_fire_data(filename=None, fire=None, and_save=False):
+def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/Bangkok'):
     """ Add datetime,  drop duplicate data and remove uncessary columns.
 
     """
@@ -123,7 +123,7 @@ def process_fire_data(filename=None, fire=None, and_save=False):
         fire = pd.read_csv(filename)
 
     # add datetime
-    fire = add_datetime_fire(fire)
+    fire = add_datetime_fire(fire, timezone)
 
     # drop duplicate data
     print('before drop', fire.shape)
@@ -226,6 +226,8 @@ def cal_repeat_spots_ex_year(df, repeat_list=[2,3,5,10] , accum=True, start_mont
     # remove the data from other season
     df = df[df['season'] != 'other']
     
+    df['long_km'] = df['long_km'].astype(int)
+    df['lat_km'] = df['lat_km'].astype(int)
     # group by year and latitude to get unique long_km and lat_km
     df = df.groupby(['year', 'long_km', 'lat_km'], as_index=True).count()['count']
     df = df.reset_index()
