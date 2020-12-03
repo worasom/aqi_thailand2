@@ -1,0 +1,6 @@
+split_direct,with_interact,with_traffic,val_r2_score,val_mean_squared_error,val_mean_absolute_error,val_r2,testop6_r2_score,testop6_mean_squared_error,testop6_mean_absolute_error,testop6_r2,test_r2_score,test_mean_squared_error,test_mean_absolute_error,test_r2,cat_hour,len_cols
+0,0,0,0.331867163,419.9407473,16.01794532,0.605184318,0.047053313,330.9759856,13.85036213,0.293889215,0.097335663,424.4444614,15.94052558,0.31066772,FALSE,84
+0,0,1,0.306209037,436.6127467,16.34986411,0.602559952,0.004204273,345.7866028,14.23783439,0.269243181,0.034213528,454.0896487,16.55905619,0.274533328,FALSE,142
+0,1,1,0,,,,,,,,,,,,,
+1,0,1,,,,,,,,,,,,,,
+1,1,1,,,,,,,,,,,,,,
