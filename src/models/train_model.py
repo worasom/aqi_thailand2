@@ -1721,10 +1721,11 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
     # load explored parameters 
     search_filename =  model_folder + f'{city_name}/' + f'{ poll_name}_search.csv'
     try: 
-        print('found exisiting search file')
+        
         explored_df = pd.read_csv(search_filename)
         
         explored = list(zip(explored_df['split_direct'], explored_df['with_interact'], explored_df['with_traffic']))
+        print('found exisiting search file')
         print(f'explored parameter {explored}')
     except:
         explored = []
