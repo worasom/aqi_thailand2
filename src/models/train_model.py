@@ -1279,7 +1279,7 @@ class Trainer():
         if (self.dataset.with_interact ) & (self.dataset.fire_dict['split_direct']):
             lag_range = [1, 20]
         elif  (self.dataset.with_interact ) & (not self.dataset.fire_dict['split_direct']):
-            lag_range = [1, 36]
+            lag_range = [1, 30]
         else:
             lag_range = [1, 100]
          
