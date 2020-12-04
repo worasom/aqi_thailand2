@@ -109,7 +109,7 @@ def do_rf_search(
                 'max_depth': [3, None],
                 'max_features': ['auto', 'sqrt', 'log2']}
         else:
-            param_dict = {'n_estimators': range(20, 300, 20),
+            param_dict = {'n_estimators': range(20, 2000, 20),
                           'max_depth': [3, None],
                           'min_samples_split': [2, 5, 10, 20, 50],
                           'max_features': ['auto', 'sqrt', 'log2'],

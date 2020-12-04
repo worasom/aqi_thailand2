@@ -85,12 +85,13 @@ Sphinx>=1.6.0<br>
 # Data Sources
 
 ## Pollution Data
- - [Thailand Pollution Department](http://air4thai.pcd.go.th/webV2/) Data only go back 2 months! so need to run scapper once a month using `src.data.download_data.update_last_air4Thai()` . Once can also writes a letter to ask for historical data directly. The request took about a month to process. The data has to be parsed from their excel files.  
- - [Vietnamese Pollution Department](http://enviinfo.cem.gov.vn/) Pollution data for major cities such as Hanoi. Data only go back 24 hours, so need to run scapper once a day. This is done using using `src.data.vn_data.download_vn_data()`
- - [Berkeley project](http://berkeleyearth.org/) provides historical PM2.5 data back until late 2016 
- - [US Embassy](http://dosairnowdata.org/dos/historical/) US embassy in some cities collect PM2.5 data. Use `src.data.download_data.download_us_emb_data()` to download data. 
- - [Chiang Mai University Monitoring Stations](https://www.cmuccdc.org/) provides data from the University monitoring stations in the northern part of Thailand. Use `src.data.download_data..download_cdc_data()` to download this data.  
- - [The World Air
+
+- [Berkeley project](http://berkeleyearth.org/) provides historical PM2.5 data back until late 2016 
+- [Thailand Pollution Department](http://air4thai.pcd.go.th/webV2/) Data only go back 2 months! so need to run scapper once a month using `src.data.download_data.update_last_air4Thai()` . Once can also writes a letter to ask for historical data directly. The request took about a month to process. The data has to be parsed from their excel files.  
+- [Chiang Mai University Monitoring Stations](https://www.cmuccdc.org/) provides data from the University monitoring stations in the northern part of Thailand. Use `src.data.download_data.download_cdc_data()` to download this data.  
+- [US Embassy](http://dosairnowdata.org/dos/historical/) US embassy in some cities collect PM2.5 data. Use `src.data.download_data.download_us_emb_data()` to download data. 
+- [Vietnamese Pollution Department](http://enviinfo.cem.gov.vn/) Pollution data for major cities such as Hanoi. Data only go back 24 hours, so need to run scapper once a day. This is done using using `src.data.vn_data.download_vn_data()`
+- [The World Air
 Quality Project](https://aqicn.org/) has pollutions data from many cities, but only provide daily average data  
 
 ## Weather Data 
@@ -276,7 +277,7 @@ Putting together, this animation summarized the effect of fire reduction as the 
 
 Putting togehter, this animation summarized the effect of fire reduction as the radius of fire reduction policy increases.
 
-![animation](https://github.com/worasom/aqi_thailand2/blob/master/reports/ani_plot/eff_reduced_fire1.gif)
+![animation](https://github.com/worasom/aqi_thailand2/blob/master/reports/chiang_mai/eff_reduced_fire1.gif)
 
 # Conclusions
 
