@@ -1277,9 +1277,9 @@ class Trainer():
         self.dataset.data_org = self.dataset.data[[self.pollutant] + self.dataset.x_cols_org]
 
         if (self.dataset.with_interact ) & (self.dataset.fire_dict['split_direct']):
-            lag_range = [1, 20]
+            lag_range = [1, 15]
         elif  (self.dataset.with_interact ) & (not self.dataset.fire_dict['split_direct']):
-            lag_range = [1, 20]
+            lag_range = [1, 15]
         else:
             lag_range = [1, 100]
          
