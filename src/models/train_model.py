@@ -1810,6 +1810,7 @@ def train_hyper_search(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=Fal
         else:
             result_df.to_csv( search_filename, index=False )
 
+    result_df = pd.read_csv(search_filename)
     result_df = result_df.sort_values('test_mean_squared_error')
     best_params_dict = result_df.loc[0, search_list].to_dict()
 
