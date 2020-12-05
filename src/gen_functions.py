@@ -10,6 +10,8 @@ import logging
 from pyproj import Transformer
 #import swifter 
 from scipy.stats import pearsonr
+from bokeh.models import Title
+import matplotlib.pyplot as plt
 
 """ Unit conversion function
 
@@ -440,6 +442,18 @@ def wmark_bokeh(p, text='https://github.com/worasom/aqi_thailand2'):
     """
 
     p.add_layout(Title(text=text, align="right", text_color='grey',text_font_size='11px',text_font_style='italic'), "below")
+
+
+def wmark_plt(fig, text='https://github.com/worasom/aqi_thailand2'):
+    """Adding watermark to matplotlib plot
+
+    Args:
+        fig: bokeh figure object
+        text(optional): text to add 
+
+    """
+
+    fig.text(0.95, 0.02, text, fontsize=10, color='gray', ha='right', va='bottom', alpha=1)
 
 
 def set_logging(filename:str='../models/log.log', level=10):
