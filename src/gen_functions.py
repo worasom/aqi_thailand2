@@ -453,7 +453,7 @@ def wmark_plt(fig, text='https://github.com/worasom/aqi_thailand2'):
 
     """
 
-    fig.text(0.95, 0.02, text, fontsize=10, color='gray', ha='right', va='bottom', alpha=1)
+    fig.text(0.98, 0.02, text, fontsize=10, color='gray', ha='right', va='bottom', alpha=1)
 
 
 def set_logging(filename:str='../models/log.log', level=10):

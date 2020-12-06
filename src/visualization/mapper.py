@@ -54,11 +54,11 @@ class Mapper():
 
     def __init__(self,main_folder: str = '../data/', report_folder='../reports/', n_jobs=-2):
 
-        self.main_folder = main_folder
+        self.main_folder = os.path.abspath(main_folder) + '/'
         #  folder to save the process data 
         self.map_folder = main_folder + 'poll_map/'
         # folder to save the images 
-        self.report_folder = report_folder + 'ani_plot/'
+        self.report_folder = os.path.abspath(report_folder ) + '/'
         self.image_folder = self.report_folder + 'map_images/'
         if not os.path.exists(self.image_folder):
             os.mkdir(self.image_folder)
@@ -658,7 +658,7 @@ class Mapper():
         x_end = self.map_dict['city_x'] + wind_row['wind_vec_x']*scale
         y_end = self.map_dict['city_y'] + wind_row['wind_vec_y']*scale
 
-        p.add_layout(Arrow(end=VeeHead(size=20, fill_color= 'lightgray'), line_color="lightgray", line_width= 4,
+        p.add_layout(Arrow(end=VeeHead(size=20, fill_color= 'lightgray'), line_color="darkgray", line_width= 4,
                            x_start=x_start, y_start=y_start, x_end=x_end, y_end=y_end))
 
 
@@ -775,6 +775,7 @@ class Mapper():
             p = column(Div(text=f'<h3>{title}</h3>'), p1, p2)
 
             filename = self.image_folder + f"{self.pollutant}_{start_date}_{end_date}_{i}.png"
+ 
             filenames.append(filename)
             export_png(p, filename=filename)
 
