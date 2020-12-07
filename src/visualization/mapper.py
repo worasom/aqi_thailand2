@@ -300,6 +300,8 @@ class Mapper():
             filename = self.main_folder + f'pm25/' + row['City'].replace(' ', '_') + '.txt'
             #print(filename)
             df, _ = read_b_data(filename)
+            df['datetime'] = pd.to_datetime(df['datetime'] )
+            print(df['datetime'].max())
             if len(df)> 0:
                 df['stationid'] = stationid    
                 all_station_data.append(df)
@@ -546,6 +548,7 @@ class Mapper():
 
         # get pollution interpoluation matrix 
         df = self.inter_pollution(datetime)
+         
         dotsize = self.map_dict['gridsize']
 
         p.rect(x="long_m", y="lat_m", width=dotsize, height=dotsize,

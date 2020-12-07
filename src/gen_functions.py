@@ -3,15 +3,17 @@ import sys
 import pandas as pd
 import numpy as np
 import json
+import logging
 from matplotlib import cm
 import matplotlib
+import matplotlib.pyplot as plt
+from bokeh.models import Title
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import logging
+
 from pyproj import Transformer
 #import swifter 
 from scipy.stats import pearsonr
-from bokeh.models import Title
-import matplotlib.pyplot as plt
+from math import ceil
 
 """ Unit conversion function
 
@@ -244,15 +246,21 @@ def cal_scores(
         return result_dict
 
 
-def add_season(df, start_month='-12-01', end_month='-04-30'):
+def add_season(df, start_month='-12-01', end_month='-04-30', next_year=True):
     # add winter season column
     # df.index must be datetime format sorted in ascending order
+    # next_year is True when the pollution season go over to next year EX winter cover Dec 2019 to Jan 2020
     df = df.sort_index()
     df['year'] = df.index.year
     df['season'] = 'other'
+    
     for year in df.year.unique():
         start_date = str(year) + start_month
-        end_date = str(year + 1) + end_month
+        if next_year:
+            end_date = str(year + 1) + end_month
+        else:
+            end_date = str(year) + end_month
+
         label = 'winter_' + str(year)
 
         df.loc[start_date:end_date, 'season'] = label
@@ -375,7 +383,8 @@ def to_aqi(value, pollutant):
     try:
         transition_dict = {
             'PM2.5': [
-                0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3], 'PM10': [
+                0, 12.0, 35.4, 55.4, 150.4, 250.4, 350.4, 500, 1e3], 
+            'PM10': [
                 0, 155, 254, 354, 424, 504, 604, 1e3], 'O3': [
                 0, 54, 70, 85, 105, 200, 1e3], 'SO2': [
                     0, 75, 185, 304, 504, 604, 1e3], 'NO2': [
@@ -385,6 +394,7 @@ def to_aqi(value, pollutant):
         aqi_list = [0, 50, 100, 150, 200, 300, 400, 500, 999]
         tran = np.array(transition_dict[pollutant])
         idx = np.where(value >= tran)[0][-1]
+        
         if idx == len(tran):
             aqi = aqi_list[-1]
         else:
@@ -392,9 +402,11 @@ def to_aqi(value, pollutant):
             upper = tran[idx + 1]
             lower_aqi = aqi_list[idx]
             upper_aqi = aqi_list[idx + 1]
+             
             aqi = (upper_aqi - lower_aqi) / (upper - lower) * \
                 (value - lower) + lower_aqi
             aqi = int(ceil(aqi))
+  
     except BaseException:
         aqi = np.nan
 

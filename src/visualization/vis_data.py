@@ -116,7 +116,7 @@ def plot_season_avg(
         agg='max',
         color='blue',
         linestyle='solid',
-        linewidth=2, label=None):
+        linewidth=2, label=None, offset=182):
     """Plot the average by date of year. Good for looking seasonal pattern.
 
     Args:
@@ -127,6 +127,7 @@ def plot_season_avg(
         roll: if True, calculate the rolling average or use daily average
         agg: either 'max' or 'mean'
         label(optional): label word 
+        offset(optional): day of year offset value to make winter in the center of the plot
 
     """
     plt.rcParams.update({'font.size': 14})
@@ -153,7 +154,7 @@ def plot_season_avg(
     # winter_day_dict = temp.to_dict()['month_day']
 
     df, winter_day_dict = season_avg(
-        poll_df, cols=[pollutant], roll=roll, agg=agg, offset=182)
+        poll_df, cols=[pollutant], roll=roll, agg=agg, offset=offset)
     
     if label==None:
         label=pollutant
@@ -178,16 +179,30 @@ def plot_season_avg(
             linestyle=linestyle)
 
     ax.set_xlim([0, 366])
-    new_ticks = [
-        '07-01',
-        '08-20',
-        '10-09',
-        '11-28',
-        '01-16',
-        '03-06',
-        '04-25',
-        '06-14',
-        '']
+
+    # change the xticklabel using month-date 
+    plt.draw()
+
+    #labels = [ str(int(item.get_text()) + 1) for item in ax.get_xticklabels()]
+    new_ticks = []
+    for item in ax.get_xticklabels():
+        try:
+            s = str(int(item.get_text()) + 1)
+            new_ticks.append(winter_day_dict[s] )
+        except:
+            new_ticks.append('')
+     
+    
+    # new_ticks = [
+    #     '07-01',
+    #     '08-20',
+    #     '10-09',
+    #     '11-28',
+    #     '01-16',
+    #     '03-06',
+    #     '04-25',
+    #     '06-14',
+    #     '']
 
     ax.set_xticklabels(new_ticks)
     ax.legend()
@@ -285,7 +300,7 @@ def plot_all_pollutions(
             a.axhline(transition_dict[col][1], color='goldenrod', linestyle='dashed')
 
             a.plot(d_avg[col], label='avg' + col, color='black', alpha=0.7)
-            a.legend(loc='upper left')
+            a.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
             # if i in [0, 1, 2]:
             #    a.axhline(transition_dict[col][2], color='red')
             # if i in [0, 1, 2]:
@@ -324,7 +339,7 @@ def plot_all_pollutions(
             label='avg' + col,
             color='black',
             alpha=0.7)
-        a.legend(loc='upper left')
+        a.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 
         if col in ['PM2.5']:
             a.set_ylabel(col + r'($\mu g/m^3$)')
@@ -397,13 +412,14 @@ def plot_polls_aqi(
     """
     # convert to aqi
     poll_df = poll_to_aqi(poll_df, roll_dict)
-
+     
     # convert to daily average
     poll_df = poll_df.resample('d').mean()
     # reorder the data according to average AQI
     new_cols = poll_df.mean(
         axis=0).sort_values(
         ascending=False).index.to_list()
+    
     poll_df = poll_df[new_cols]
     if len(new_cols) > 1:
         length = int(len(new_cols) / 2)
@@ -458,8 +474,8 @@ def plot_polls_aqi(
             a.set_ylim([0, ymax])
             a.set_ylabel('AQI')
     else:
-        # only one data only one subplots
-        # more than one data, plot in two subplots
+        # only one type of pollution data only one subplots
+       
         _, a = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
         a.plot(poll_df, color=data_colors[0])
         a.legend(poll_df.columns, loc='upper left')
@@ -468,7 +484,8 @@ def plot_polls_aqi(
         a.set_xlabel('date')
         # make horizontal line
         ymax = poll_df.max().values[0]
-        idx = np.where(levels < ymax)[0][-1] + 1
+        print(poll_df.max())
+        idx = np.where(levels < ymax)[0][-1]  + 1
         for l, c, n in zip(
                 levels[:idx], color_labels[:idx], level_names[:idx]):
             a.axhline(l, color=c, label=n)
@@ -489,7 +506,7 @@ def plot_season_aqi(
         roll_dict,
         pollutant,
         filename=None,
-        aqi_line=True, aqi_text=True):
+        aqi_line=True, aqi_text=True, offset=182):
     """Plot average seasonal AQI value of a pollutant, and identify the high months.
 
     Args:
@@ -499,6 +516,7 @@ def plot_season_aqi(
         filename(optional): filename to save
         aqi_line(optional): if True, show horizontal aqi line
         aqi_text(optional): if True, show aqi text
+        offset(optional): day of year offset value to make winter in the center of the plot
 
     """
     _, ax = plt.subplots(1, 1, figsize=(10, 4), sharex=True)
@@ -518,7 +536,7 @@ def plot_season_aqi(
         ax.text(365, 175, ' unhealthy', horizontalalignment='left')
 
     poll_aqi = poll_to_aqi(poll_df, roll_dict)
-    winter_day_dict, mean_day = plot_season_avg(poll_aqi, pollutant, ax, plot_error=True, roll=False)
+    winter_day_dict, mean_day = plot_season_avg(poll_aqi, pollutant, ax, plot_error=True, roll=False, offset=offset)
 
     ax.set_ylabel('AQI')
 
@@ -544,7 +562,7 @@ def plot_season_aqi(
     return ax, winter_day_dict
 
 
-def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30'):
+def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30', next_year=True):
     """Calculate the season year average.
 
     Args:
@@ -552,12 +570,14 @@ def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30'):
         agg: aggeration method (ex 'mean')
         start_month: starting month of the season
         end_month: ending month of the season
+        next_year: True when the pollution season go over to next year EX winter cover Dec 2019 to Jan 2020
+
 
     Returns: pd.DataFrame
         season yearly average
 
     """
-    df = add_season(df, start_month=start_month, end_month=end_month)
+    df = add_season(df, start_month=start_month, end_month=end_month, next_year=next_year)
     # remove other season
     df = df[df['season'] != 'other'].drop('season', axis=1)
     return df.groupby('year').agg(agg)
@@ -650,7 +670,7 @@ def plot_chem_print(
         plt.savefig(filename)
 
 
-def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', end_month='-04-30' ):
+def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True ):
     """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.
 
     Args:
@@ -658,15 +678,17 @@ def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', 
         filename(optional): filename to save data
         start_month: starting month of the season
         end_month: ending month of the season
+        next_year: True when the pollution season go over to next year EX winter cover Dec 2019 to Jan 2020
+
 
     """
     year_fire = cal_sea_yr(
         dataset.fire.resample('d').sum()[
-            ['count']].copy(), agg='mean')
+            ['count']].copy(), agg='mean', start_month=start_month, end_month=end_month, next_year=next_year)
     year_fire.columns = ['number of hotspots']
 
     year_temp = cal_sea_yr(
-        dataset.wea[['Temperature(C)']].resample('d').mean().copy())
+        dataset.wea[['Temperature(C)']].resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year)
 
     if 'PM10' in dataset.poll_df.columns:
         poll_col = ['PM2.5', 'PM10']
@@ -678,7 +700,7 @@ def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', 
         colors = ['royalblue', 'red', 'orange']
 
     year_poll = cal_sea_yr(
-        dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month)[poll_col]
+        dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year)[poll_col]
     if min_year is None:
         min_year = year_fire.index.min()
 
@@ -721,7 +743,7 @@ def compare_seson_avg(
             'Temperature(C)',
             'Wind_Speed(kmph)'],
     agg='mean',
-        filename=None):
+        filename=None, offset=182):
     """Compare seasonal pattern of pollution data, fire and weather pattern.
 
     Args:
@@ -730,16 +752,18 @@ def compare_seson_avg(
         wea_col(optional): a list of weather columns For example
         agg(optional): aggegration method for pollution
         filename(optional): filename to save data
+        offset(optional): day of year offset value to make winter in the center of the plot
+
 
     """
     plot_length = len(wea_col) + 2
 
     _, ax = plt.subplots(
         plot_length, 1, figsize=(
-            10, 3 * plot_length), sharex=True)
+            10, 3 * plot_length), sharex=False)
 
     winter_day_dict, mean_day = plot_season_avg(dataset.poll_df.copy(
-    ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2)
+    ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2, offset=offset)
     ax[0].set_ylabel(get_unit(poll))
     # aqiline
     ax[0].axhline(12, color='goldenrod', linestyle='dashed')
@@ -757,7 +781,7 @@ def compare_seson_avg(
     fire_hour = dataset.fire[['count']].resample('d').sum()
     fire_hour.columns = ['number of hotspots']
     winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.copy(
-    ), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean', color='red', linestyle='solid', linewidth=2)
+    ), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean', color='red', linestyle='solid', linewidth=2, offset=offset)
     ax[1].set_ylabel('number of hotspot')
 
     t_hour = dataset.wea[wea_col].resample('d').mean().copy()
@@ -765,7 +789,7 @@ def compare_seson_avg(
     for i, col in enumerate(wea_col):
 
         winter_day_dict, temperature = plot_season_avg(t_hour.copy(
-        ), col, ax[i + 2], plot_error=True, roll=False, agg='mean', color='orange', linestyle='solid', linewidth=2)
+        ), col, ax[i + 2], plot_error=True, roll=False, agg='mean', color='orange', linestyle='solid', linewidth=2, offset=offset)
         ax[i + 2].set_ylabel('($^o$C)')
 
     for a in ax:

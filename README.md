@@ -47,15 +47,16 @@ Sphinx>=1.6.0<br>
 │   ├── chiang_mai : data and model visualizations for Chiang Mai
 │   └── bangkok   
 ├── notebooks   
-│   ├── 1_pollutions_data.ipynb : 
-│   ├── 1.1_vn_power_plants.ipynb : 
-│   ├── 2_analyze_pollution_data.ipynb : 
-│   ├── 5.0-ML_Chiang_mai.ipynb : 
-│   ├── 6.0_vis_ChiangMai.ipynb : 
-│   ├── 6.1_BKK.ipynb : 
-│   ├── 6.2_vis_Jarkata.ipynb : 
-│   ├── 6.3_Hanoi.ipynb : 
-│   └── 7_prediction.ipynb : 
+│   ├── 1.1_vn_power_plants.ipynb : scraping power plant locations in Vietnam
+│   ├── 3.1_explain_landuse_data.ipynb : explain details of landuse code
+│   ├── 3.2_explain_pollution_colormap.ipynb : explain details of colormap code
+│   ├── 4.0_vis_ChiangMai.ipynb : Inspect Chiang Mai pollution data
+│   ├── 4.1_vis_BKK.ipynb :
+│   ├── 4.2_vis_Jakata.ipynb : 
+│   ├── 5.0_ML_Chiang_mai.ipynb : 
+│   ├── 5.1_BKK.ipynb : 
+│   ├── 5.2_BKK.ipynb.ipynb : 
+│   └── 6_infer_Chiang_Mai.ipynb : 
 │   
 └── src : the source codes are meant to be ran as a module not as .py (except for vn_data.py) 
     ├── imports.py : 

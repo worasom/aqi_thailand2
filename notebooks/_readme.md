@@ -59,10 +59,13 @@ aqi_thailand2
 ├── reports : <br>
 │   $\;\;\;\;\;\;$└── chiang_mai : <br>
 ├── notebooks : <br>
-│   $\;\;\;\;\;\;$├── 1_pollutions_data.ipynb : <br>
 │   $\;\;\;\;\;\;$├── 1.1_vn_power_plants.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 2_analyze_pollution_data.ipynb : <br>
-│   $\;\;\;\;\;\;$├── 5_ML-Model_optimize.ipynb : <br>
+│   $\;\;\;\;\;\;$├── 3.1_explain_landuse_data.ipynb : explain details of landuse code <br>
+│   $\;\;\;\;\;\;$├── 3.2_explain_pollution_colormap.ipynb : explain details of colormap code <br>
+│   $\;\;\;\;\;\;$├── 4.0_vis_ChiangMai.ipynb : <br>
+│   $\;\;\;\;\;\;$├── 4.1_vis_BKK.ipynb : <br>
+│   $\;\;\;\;\;\;$├── 4.2_vis_Jakata.ipynb : <br>
+│   $\;\;\;\;\;\;$├── 5.0_ML-Model_optimize.ipynb : <br>
 │   $\;\;\;\;\;\;$├── 6.0_vis_ChiangMai.ipynb : <br>
 │   $\;\;\;\;\;\;$├── 6.1_BKK.ipynb : <br>
 │   $\;\;\;\;\;\;$├── 6.2_vis_Jarkata.ipynb : <br>

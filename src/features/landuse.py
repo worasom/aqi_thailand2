@@ -418,7 +418,7 @@ def locate_country(p, gdf):
         
     return country
 
-def get_country_gdf(city_xy_m =[],max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ]):
+def get_country_gdf(city_xy_m =[],max_distance=1000, map_file='../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos', 'Indonesia', 'India', 'Indonesia', 'Malaysia', 'Brunei', 'Australia', 'Philippines', 'Singapore' ]):
     """Obtain ASEAN counties geopandas dataframe
 
     Args:
@@ -470,7 +470,7 @@ def get_country_gdf(city_xy_m =[],max_distance=1000, map_file = '../data/world_m
 
     return gdf
                 
-def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos' ], filename=None):
+def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos', 'India', 'Indonesia', 'Malaysia', 'Brunei', 'Australia', 'Philippines', 'Singapore'], filename=None):
     """Add country label of the hotspot 
 
     Args:

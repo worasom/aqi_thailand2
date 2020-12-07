@@ -842,6 +842,17 @@ class Inferer():
             '06-14',
             '']
 
+        # # change the xticklabel using month-date 
+        # plt.draw()
+    
+        # labels = [ str(int(item.get_text()) + 1) for item in ax.get_xticklabels()]
+        # new_ticks = []
+        # for s in labels:
+        #     try:
+        #         new_ticks.append(winter_day_dict[s] )
+        #     except:
+        #         new_ticks.append('')
+
         ax.set_xticklabels(new_ticks)
         ax.set_xlim([fea_effect.index.min(), fea_effect.index.max()])
         ax.legend(fea_effect.columns.to_list(), loc='upper left')
