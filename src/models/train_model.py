@@ -109,7 +109,7 @@ def do_rf_search(
                 'max_depth': [3, None],
                 'max_features': ['auto', 'sqrt', 'log2']}
         else:
-            param_dict = {'n_estimators': range(20, 2000, 20),
+            param_dict = {'n_estimators': range(20, 300, 20),
                           'max_depth': [3, None],
                           'min_samples_split': [2, 5, 10, 20, 50],
                           'max_features': ['auto', 'sqrt', 'log2'],
@@ -330,7 +330,7 @@ def sk_op_fire(dataset,
     if score < best_score:
          
         best_fire_dict.update( {
-            'w_speed': float(wind_speed),
+            'w_speed': round(float(wind_speed), 2) ,
             'shift': int(shift),
             'roll': int(roll), 
             'damp_surface': damp_surface, 
@@ -444,10 +444,10 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
     if score < best_score:
          
         best_fire_dict.update( {
-            'w_speed': float(wind_speed),
+            'w_speed': round(float(wind_speed), 2),
             'shift': int(shift),
             'roll': int(roll), 
-            'damp_surface': float(damp_surface), 
+            'damp_surface': round(float(damp_surface), 2), 
             'wind_damp': wind_damp, 
             'wind_lag': wind_lag})
        
@@ -914,7 +914,7 @@ class Trainer():
             group_hour=new_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
-        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
+        self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list() 
         self.dataset.split_data(split_ratio=self.split_lists[0])
         xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
@@ -923,6 +923,9 @@ class Trainer():
          
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
+
+        logger.info(f'old score {old_score}, new score {new_score}')
+        print(f'old score {old_score}, new score {new_score}')
         
         if new_score < old_score:
             msg = 'change cat hour option from ' + str(self.poll_meta['cat_hour']) + ' to ' + str(new_meta['cat_hour'])
@@ -977,11 +980,11 @@ class Trainer():
          
     
         if self.poll_meta['cat_month']:
-            # use cat hour before, try to use cat hour ==False
+            # use cat month before, try to use cat month ==False
             new_meta['cat_month'] = 0
     
         else:
-            # did not cat hour before, try to cat hour 
+            # did not cat month before, try to cat month 
             new_meta['cat_month'] = 1
       
         #build the new dataset 
@@ -989,8 +992,8 @@ class Trainer():
             pollutant=self.pollutant,
             rolling_win=self.poll_meta['rolling_win'],
             fill_missing=self.poll_meta['fill_missing'],
-            cat_hour=new_meta['cat_hour'],
-            group_hour=new_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
+            cat_hour=self.poll_meta['cat_hour'],
+            group_hour=self.poll_meta['group_hour'], cat_month=new_meta['cat_month'])
 
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
@@ -1003,7 +1006,9 @@ class Trainer():
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
         
-        
+        logger.info(f'old score {old_score}, new score {new_score}')
+        print(f'old score {old_score}, new score {new_score}')
+
         if new_score < old_score:
             msg = 'change cat month option from ' + str(self.poll_meta['cat_month']) + ' to ' + str(new_meta['cat_month'])
             print(msg)
@@ -1012,7 +1017,7 @@ class Trainer():
             self.poll_meta.update(new_meta)
 
         else:
-            msg = 'keep old cat hour option, which is ' + str( self.poll_meta['cat_month'])
+            msg = 'keep old cat month option, which is ' + str( self.poll_meta['cat_month'])
             print(msg)
             logger.info(msg)
 
@@ -1085,7 +1090,7 @@ class Trainer():
         if and_save:
             self.save_meta()
             # save feature of importance 
-            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op2_featimp.py', index=False )
+            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op2_featimp.csv', index=False )
             show_fea_imp(feat_imp,filename=self.dataset.report_folder + f'_{self.poll_name}_rf_fea_op2.png', title='rf feature of importance(op2)')
 
     def op_fire(self, x_cols, mse=True, search_wind_damp=False, with_lag=False, and_save=True):
@@ -1341,7 +1346,7 @@ class Trainer():
         self.update_poll_meta()
         if and_save:
             # save feature of importance 
-            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op5_featimp.py', index=False )
+            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_op5_featimp.csv', index=False )
             self.save_meta()
 
     def op6_rf(self, and_save=True):
@@ -1511,7 +1516,7 @@ class Trainer():
         feat_imp = feat_imp.groupby('index').sum()
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
-        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.py', index=False )
+        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.csv', index=False )
 
         # split the interaction terms if exist 
         temp = feat_imp['index'].str.split('_n_', expand=True)
@@ -1527,7 +1532,7 @@ class Trainer():
         feat_imp = feat_imp.sort_values(
                     'importance', ascending=False).reset_index()
 
-        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp.py', index=False )
+        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp.csv', index=False )
         show_fea_imp(feat_imp, filename=filename, title=title)
 
     def get_default_meta(self, **kwargs):
@@ -1655,17 +1660,19 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
          
     # look for the best rf model 
     trainer.op_rf(fire_dict=trainer.dataset.fire_dict)
-    if choose_cat_hour:
-        trainer.choose_cat_hour()
-
-    if choose_cat_month:
-        trainer.choose_cat_month()
+    
     # remove columns
     trainer.op2_rm_cols()
     logger.info(f'current columns {trainer.dataset.x_cols_org}')
     # op fire
     trainer.op_fire(x_cols=trainer.dataset.x_cols_org, search_wind_damp=search_wind_damp)
     trainer.op_fire_zone(step=50)
+
+    if choose_cat_hour:
+        trainer.choose_cat_hour()
+
+    if choose_cat_month:
+        trainer.choose_cat_month()
     
     # see if adding lag improve things 
     if trainer.dataset.with_interact:

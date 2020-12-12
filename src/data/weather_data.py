@@ -60,13 +60,13 @@ def get_data_n_soup(browser, date_str, header_url, waittime=30):
     '''
     # url=f'https://www.wunderground.com/history/daily/th/bang-phut/VTBD/date/{date_str}'
     url = header_url + date_str
-    # print(url)
+    #print(url)
     browser.get(url)
     time.sleep(waittime)
     innerhtml = browser.execute_script("return document.body.innerHTML")
     soup = BeautifulSoup(innerhtml, features="lxml")
-    div_table = soup.find_all('table')
-    daily_df = pd.read_html(str(div_table))[-1]
+    #div_table = soup.find_all('table')
+    daily_df = pd.read_html(str(soup))[-1]
 
     # add date columns
     daily_df['datetime'] = pd.to_datetime(

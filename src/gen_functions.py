@@ -236,7 +236,7 @@ def cal_scores(
     for score_fun in score_list:
         try:
             result_dict.update(
-                {header_str + score_fun.__name__: score_fun(ytrue, ypred, sample_weight=sample_weight)})
+                {header_str + score_fun.__name__: score_fun(ytrue, ypred, sample_weight=sample_weight).round(4)})
         except BaseException:
             result_dict.update(
                 {header_str + score_fun.__name__: np.nan})
