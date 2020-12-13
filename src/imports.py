@@ -10,6 +10,8 @@ import numpy as np
 import scipy
 from scipy.interpolate import Rbf
 from scipy.signal import find_peaks
+# for doing t-test
+from scipy.stats import ttest_ind, mannwhitneyu
 import pandas as pd
 #import swifter
 import matplotlib.pyplot as plt

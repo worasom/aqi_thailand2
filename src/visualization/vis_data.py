@@ -116,7 +116,7 @@ def plot_season_avg(
         agg='max',
         color='blue',
         linestyle='solid',
-        linewidth=2, label=None, offset=182):
+        linewidth=2, label=None, offset=182, draw=True):
     """Plot the average by date of year. Good for looking seasonal pattern.
 
     Args:
@@ -128,6 +128,7 @@ def plot_season_avg(
         agg: either 'max' or 'mean'
         label(optional): label word 
         offset(optional): day of year offset value to make winter in the center of the plot
+        draw(optional): if draw,  plot xticklabels
 
     """
     plt.rcParams.update({'font.size': 14})
@@ -179,18 +180,21 @@ def plot_season_avg(
             linestyle=linestyle)
 
     ax.set_xlim([0, 366])
+    if draw:
+        # change the xticklabel using month-date 
+        plt.draw()
 
-    # change the xticklabel using month-date 
-    plt.draw()
+        #labels = [ str(int(item.get_text()) + 1) for item in ax.get_xticklabels()]
+         
+        new_ticks = []
+        for item in ax.get_xticklabels():
+            try:
+                s = str(int(item.get_text()) + 1)
+                new_ticks.append(winter_day_dict[s] )
+            except:
+                new_ticks.append('')
 
-    #labels = [ str(int(item.get_text()) + 1) for item in ax.get_xticklabels()]
-    new_ticks = []
-    for item in ax.get_xticklabels():
-        try:
-            s = str(int(item.get_text()) + 1)
-            new_ticks.append(winter_day_dict[s] )
-        except:
-            new_ticks.append('')
+        ax.set_xticklabels(new_ticks)
      
     
     # new_ticks = [
@@ -204,7 +208,6 @@ def plot_season_avg(
     #     '06-14',
     #     '']
 
-    ax.set_xticklabels(new_ticks)
     ax.legend()
     ax.set_xlabel('month-date')
     # plt.show()
@@ -301,6 +304,7 @@ def plot_all_pollutions(
 
             a.plot(d_avg[col], label='avg' + col, color='black', alpha=0.7)
             a.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
+            a.xaxis.set_tick_params(which='both', labelbottom=True)
             # if i in [0, 1, 2]:
             #    a.axhline(transition_dict[col][2], color='red')
             # if i in [0, 1, 2]:
@@ -473,6 +477,7 @@ def plot_polls_aqi(
             a.set_xlim([temp.index.min(), temp.index.max()])
             a.set_ylim([0, ymax])
             a.set_ylabel('AQI')
+            a.xaxis.set_tick_params(which='both', labelbottom=True)
     else:
         # only one type of pollution data only one subplots
        
@@ -727,6 +732,8 @@ def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', 
             a.set_title(
                 'Trend of Pollutions, Fire Activities, and Tempearatures')
 
+        a.xaxis.set_tick_params(which='both', labelbottom=True)
+
     a.set_xlabel('year(pollution season)')
     a.xaxis.set_major_locator(MaxNLocator(integer=True))
 
@@ -793,6 +800,7 @@ def compare_seson_avg(
         ax[i + 2].set_ylabel('($^o$C)')
 
     for a in ax:
+        a.xaxis.set_tick_params(which='both', labelbottom=True)
         a.legend(loc='upper left')
 
     plt.tight_layout()

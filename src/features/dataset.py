@@ -645,6 +645,8 @@ class Dataset():
             # one hot encode the time of day columns
             data = dummy_time_of_day(
                 data, col='time_of_day', group_hour=group_hour)
+        else:
+            data = data.drop('time_of_day', axis=1)
         
         if cat_dayofweek:
             data = dummy_day_of_week(data)
