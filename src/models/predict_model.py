@@ -7,6 +7,7 @@ if __package__:
     from ..imports import *
     from ..gen_functions import *
     from ..features.dataset import Dataset
+    from ..features.build_features import *
     from ..visualization.vis_data import *
     from ..visualization.vis_model import *
     from .train_model import *
@@ -20,6 +21,7 @@ else:
     from imports import *
     from gen_functions import *
     from features.dataset import Dataset
+    from features.build_features import *
     from visualization.vis_model import *
     from visualization.vis_data import *
 
@@ -437,7 +439,7 @@ def get_data_samples(
 
     # number of sample per year
     year_list = trn_index.year.unique()
-    year_sam = get_year_sample(year_list=year_list, n_samples=100)
+    year_sam = get_year_sample(year_list=year_list, n_samples=n_samples)
 
     # extract fire & weather dfs from the train data
     wea = dataset.data[wea_cols].loc[trn_index]
@@ -473,18 +475,20 @@ def get_data_samples(
                                                           day_err,
                                                           hour_err) for test_datetime in tqdm(time_range[::step]))
     #data_samples = pd.concat(fire, ignore_index=True)
-
     data_samples = pd.concat(data_samples, ignore_index=True)
+    print('datasample columns', data_samples.columns)
     # create date_data
     date_data = pd.DataFrame(index=time_range)
     date_data = add_calendar_info(
         date_data,
         holiday_file=dataset.data_folder +
         'holiday.csv')
+    print('adding lag')
     date_data = add_lag(date_data, dataset.lag_dict)
-
-    # add calenda information by merging with data_data
+    print('adding calendar information')
+    # select only columns used by the model 
     data_samples = data_samples.set_index('datetime')
+    # add calenda information by merging with date_data
     data_samples = data_samples.merge(
         date_data[date_cols],
         right_index=True,
@@ -539,9 +543,15 @@ def make_senario(model, data_samples, features, per_cut, log_poll=False):
     """
     cols_to_cut = []
 
+    all_cols = data_samples.columns.to_list()
+
     for feature in features:
-        cols_to_cut = cols_to_cut + \
-            data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
+        
+        # extract all columns with the feature word
+        #cols_to_cut = cols_to_cut + \
+        #    data_samples.columns[data_samples.columns.str.contains(feature)].to_list()
+        cols_to_cut  = cols_to_cut + [s for s in all_cols if feature in s ]
+         
 
     #print(cols_to_cut)
     data_senario = data_samples.copy()
@@ -633,24 +643,24 @@ def reduc_effect(
         sea_pred_all
 
     """
-    # sea_pred_all = []
+    sea_pred_all = []
 
-    # for per_cut in  red_list:
-    #     ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)
-    #     band_df = make_band(ypred_df, q_list=[q])
-    #     sea_pred = cal_season_band(band_df, sea_error)
-    #     sea_pred.columns = [round(1-per_cut,2)]
-    #     sea_pred_all.append(sea_pred)
+    for per_cut in  red_list:
+        ypred_df = make_senario(model, data_samples, features, per_cut= per_cut)
+        band_df = make_band(ypred_df, q_list=[q])
+        sea_pred = cal_season_band(band_df, sea_error)
+        sea_pred.columns = [round(1-per_cut,2)]
+        sea_pred_all.append(sea_pred)
 
-    sea_pred_all = Parallel(
-        n_jobs=2)(
-        delayed(_reduct_effect_q)(
-            model,
-            data_samples,
-            features,
-            sea_error,
-            q,
-            per_cut) for per_cut in red_list)
+    # sea_pred_all = Parallel(
+    #     n_jobs=2)(
+    #     delayed(_reduct_effect_q)(
+    #         model,
+    #         data_samples,
+    #         features,
+    #         sea_error,
+    #         q,
+    #         per_cut) for per_cut in red_list)
 
     return pd.concat(sea_pred_all, axis=1)
 
