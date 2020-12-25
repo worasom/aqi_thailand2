@@ -21,7 +21,7 @@ else:
     from gen_functions import *
     from features.dataset import Dataset
     from visualization.vis_model import *
-    # run as a script, use absolute import
+    # import files in the same directory
     _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if _i not in sys.path:
         sys.path.insert(0, _i)
@@ -1200,6 +1200,7 @@ class Trainer():
             self.dataset.x_cols_org = [col for col in self.dataset.x_cols  if 'fire' not in col]  + self.fire_cols
             self.dataset.x_cols = self.dataset.x_cols_org
             
+          
             self.dataset.split_data(split_ratio=self.split_lists[1])
             xtrn, ytrn, self.dataset.x_cols, weights = self.dataset.get_data_matrix(
                 use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)

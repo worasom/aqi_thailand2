@@ -6,12 +6,15 @@ from selenium.webdriver.support.select import Select
 if __package__: 
     from ..imports import *
     from .weather_data import *
+    from .bkp_data import update_bkp
 else:
     # run as a script, use absolute import
     _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if _i not in sys.path:
         sys.path.insert(0, _i)
     from weather_data import *
+    from bkp_data import update_bkp
+
     _i = os.path.dirname(os.path.dirname(os.path.abspath("..")))
     if _i not in sys.path:
         sys.path.insert(0, _i)
@@ -111,7 +114,7 @@ def update_last_air4Thai(
     page = browser.page_source
     soup = BeautifulSoup(page, features="lxml")
 
-    # extract statopm name and selector
+    # extract station name and selector
     sta_selector_list, station_name_list = extract_stations(soup)
     # extract pollution parameters
     para_selector_list, para_name_list = extract_parameters(soup)
@@ -468,6 +471,9 @@ def main(
             data_folder=w_folder,
             start_date=start_date,
             end_date=end_date)
+
+    print('update BKP data')
+    update_bkp(data_folder=f'{main_folder}bkp_hourly/')
 
 
 if __name__ == '__main__':

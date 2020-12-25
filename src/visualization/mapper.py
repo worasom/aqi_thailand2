@@ -40,7 +40,7 @@ class Mapper():
     gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
     source_list = ['TH_PCD', 'TH_CMU', 'Berkeley', 'US_emb']
     # add color label attribute
-    poll_colors = [ 'goldenrod', 'orange', 'red', 'purple', 'purple']
+    poll_colors = [ 'green', 'goldenrod', 'orange', 'red', 'purple', 'purple']
     plt_color = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 
@@ -483,9 +483,13 @@ class Mapper():
         
 
         #select the data and pollutant on that date for grid interpolation  
-        df = self.polldata [self.polldata ['datetime']==datetime ]
+        #df = self.polldata[self.polldata ['datetime']==datetime ]
+        df = self.polldata.set_index('datetime').loc[datetime]
+         
         # create interpolation x, y, z
         df = df.dropna()
+        df = df.groupby(['long_m', 'lat_m'], as_index=False).mean()
+        # print('maximum value', df.max())
         x_coor = df['long_m'].values
         y_coor = df['lat_m'].values
         values = df[self.pollutant].values
@@ -505,12 +509,13 @@ class Mapper():
         return pd.DataFrame({'long_m': xx, 
                       'lat_m':yy, self.pollutant : z})
 
-    def set_pollutant_cbar(self, pollutant, cmap=cm.RdYlGn):
+    def set_pollutant_cbar(self, pollutant, cmap=cm.RdYlGn, max_value=None):
         """Add self.pollutant and self.colorbar attribute for building colormap. 
 
         Args:
             pollutant: name of the pollutant
             cmap: plt colormap 
+            max_values: maximum value of the pollution, if None, calculate one from the raw pollution data.
 
         """
 
@@ -518,8 +523,19 @@ class Mapper():
 
         #poll = 'NO2'
         if pollutant == 'PM2.5':
-            # determine the colormap maximum
-            poll_max = (self.transition_dict[pollutant][3] + self.transition_dict[pollutant][4])*0.5
+            if not max_value:
+                # determine the colormap maximum
+                max_value = self.data_samples[pollutant].max()
+            #if max_values < self.transition_dict[pollutant][5]:
+            #    poll_max = (self.transition_dict[pollutant][3] + self.transition_dict[pollutant][4])*0.5
+            #else:
+            for i in self.transition_dict[pollutant]:
+                if max_value < i:
+                    poll_max = i
+                    break
+
+                #cmap = cm.hot
+            print('max range', poll_max)
             
         elif pollutant =='NO2':
             # determine the colormap maximum
@@ -534,17 +550,17 @@ class Mapper():
         #this mapper is what transposes a numerical value to a color. 
         self.mapper = LinearColorMapper(palette=colors, low=0, high=poll_max)
 
-    def add_poll_colormap(self, datetime):
+    def add_poll_colormap(self, p, datetime):
         """Add pollution color map to the plot
 
         Args: 
             p: bokeh figure object
             datetime: datetime to generate the map for 
-            poll: pollution name 
+         
 
         """
-        # add basemap 
-        p = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'])
+        ## add basemap 
+        #p = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'])
 
         # get pollution interpoluation matrix 
         df = self.inter_pollution(datetime)
@@ -766,12 +782,13 @@ class Mapper():
             vline = Span(location=datetime, dimension='height', line_color=color, line_dash='dashed', line_width=2)
             p1.add_layout(vline)
 
-            # add colormap
-            p2 = self.add_poll_colormap(datetime)
-            
+            p2 = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'])
             if len(fire) !=0:
                 self.add_fire(p2, fire, datetime)
-
+            # add colormap
+            p2 = self.add_poll_colormap(p2, datetime)
+            
+           
             if len(wind) != 0:
                 self.add_wind(p2, wind, datetime)
 

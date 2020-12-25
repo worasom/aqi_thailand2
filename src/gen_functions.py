@@ -361,7 +361,8 @@ def season_avg(df, cols=[], roll=True, agg='max', offset=182):
     df['winter_day'] = winterday
 
     # add month-day
-    df['month_day'] = df.index.strftime('%m-%d')
+    #df['month_day'] = df.index.strftime('%m-%d')
+    df['month_day'] = df.index.strftime('%b-%d')
     temp = df[['winter_day', 'month_day']].set_index('winter_day')
     temp.index = temp.index.astype(str)
     winter_day_dict = temp.to_dict()['month_day']

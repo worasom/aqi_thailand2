@@ -611,7 +611,7 @@ class Dataset():
         # select data and drop null value
         data = data[cols]
         data[pollutant] = data[pollutant].rolling(
-            rolling_win, min_periods=0).mean().round(1)
+            rolling_win, min_periods=0, center=True).mean().round(1)
         data = data.dropna()
 
         # if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
@@ -651,8 +651,8 @@ class Dataset():
 
         if cat_month:
             data = dummy_month(data)
-        else:
-            data['month'] = data.index.month
+        #else:
+        #    data['month'] = data.index.month
 
         # include traffic data if exist 
         if hasattr(self,'traffic'):
@@ -744,12 +744,13 @@ class Dataset():
                 self.fire_dict = fire_dict
             # use raw fire data        
             fire_df = self.fire
-        
+    
         # obtain processed fire dataframe and the fire columns     
         fire_proc, fire_cols = get_fire_feature(fire_df, zone_list=self.zone_list,
                                                 fire_col=fire_col, damp_surface=damp_surface,
                                                 shift=fire_dict['shift'], roll=fire_dict['roll'], w_speed=fire_dict['w_speed'], split_direct=fire_dict['split_direct'])
-
+    
+        
         # merge with fire data
         data = self.data_no_fire.merge(
             fire_proc,
@@ -871,11 +872,13 @@ class Dataset():
             weights: np.array of sample weight 
 
         """
+        
         try:
             temp = self.data.loc[use_index]
         except BaseException:
             raise AssertionError(
                 'no self.data attribute. Call self.merge_fire() first')
+
 
         y = temp[self.monitor].values
 
@@ -887,6 +890,7 @@ class Dataset():
         x_cols = x.columns.to_list()
 
         weights = np.ones(len(y))
+         
         if self.add_weights:
             q_list = np.quantile(y, [0.8, 0.10, 0.9])
             # add weight for data more than q80
@@ -1021,10 +1025,13 @@ class Dataset():
             # add pollution list
             self.gas_list = self.poll_df.columns.to_list()
 
-            if (self.city_name == 'Chiang Mai') or (
-                    self.city_name == 'Bangkok'):
+            if (self.city_name == 'Chiang Mai') :
                 # for Thailand, delete all PM2.5 record before 2010
                 self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
+
+            elif (self.city_name == 'Bangkok'):
+                # for Thailand, delete all PM2.5 record before 2014
+                self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
 
         else:
             print('no pollution data. Call self.build_pollution first')

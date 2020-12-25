@@ -322,16 +322,16 @@ def get_fire_feature(
                 fire_col_list.append(col_name)
                 new_fire = pd.concat([new_fire, fire_temp], axis=1, ignore_index=False)
         else:
-
+            
             # select sub-data baseline the distance
             fire_s = fire[(fire['distance'] < stop) & (fire['distance'] >= start)][[fire_col, 'distance']].copy()
-
             fire_s = shift_fire(fire_s,
                 fire_col=fire_col,
                 damp_surface=damp_surface,
                 shift=shift,
                 roll=roll,
                 w_speed=w_speed)
+             
             fire_s.name = top_col_name
             fire_col_list.append(top_col_name)
             new_fire = pd.concat([new_fire, fire_s], axis=1, ignore_index=False)

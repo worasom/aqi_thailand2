@@ -313,7 +313,7 @@ def plot_all_pollutions(
         #ax[0].legend(loc='upper left')
         ax[0].set_xlim([poll_df.index.min(), poll_df.index.max()])
         ax[0].set_title(
-            f'Pollutants Data for {city_name} Averaged from All Staions')
+            f'Pollutants Data for {city_name} Averaged from All Stations')
         ax[-1].set_xlabel('date')
 
     else:
@@ -332,7 +332,7 @@ def plot_all_pollutions(
                 temp.index,
                 temp[col],
                 c=temp['color'],
-                marker='.',
+                marker='.', s=8,
                 label=legend,
                 alpha=0.7)
 
@@ -675,11 +675,13 @@ def plot_chem_print(
         plt.savefig(filename)
 
 
-def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True ):
+def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True ):
     """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.
 
     Args:
         dataset: dataset object with all data
+        min_year: specified the start year
+        max_year: specified the end year 
         filename(optional): filename to save data
         start_month: starting month of the season
         end_month: ending month of the season
@@ -706,15 +708,18 @@ def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', 
 
     year_poll = cal_sea_yr(
         dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year)[poll_col]
+    
     if min_year is None:
         min_year = year_fire.index.min()
+    if max_year is None:
+        max_year = year_fire.index.max()
 
     year_avg = pd.concat(
-        [year_poll.loc[min_year:], year_fire.loc[min_year:], year_temp.loc[min_year:]], axis=1)
+        [year_poll.loc[min_year:max_year], year_fire.loc[min_year:max_year], year_temp.loc[min_year:max_year]], axis=1)
 
     _, ax = plt.subplots(
         len(y_labels), 1, figsize=(
-            10, 3 * len(y_labels)), sharex=True)
+            10, 3.5 * len(y_labels)), sharex=True)
 
     for i, (a, col, y_label, color) in enumerate(
             zip(ax, year_avg.columns, y_labels, colors)):
@@ -733,9 +738,10 @@ def plot_yearly_ln(dataset, min_year=None, filename=None, start_month='-10-01', 
                 'Trend of Pollutions, Fire Activities, and Tempearatures')
 
         a.xaxis.set_tick_params(which='both', labelbottom=True)
+        a.set_xlabel('year(pollution season)')
 
-    a.set_xlabel('year(pollution season)')
     a.xaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.tight_layout()
 
     if filename:
         plt.savefig(filename)
@@ -767,7 +773,7 @@ def compare_seson_avg(
 
     _, ax = plt.subplots(
         plot_length, 1, figsize=(
-            10, 3 * plot_length), sharex=False)
+            10, 3.5 * plot_length), sharex=False)
 
     winter_day_dict, mean_day = plot_season_avg(dataset.poll_df.copy(
     ), poll, ax[0], plot_error=True, roll=True, agg=agg, linewidth=2, offset=offset)
