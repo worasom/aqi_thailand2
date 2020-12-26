@@ -209,7 +209,7 @@ def plot_season_avg(
     #     '']
 
     ax.legend()
-    ax.set_xlabel('month-date')
+    #ax.set_xlabel('month-date')
     # plt.show()
     return winter_day_dict, df.groupby('winter_day').mean()[pollutant]
 
@@ -750,8 +750,8 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
 
 
 def compare_seson_avg(
-        dataset,
-        poll='PM2.5',
+        dataset, min_year=None,
+        poll='PM2.5', 
         wea_col=[
             'Temperature(C)',
             'Wind_Speed(kmph)'],
@@ -761,6 +761,7 @@ def compare_seson_avg(
 
     Args:
         dataset: dataset object
+        min_year: specified the start year
         poll(optional): pollutant name
         wea_col(optional): a list of weather columns For example
         agg(optional): aggegration method for pollution
@@ -793,14 +794,17 @@ def compare_seson_avg(
 
     fire_hour = dataset.fire[['count']].resample('d').sum()
     fire_hour.columns = ['number of hotspots']
-    winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.copy(
+    if min_year == None:
+        min_year = str(fire_hour.index.year.min())
+    winter_day_dict, fire_mean_day = plot_season_avg(fire_hour.loc[min_year:].copy(
     ), 'number of hotspots', ax[1], plot_error=True, roll=False, agg='mean', color='red', linestyle='solid', linewidth=2, offset=offset)
     ax[1].set_ylabel('number of hotspot')
 
     t_hour = dataset.wea[wea_col].resample('d').mean().copy()
+    t_hour = t_hour.loc[min_year:]
 
     for i, col in enumerate(wea_col):
-
+         
         winter_day_dict, temperature = plot_season_avg(t_hour.copy(
         ), col, ax[i + 2], plot_error=True, roll=False, agg='mean', color='orange', linestyle='solid', linewidth=2, offset=offset)
         ax[i + 2].set_ylabel('($^o$C)')

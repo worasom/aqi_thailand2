@@ -364,7 +364,7 @@ class Dataset():
 
         self.poll_df = data.round()
 
-    def build_fire(self, instr: str = 'MODIS', distance=1200,
+    def build_fire(self, distance=1200,
                    fire_data_folder: str = 'fire_map/world_2000-2020/'):
         """Extract hotspots satellite data within distance from the city location.
 
@@ -374,10 +374,10 @@ class Dataset():
         #. Add fire power column  = scan * track*frp. This account of the size and the temperature of the fire
         #. Add the count column, which is 1
         #. Remove unncessary columns
-        #. Save the data as data_folder/fire_m.csv if instr is "MODIS'. Use fire_v.csv if instr is 'VIIR'.
+        #. Save the data as data_folder/fire_m.csv if instr is "MODIS'. Use fire_v.csv if instr is 'VIIR'. Build fire data for both type of instrument
 
         Args:
-            instr(optional): instrument name either MODIS or VIIRS[default:'MODIS']
+             
             distance(optional): distance in km from the city latitude and longtitude[default:1000]
             fire_data_folder(optional): location of the hotspots data[default:'fire_map/world_2000-2020/']
 
@@ -393,77 +393,71 @@ class Dataset():
         # else self.city_name == 'Bangkok':
         #    distance = 600
 
+        instr_list = [ 'MODIS',  'VIIRS']
+
         # the instrument is either MODIS or VIIRS
         # add mercator to all fire files
-        add_merc_to_fire(self.main_folder + fire_data_folder, instr=instr)
+        for instr in instr_list:
+            add_merc_to_fire(self.main_folder + fire_data_folder, instr=instr)
 
-        if instr == 'MODIS':
-            folder = self.main_folder + fire_data_folder + 'M6_proc/*.csv'
+            if instr == 'MODIS':
+                folder = self.main_folder + fire_data_folder + 'M6_proc/*.csv'
 
-        elif instr == 'VIIRS':
-            folder = self.main_folder + fire_data_folder + 'V1_proc/*.csv'
+            elif instr == 'VIIRS':
+                folder = self.main_folder + fire_data_folder + 'V1_proc/*.csv'
 
-        else:
-            raise AssertionError(
-                'instrument name can be either MODIS or VIIRS')
+            files = glob(folder)
 
-        files = glob(folder)
-
-        fire = pd.DataFrame()
+            fire = pd.DataFrame()
  
-        lat_km = self.city_info['lat_km']
-        long_km = self.city_info['long_km']
+            lat_km = self.city_info['lat_km']
+            long_km = self.city_info['long_km']
 
-        # use joblib to speed up the file reading process over 2 cpus 
-        fire = Parallel(
-            n_jobs=-2)(
-            delayed(read_fire)(
-                file,
-                lat_km,
-                long_km,
-                distance) for file in tqdm(files))
+            # use joblib to speed up the file reading process over 2 cpus 
+            fire = Parallel(
+                n_jobs=-2)(
+                delayed(read_fire)(
+                    file,
+                    lat_km,
+                    long_km,
+                    distance) for file in tqdm(files))
 
         #fire = []
         #for file in tqdm(files):
         #    fire.append(read_fire(file, lat_km, long_km, distance))
 
-        fire = pd.concat(fire, ignore_index=True)
-        fire = fire.drop_duplicates(ignore_index=True)
+            fire = pd.concat(fire, ignore_index=True)
+            fire = fire.drop_duplicates(ignore_index=True)
 
-        fire = process_fire_data(filename=None, fire=fire, and_save=False, timezone=self.city_info['Time Zone'])
+            fire = process_fire_data(filename=None, fire=fire, and_save=False, timezone=self.city_info['Time Zone'])
 
-        if instr == 'MODIS':
-            filename = self.data_folder + 'fire_m.csv'
+            # create power column and drop unncessary columns
+            fire['power'] = fire['scan'] * fire['track'] * fire['frp']
+            fire['count'] = 1
 
-        elif instr == 'VIIRS':
-            filename = self.data_folder + 'fire_v.csv'
-
-        
-        # create power column and drop unncessary columns
-        fire['power'] = fire['scan'] * fire['track'] * fire['frp']
-        fire['count'] = 1
-
-        try:
-            fire = fire.drop(['brightness',
+            if instr == 'MODIS':
+                filename = self.data_folder + 'fire_m.csv'
+                fire = fire.drop(['brightness',
                               'acq_time',
                               'track',
                               'scan',
                               'frp'],
                              axis=1)
-        except BaseException:
-            fire = fire.drop([
-                'bright_ti4',
-                'acq_time',
-                'track',
-                'scan',
-                'frp'],
-                axis=1)
 
-        # add direction of the hotspot
-        fire = add_fire_direct(city_x=self.city_info['long_km'], city_y=self.city_info['lat_km'], fire=fire)
+            elif instr == 'VIIRS':
+                filename = self.data_folder + 'fire_v.csv'
+                fire = fire.drop([
+                    'bright_ti4',
+                    'acq_time',
+                    'track',
+                    'scan',
+                    'frp'], axis=1)
 
-        # save fire data
-        fire.to_csv(filename)
+            # add direction of the hotspot
+            fire = add_fire_direct(city_x=self.city_info['long_km'], city_y=self.city_info['lat_km'], fire=fire)
+
+            # save fire data
+            fire.to_csv(filename)
 
     def build_weather(self, wea_data_folder: str = 'weather_cities/'):
         """Load weather data and fill the missing value. Add as wea attibute.
@@ -1031,14 +1025,15 @@ class Dataset():
 
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
-                self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+                #self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+                pass
 
         else:
             print('no pollution data. Call self.build_pollution first')
 
         if fire == 'MODIS':
             filename = self.data_folder + 'fire_m.csv'
-        elif fire == 'VIIRS':
+        elif (fire == 'VIIRS') :
             filename = self.data_folder + 'fire_v.csv'
         else:
             raise AssertionError('not a type of fire instrument')

@@ -714,6 +714,7 @@ class Trainer():
     Attributes:
         Dataset: dataset object
         pollutant(str): pollutant type 
+        instr(str): 
         poll_name(str): simplified pollutant name for saving file 
         poll_meta
         split_lists
@@ -727,7 +728,7 @@ class Trainer():
 
     def __init__(
             self,
-            city: str, pollutant: str = 'PM2.5', 
+            city: str, pollutant: str = 'PM2.5', instr='MODIS', 
             main_data_folder: str = '../data/',
             model_folder='../models/', report_folder='../reports/', n_jobs=-2):
 
@@ -736,8 +737,7 @@ class Trainer():
         """
         logger = logging.getLogger(__name__)
 
-        
-
+    
         self.dataset = Dataset(city, main_data_folder, model_folder, report_folder)
         # remove. from pollutant name for saving file
         self.poll_name = pollutant.replace('.', '')
@@ -758,8 +758,9 @@ class Trainer():
 
         # set number of cpu
         self.n_jobs = -2
+        
         # load raw data
-        self.dataset.load_()
+        self.dataset.load_(instr=instr)
         # assigning the pollution name
         self.dataset.monitor = self.dataset.pollutant = pollutant
         self.pollutant = pollutant
@@ -1617,7 +1618,7 @@ class Trainer():
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
         search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
-        add_weight=True, op_fire_twice=False, search_tpot=False, 
+        add_weight=True, instr='MODIS', op_fire_twice=False, search_tpot=False, 
         main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
@@ -1629,6 +1630,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
         default_meta(optional): if True, override meta setting with the default value 
         search_wind_damp(optional): if True, search in four options of the fire features.
         add_weight(optional): if True, use non-uniform weight when fitting and evaluating the model.
+        instr(optional): choose hotspots detection instrument 
         choose_cat_hour(optional): if True, see if  adding/not adding hour as catergorical variable is better
         choose_cat_month(optional): if True, see if adding/not adding month as catergorical variable is better 
         op_fire_twice(optiohnal): if True, optimize fire data after optimizing lag 
@@ -1648,7 +1650,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     set_logging(level=10)
     logger = logging.getLogger(__name__)
     # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant)
+    trainer = Trainer(city=city, pollutant=pollutant, instr=instr)
     trainer.n_jobs = n_jobs
 
     if default_meta:
