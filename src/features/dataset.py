@@ -997,7 +997,7 @@ class Dataset():
                 # save with index
                 self.data.to_csv(self.data_folder + 'data.csv')
 
-    def load_(self, fire:str='MODIS'):
+    def load_(self, instr:str='MODIS'):
         """Load the process pollution data from the disk without the build
 
         Load if the file exist for.
@@ -1031,9 +1031,9 @@ class Dataset():
         else:
             print('no pollution data. Call self.build_pollution first')
 
-        if fire == 'MODIS':
+        if instr == 'MODIS':
             filename = self.data_folder + 'fire_m.csv'
-        elif (fire == 'VIIRS') :
+        elif (instr == 'VIIRS') :
             filename = self.data_folder + 'fire_v.csv'
         else:
             raise AssertionError('not a type of fire instrument')
