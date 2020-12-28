@@ -639,14 +639,19 @@ class Dataset():
             # one hot encode the time of day columns
             data = dummy_time_of_day(
                 data, col='time_of_day', group_hour=group_hour)
+        else:
+            data['time_of_day_sin'] = np.sin(data.index.hour*np.pi*2/24)
+            data['time_of_day_cos'] = np.cos(data.index.hour*np.pi*2/24)
+
         
         if cat_dayofweek:
             data = dummy_day_of_week(data)
 
         if cat_month:
             data = dummy_month(data)
-        #else:
-        #    data['month'] = data.index.month
+        else:
+            data['month_sin'] = np.sin(data.index.month*np.pi*2/12)
+            data['month_cos'] = np.cos(data.index.month*np.pi*2/12)
 
         # include traffic data if exist 
         if hasattr(self,'traffic'):
@@ -1025,8 +1030,8 @@ class Dataset():
 
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
-                #self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
-                pass
+                self.poll_df.loc[:'2014', 'PM2.5'] = np.nan
+                #pass
 
         else:
             print('no pollution data. Call self.build_pollution first')

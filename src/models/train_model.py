@@ -1515,6 +1515,8 @@ class Trainer():
 
         # obtain feature of importance without lag
         feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]
+        feat_imp['index'] = feat_imp['index'].str.split('_sin', expand=True)[0]
+        feat_imp['index'] = feat_imp['index'].str.split('_cos', expand=True)[0]
         feat_imp = feat_imp.groupby('index').sum()
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
