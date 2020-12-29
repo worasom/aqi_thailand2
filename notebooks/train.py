@@ -19,11 +19,9 @@ if __name__ == '__main__':
 
     city = sys.argv[1]
     pollutant = sys.argv[2]
-    if len(sys.argv) >= 4:
-        n_jobs = int(sys.argv[3])
-    else:
-        n_jobs = -1
+    instr = sys.argv[3]
+    n_jobs = -1
     
     data_folder = os.path.abspath('../data/') + '/'
     
-    dataset, model, trainer = train_city_s1(city=city, pollutant= pollutant, n_jobs=n_jobs,  search_wind_damp=True, choose_cat_hour=True)
+    dataset, model, trainer = train_city_s1(city=city, pollutant= pollutant, instr=instr, n_jobs=n_jobs,  search_wind_damp=True, choose_cat_hour=True, add_weight=False)

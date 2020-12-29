@@ -970,7 +970,7 @@ class Trainer():
         print(msg)
         score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
         #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
-        msg = 'test score after cat_hour()' + str(self.score_dict)
+        msg = 'test score after cat_hour()' + str(score_dict)
         logger.info(msg)
         print(msg)
 
@@ -1061,7 +1061,7 @@ class Trainer():
 
         score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
         #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
-        msg = 'test score after cat_month()' + str(self.score_dict)
+        msg = 'test score after cat_month()' + str(score_dict)
         logger.info(msg)
         print(msg)
 
