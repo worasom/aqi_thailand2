@@ -209,7 +209,7 @@ def plot_season_avg(
     #     '']
 
     ax.legend()
-    #ax.set_xlabel('month-date')
+    ax.set_xlabel('month-date')
     # plt.show()
     return winter_day_dict, df.groupby('winter_day').mean()[pollutant]
 

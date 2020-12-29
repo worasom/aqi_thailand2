@@ -639,9 +639,10 @@ class Dataset():
             # one hot encode the time of day columns
             data = dummy_time_of_day(
                 data, col='time_of_day', group_hour=group_hour)
-        else:
-            data['time_of_day_sin'] = np.sin(data.index.hour*np.pi*2/24)
-            data['time_of_day_cos'] = np.cos(data.index.hour*np.pi*2/24)
+        #else:
+        #    data['time_of_day'] = data.index.hour
+            #data['time_of_day_sin'] = np.sin(data.index.hour*np.pi*2/24)
+            #data['time_of_day_cos'] = np.cos(data.index.hour*np.pi*2/24)
 
         
         if cat_dayofweek:
@@ -649,9 +650,9 @@ class Dataset():
 
         if cat_month:
             data = dummy_month(data)
-        else:
-            data['month_sin'] = np.sin(data.index.month*np.pi*2/12)
-            data['month_cos'] = np.cos(data.index.month*np.pi*2/12)
+        #else:
+        #    data['month_sin'] = np.sin(data.index.month*np.pi*2/12)
+        #    data['month_cos'] = np.cos(data.index.month*np.pi*2/12)
 
         # include traffic data if exist 
         if hasattr(self,'traffic'):

@@ -866,7 +866,7 @@ class Mapper():
             raise AssertionError('no station information file')
 
 
-def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_location=None, plot_width=500, plot_height=500):
+def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_location=None, plot_width=500, plot_height=500, vendors=Vendors.STAMEN_TERRAIN_RETINA):
     """Add country map 
 
 
@@ -886,7 +886,7 @@ def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_loca
           title = title,plot_width=plot_width, plot_height=plot_height )
     
     if add_topo:
-        p.add_tile(get_provider(Vendors.STAMEN_TERRAIN_RETINA))
+        p.add_tile(get_provider(vendors))
     
     wmark_bokeh(p)
 

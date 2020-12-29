@@ -61,7 +61,7 @@ from bokeh.models import (Span, Div, Label, Title,
                           SingleIntervalTicker,
                           LinearAxis,
                           Legend,
-                          LegendItem,
+                          LegendItem, LabelSet,
                           GeoJSONDataSource, FuncTickFormatter, Arrow, VeeHead)
 from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.models.tickers import FixedTicker

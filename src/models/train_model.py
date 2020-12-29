@@ -877,6 +877,7 @@ class Trainer():
         logger.info(msg)
         score_dict = cal_scores(ytest, self.model.predict(xtest), header_str='test_')
         msg = f'test score after op_rf {score_dict}'
+        print(msg)
         logger.info(msg)
         self.update_poll_meta(x_cols = self.dataset.x_cols, x_cols_org = self.dataset.x_cols)
         if and_save:
@@ -952,10 +953,12 @@ class Trainer():
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
         self.dataset.split_data(split_ratio=self.split_lists[0])
-        xtrn, ytrn, self.dataset.x_cols_orgs, weights = self.dataset.get_data_matrix(
+        xtrn, ytrn, self.dataset.x_cols_org, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        
+        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
 
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
@@ -965,6 +968,12 @@ class Trainer():
         msg = 'val score after cat_hour()' + str(self.score_dict)
         logger.info(msg)
         print(msg)
+        score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
+        msg = 'test score after cat_hour()' + str(self.score_dict)
+        logger.info(msg)
+        print(msg)
+
         
         
     def choose_cat_month(self, and_save=True):
@@ -1003,6 +1012,7 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        
          
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
@@ -1034,10 +1044,11 @@ class Trainer():
         self.fire_cols, *args = self.dataset.merge_fire(self.dataset.fire_dict, damp_surface=self.dataset.fire_dict['damp_surface'], wind_damp=self.dataset.fire_dict['wind_damp'], wind_lag=self.dataset.fire_dict['wind_lag'], split_direct=self.dataset.fire_dict['split_direct'])
         self.dataset.x_cols = self.dataset.data.columns.drop(self.pollutant).to_list()
         self.dataset.split_data(split_ratio=self.split_lists[0])
-        xtrn, ytrn, self.dataset.x_cols_orgs, weights = self.dataset.get_data_matrix(
+        xtrn, ytrn, self.dataset.x_cols_org, weights = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
 
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
@@ -1045,6 +1056,12 @@ class Trainer():
         logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         msg = 'val score after cat_month()' + str(self.score_dict)
+        logger.info(msg)
+        print(msg)
+
+        score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
+        msg = 'test score after cat_month()' + str(self.score_dict)
         logger.info(msg)
         print(msg)
 
@@ -1135,6 +1152,26 @@ class Trainer():
         
         logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
         logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
+
+        self.dataset.split_data(split_ratio=self.split_lists[1])
+        xtrn, ytrn, self.dataset.x_cols_org, weights = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
+        xval, yval, _, sample_weight = self.dataset.get_data_matrix(
+            use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+
+        # check new score 
+        self.model.fit(xtrn, ytrn, weights)
+        self.score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
+
+        msg = f'op fire give val score {self.score_dict}'
+        print(msg)
+        logger.info(msg)
+        
+        score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        msg = f'op fire give test score {score_dict}'
+        print(msg)
+        logger.info(msg)
 
         self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict)
 
@@ -1232,7 +1269,8 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
-
+        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+        
         # check new score 
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
@@ -1240,6 +1278,13 @@ class Trainer():
         msg = f'final zone list {self.dataset.zone_list} give score {self.score_dict}'
         logger.info(msg)
         print(msg)
+
+        score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        msg = f'fire zone op test score {score_dict}'
+        print(msg)
+        logger.info(msg)
+
+
         logger.debug(f'dataset x_cols = {self.dataset.x_cols}')
         logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         self.update_poll_meta(fire_cols= self.fire_cols, fire_dict=self.dataset.fire_dict, zone_list=self.dataset.zone_list)
@@ -1320,7 +1365,9 @@ class Trainer():
         print(msg)
         logger.info(msg)
         score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
-        logger.info(f'op4 test score {score_dict}')
+        msg = f'op4 test score {score_dict}'
+        print(msg)
+        logger.info(msg)
 
         self.n_jobs = n_jobs_temp
 
@@ -1412,7 +1459,7 @@ class Trainer():
         self.model.fit(xtrn, ytrn, weights)
         ytest_pred = self.model.predict(xtest)
 
-        self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_', sample_weight=test_weights)
+        self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_')
         msg = f'final score for test set {self.score_dict}'
         print(msg)
         logger.info(msg)
@@ -1420,7 +1467,7 @@ class Trainer():
         ytest_pred_df = pd.DataFrame(ytest, index=self.dataset.split_list[1], columns=['actual'])
         ytest_pred_df['pred'] = ytest_pred 
         ytest_pred_df = ytest_pred_df.resample('d').mean().dropna()
-        avg_score_dict = cal_scores(ytest_pred_df['actual'].values, ytest_pred_df['pred'].values, header_str='avg_trn_')
+        avg_score_dict = cal_scores(ytest_pred_df['actual'].values, ytest_pred_df['pred'].values, header_str='avg_test_')
         msg = f'daily avg score for test set {avg_score_dict}'
         print(msg)
         logger.info(msg)
@@ -1431,7 +1478,7 @@ class Trainer():
             score_dict_log = self.score_dict 
             ytest = np.exp(ytest)
             ytest_pred = np.exp(ytest_pred)
-            self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_', sample_weight=test_weights)
+            self.score_dict = cal_scores(ytest, ytest_pred, header_str='test_')
             msg = f'final score for test set after removing log {self.score_dict}'
             print(msg)
             logger.info(msg)
@@ -1483,7 +1530,7 @@ class Trainer():
         tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2)
         tpot.fit(xtrn, ytrn, sample_weight=weights)
 
-        score_dict = cal_scores(ytest, tpot.predict(xtest), header_str='test_', sample_weight=sample_weight)
+        score_dict = cal_scores(ytest, tpot.predict(xtest), header_str='test_')
         print(f'Tpot test score is {score_dict}')
         tpot.export(self.dataset.model_folder+f'{self.pollutant}_tpot_pipeline.py')
 
@@ -1620,7 +1667,7 @@ class Trainer():
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
         search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
-        add_weight=True, instr='MODIS', op_fire_twice=False, search_tpot=False, 
+        add_weight=True, instr='MODIS', op_fire_zone=False, op_fire_twice=False, search_tpot=False, 
         main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
@@ -1671,7 +1718,8 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     logger.info(f'current columns {trainer.dataset.x_cols_org}')
     # op fire
     trainer.op_fire(x_cols=trainer.dataset.x_cols_org, search_wind_damp=search_wind_damp)
-    trainer.op_fire_zone(step=50)
+    if op_fire_zone:
+        trainer.op_fire_zone(step=50)
 
     if choose_cat_hour:
         trainer.choose_cat_hour()

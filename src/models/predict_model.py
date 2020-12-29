@@ -232,8 +232,8 @@ def cal_error(dataset, model, data_index):
     # turn into df
     ytrn_pred_df = pd.DataFrame(ytrn, index=data_index, columns=['actual'])
     ytrn_pred_df['pred'] = ytrn_pred
-    ytrn_pred_df['error'] = ytrn_pred_df['actual'] - ytrn_pred_df['pred']
-    ytrn_pred_df['rmse'] = np.sqrt(ytrn_pred_df['error']**2)
+    ytrn_pred_df['residual'] = ytrn_pred_df['actual'] - ytrn_pred_df['pred']
+    ytrn_pred_df['rmse'] = np.sqrt(ytrn_pred_df['residual']**2)
 
     #ytest_pred_df = pd.DataFrame(ytest, index=dataset.split_list[1], columns=['actual'])
     #ytest_pred_df['pred'] = ytest_pred

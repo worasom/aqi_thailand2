@@ -18,7 +18,7 @@ def set_config(dataset):
     config_dict = {'Chiang Mai': {'th_stations': ['35t', '36t']}, 
                     #'Bangkok': {'th_stations': ['02t', '03t', '05t', '11t', '12t', '50t', '52t', '53t', '54t', '59t', '61t']}, 
                     #'Bangkok': {'th_stations': ['53t', '54t', '59t', '61t']}, 
-                    'Bangkok': {'th_stations': [ '10t', '11t', '50t', '53t', '54t', '59t',  '61t']}, 
+                    'Bangkok': {'th_stations': [ '11t', '50t', '53t',  '54t', '59t', '61t']}, 
                     'Nakhon Si Thammarat': {'th_stations': ['42t', 'm3'], 
                                             'cmu_stations': [118]}, 
                     'Nakhon Ratchasima': {'th_stations':['47t']},
