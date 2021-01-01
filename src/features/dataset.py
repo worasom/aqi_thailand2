@@ -365,7 +365,7 @@ class Dataset():
         self.poll_df = data.round()
 
     def build_fire(self, distance=1200,
-                   fire_data_folder: str = 'fire_map/world_2000-2020/'):
+                   fire_data_folder: str = 'fire_map/world_2000-2020/', instr_list = [ 'MODIS',  'VIIRS']):
         """Extract hotspots satellite data within distance from the city location.
 
         #. Loop through the fire data in the folder to extract the hotspots within the distance from the city
@@ -393,27 +393,42 @@ class Dataset():
         # else self.city_name == 'Bangkok':
         #    distance = 600
 
-        instr_list = [ 'MODIS',  'VIIRS']
+        
+        #instr_list = [ 'MODIS']
 
         # the instrument is either MODIS or VIIRS
         # add mercator to all fire files
         for instr in instr_list:
             add_merc_to_fire(self.main_folder + fire_data_folder, instr=instr)
-
-            if instr == 'MODIS':
-                folder = self.main_folder + fire_data_folder + 'M6_proc/*.csv'
-
-            elif instr == 'VIIRS':
-                folder = self.main_folder + fire_data_folder + 'V1_proc/*.csv'
-
-            files = glob(folder)
-
-            fire = pd.DataFrame()
- 
             lat_km = self.city_info['lat_km']
             long_km = self.city_info['long_km']
 
-            # use joblib to speed up the file reading process over 2 cpus 
+            if instr == 'MODIS':
+                folder = self.main_folder + fire_data_folder + 'M6_proc/*.csv'
+                filename = self.data_folder + 'fire_m.csv'
+                drop_col = ['brightness','acq_time', 'track', 'scan', 'frp']
+                files = glob(folder) 
+
+                # # use joblib to speed up the file reading process over 2 cpus 
+                # fire = Parallel(
+                #     n_jobs=-2)(
+                #     delayed(read_fire)(
+                #         file,
+                #         lat_km,
+                #         long_km,
+                #         distance) for file in tqdm(files))
+
+                # fire = pd.concat(fire, ignore_index=True)
+
+            elif instr == 'VIIRS':
+                folder = self.main_folder + fire_data_folder + 'V1_proc/*.csv'
+                filename = self.data_folder + 'fire_v.csv'
+                drop_col = ['acq_time','track', 'scan', 'frp']
+                # fire = pd.DataFrame()
+                # for file in tqdm(files):
+                #     fire = pd.concat([fire, read_fire(file, lat_km, long_km, distance)], ignore_index=True)
+                #     fire = fire.drop_duplicates(ignore_index=True)
+            fire = []
             fire = Parallel(
                 n_jobs=-2)(
                 delayed(read_fire)(
@@ -422,40 +437,16 @@ class Dataset():
                     long_km,
                     distance) for file in tqdm(files))
 
-        #fire = []
-        #for file in tqdm(files):
-        #    fire.append(read_fire(file, lat_km, long_km, distance))
-
             fire = pd.concat(fire, ignore_index=True)
             fire = fire.drop_duplicates(ignore_index=True)
-
             fire = process_fire_data(filename=None, fire=fire, and_save=False, timezone=self.city_info['Time Zone'])
 
             # create power column and drop unncessary columns
             fire['power'] = fire['scan'] * fire['track'] * fire['frp']
             fire['count'] = 1
-
-            if instr == 'MODIS':
-                filename = self.data_folder + 'fire_m.csv'
-                fire = fire.drop(['brightness',
-                              'acq_time',
-                              'track',
-                              'scan',
-                              'frp'],
-                             axis=1)
-
-            elif instr == 'VIIRS':
-                filename = self.data_folder + 'fire_v.csv'
-                fire = fire.drop([
-                    'bright_ti4',
-                    'acq_time',
-                    'track',
-                    'scan',
-                    'frp'], axis=1)
-
+            fire = fire.drop(drop_col, axis=1)
             # add direction of the hotspot
             fire = add_fire_direct(city_x=self.city_info['long_km'], city_y=self.city_info['lat_km'], fire=fire)
-
             # save fire data
             fire.to_csv(filename)
 
@@ -903,6 +894,11 @@ class Dataset():
             idxs = np.where(y >  q_list[2])[0]
             weights[idxs] = 2
 
+        # # increase weight base on time 
+        # time_idxs = int(len(y)*0.3)
+        # weights[time_idxs:time_idxs*2] += 1
+        # weights[time_idxs*2:] += 2
+
         if self.log_poll:
             y = np.log(y)
 
@@ -1031,8 +1027,8 @@ class Dataset():
 
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
-                self.poll_df.loc[:'2014', 'PM2.5'] = np.nan
-                #pass
+                #self.poll_df.loc[:'2014', 'PM2.5'] = np.nan
+                pass
 
         else:
             print('no pollution data. Call self.build_pollution first')

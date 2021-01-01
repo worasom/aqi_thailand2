@@ -397,9 +397,40 @@ def main(
         build_json: if True also build city information
 
     """
+
     # fix relative folder 
     main_folder = os.path.abspath(main_folder).replace('\\', '/') + '/'
     print(f'main data folder ={main_folder}')
+
+    # extract station information
+    print('Update weather data for all cities')
+    city_names = ['Bangkok',
+        'Mueang Chiang Mai',
+        'Soc Son',
+        'Mueang Chiang Rai',
+        'Mueang Tak',
+        'Yangon',
+        'Tada-U',
+        'Sikhottabong',
+        'Luang Prabang District',
+        'Kunming', 'East Jakarta', 
+        'Mueang Nakhon Si Thammarat', 
+        'Hai Chau', 'Chaloem Phra Kiat' ]
+    w_folder = f'{main_folder}weather_cities/'
+    weather_station_info = find_weather_stations(
+        city_names, weather_json_file=w_folder + 'weather_station_info.json')
+    len(weather_station_info)
+
+    for city_json in tqdm(weather_station_info):
+        print('update weather data for ', city_json['city_name'])
+        start_date = datetime(2020, 8, 22)
+        end_date = datetime.now() - timedelta(days=1)
+        update_weather(
+            city_json,
+            data_folder=w_folder,
+            start_date=start_date,
+            end_date=end_date)
+
     b_data_list = ['http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/', 
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Myanmar/',
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Singapore/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Laos/',
@@ -442,35 +473,7 @@ def main(
             dl_url='https://www.cmuccdc.org/download_json/',
             data_folder=f'{main_folder}cdc_data/')
 
-    # extract station information
-    print('Update weather data for all cities')
-    city_names = [
-        'Mueang Chiang Mai',
-        'Soc Son',
-        'Bangkok',
-        'Mueang Chiang Rai',
-        'Mueang Tak',
-        'Yangon',
-        'Tada-U',
-        'Sikhottabong',
-        'Luang Prabang District',
-        'Kunming', 'East Jakarta', 
-        'Mueang Nakhon Si Thammarat', 
-        'Hai Chau', 'Chaloem Phra Kiat' ]
-    w_folder = f'{main_folder}weather_cities/'
-    weather_station_info = find_weather_stations(
-        city_names, weather_json_file=w_folder + 'weather_station_info.json')
-    len(weather_station_info)
 
-    for city_json in tqdm(weather_station_info):
-        print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020, 8, 22)
-        end_date = datetime.now() - timedelta(days=1)
-        update_weather(
-            city_json,
-            data_folder=w_folder,
-            start_date=start_date,
-            end_date=end_date)
 
     print('update BKP data')
     update_bkp(data_folder=f'{main_folder}bkp_hourly/')

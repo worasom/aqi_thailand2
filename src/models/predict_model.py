@@ -153,6 +153,7 @@ def load_model(
         use_index=trn_index, x_cols=dataset.x_cols)
     xtest, ytest, _, sample_weight = dataset.get_data_matrix(
         use_index=test_index, x_cols=dataset.x_cols)
+    sample_weight = np.ones(len(ytest))
 
     if update:
         model.fit(xtrn, ytrn, weights)
@@ -199,7 +200,7 @@ def load_model(
     feat_imp = feat_imp.sort_values(
         'importance', ascending=False).reset_index()
 
-    return dataset, model, fire_cols, zone_list, feat_imp, poll_meta['rolling_win']
+    return dataset, model, fire_cols, zone_list, feat_imp, poll_meta 
 
 
 def cal_error(dataset, model, data_index):

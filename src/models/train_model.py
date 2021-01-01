@@ -171,6 +171,7 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
             use_index=trn_index, x_cols=x_cols)
         xval, yval, _, sample_weight = dataset.get_data_matrix(
             use_index=val_index, x_cols=x_cols)
+         
 
         # obtain the baseline data
         model.fit(xtrn, ytrn, weights)
@@ -185,8 +186,10 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
             use_index=trn_index, x_cols=new_cols)
         xval, yval, _, sample_weight = dataset.get_data_matrix(
             use_index=val_index, x_cols=new_cols)
+         
 
         model.fit(xtrn, ytrn, weights)
+        
         score = cal_scores(
             yval,
             model.predict(xval),
@@ -201,6 +204,7 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
     xval, yval, _, sample_weight = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+     
     model.fit(xtrn, ytrn, weights)
     score_dict = cal_scores(yval, model.predict(xval), header_str='', sample_weight=sample_weight)
 
@@ -259,6 +263,7 @@ def sk_op_fire(dataset,
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
     xval, yval, _, sample_weight= dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
+     
 
     model.fit(xtrn, ytrn, weights)
     if mse:
@@ -498,6 +503,7 @@ def op_lag(
         use_index=dataset.split_list[0], x_cols=dataset.x_cols)
     xval, yval, _, sample_weight = dataset.get_data_matrix(
         use_index=dataset.split_list[1], x_cols=dataset.x_cols)
+     
     model.fit(xtrn, ytrn, weights)
     if mse:
         best_score = mean_squared_error(yval, model.predict(xval), sample_weight=sample_weight)
@@ -863,6 +869,7 @@ class Trainer():
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
         
 
         logger.info(f'xtrn has shape {xtrn.shape}')
@@ -923,6 +930,7 @@ class Trainer():
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
          
+         
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
 
@@ -957,6 +965,7 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+         
         
         xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
 
@@ -1012,7 +1021,7 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
-        
+         
          
         self.model.fit(xtrn, ytrn, weights)
         new_score = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
@@ -1048,7 +1057,8 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
-        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+        xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
 
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict = cal_scores(yval,self.model.predict(xval),header_str='val_', sample_weight=sample_weight)
@@ -1059,7 +1069,7 @@ class Trainer():
         logger.info(msg)
         print(msg)
 
-        score_dict = cal_scores(ytest,self.model.predict(xtest),header_str='test_')
+        score_dict = cal_scores(ytest,self.model.predict(xtest), header_str='test_')
         #logger.debug(f'dataset x_cols_org = {self.dataset.x_cols_org}')
         msg = 'test score after cat_month()' + str(score_dict)
         logger.info(msg)
@@ -1159,6 +1169,7 @@ class Trainer():
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
 
         # check new score 
         self.model.fit(xtrn, ytrn, weights)
@@ -1223,6 +1234,7 @@ class Trainer():
             use_index=self.dataset.split_list[0], x_cols=self.dataset.x_cols)
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
+         
         self.model.fit(xtrn, ytrn, weights)
         old_zone_list = self.dataset.zone_list.copy() 
         old_score = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)['val_mean_squared_error']
@@ -1270,6 +1282,7 @@ class Trainer():
         xval, yval, _, sample_weight = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, _, test_weight = self.dataset.get_data_matrix(use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
         
         # check new score 
         self.model.fit(xtrn, ytrn, weights)
@@ -1358,6 +1371,8 @@ class Trainer():
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
+
         logger.info(f'xtrn has shape  {xtrn.shape}')
         self.model.fit(xtrn, ytrn, weights)
         self.score_dict   = cal_scores(yval, self.model.predict(xval), header_str='val_', sample_weight=sample_weight)
@@ -1421,6 +1436,7 @@ class Trainer():
             use_index=self.dataset.split_list[1], x_cols=self.dataset.x_cols)
         xtest, ytest, *args = self.dataset.get_data_matrix(
             use_index=self.dataset.split_list[2], x_cols=self.dataset.x_cols)
+         
 
         self.model = do_rf_search(xtrn, ytrn,cv_split='other', sample_weight=weights, n_jobs=self.n_jobs)
         self.n_jobs = n_jobs_temp
@@ -1667,7 +1683,7 @@ class Trainer():
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
         search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
-        add_weight=True, instr='MODIS', op_fire_zone=False, op_fire_twice=False, search_tpot=False, 
+        add_weight=True, instr='MODIS', op_fire_zone=False, op_fire_twice=False, op_lag=True, search_tpot=False, 
         main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
@@ -1727,15 +1743,28 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     if choose_cat_month:
         trainer.choose_cat_month()
     
-    # see if adding lag improve things 
-    if trainer.dataset.with_interact:
-        # use smaller lag range 
-        trainer.op4_lag(lag_range=[1, 20])
+    if op_lag:
+        # see if adding lag improve things 
+        if trainer.dataset.with_interact:
+            # use smaller lag range 
+            trainer.op4_lag(lag_range=[1, 20])
+        else:
+            trainer.op4_lag()
+
     else:
-        trainer.op4_lag()
+        print('skip adding lag')
+        trainer.dataset.lag_dict = {'n_max': 1, 'step': 1, 'roll':True}
+        trainer.dataset.build_lag(
+            lag_range=np.arange(
+                1,
+                trainer.dataset.lag_dict['n_max'],
+                trainer.dataset.lag_dict['step']),
+            roll=trainer.dataset.lag_dict['roll'])
+
 
     if op_fire_twice:
         trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=search_wind_damp)
+    
     # serach rf model again
     trainer.op6_rf()
     trainer.final_fit()

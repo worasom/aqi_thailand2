@@ -419,7 +419,7 @@ def get_unit(pollutant):
 
     """
 
-    unit_dict = {'PM2.5': '$\mu g/m^3$',
+    unit_dict = {'PM2.5': r'$\mu g/m^3$',
                  'PM10': r'$\mu g/m^3$',
                  'O3': 'ppb',
                  'NO2': 'ppb',

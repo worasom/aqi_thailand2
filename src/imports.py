@@ -67,6 +67,7 @@ from bokeh.models.mappers import ColorMapper, LinearColorMapper
 from bokeh.models.tickers import FixedTicker
 from bokeh.palettes import Viridis5
 from bokeh.plotting import figure, show, output_file
+import bokeh.layouts as bk_layouts
 from bokeh.layouts import widgetbox, row, column, gridplot
 from bokeh.tile_providers import get_provider, Vendors
 

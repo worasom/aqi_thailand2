@@ -23,11 +23,8 @@ if __name__ == '__main__':
     print(sys.argv)
 
     city = sys.argv[1]
-    if len(sys.argv)>=3:
-        instr = sys.argv[2]
-    else:
-        instr = 'MODIS'
+     
     
     dataset = Dataset(city_name=city)
-    dataset.build_fire(instr=instr)
+    dataset.build_fire()
     dataset.build_all_data(build_fire=False, build_holiday=True)

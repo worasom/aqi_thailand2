@@ -821,7 +821,7 @@ def compare_seson_avg(
     return ax
 
 
-def plot_hour_avg(df, col, ax, color='blue', label=None):
+def plot_hour_avg(df, col, ax, color='blue', label=None, ci=95):
     """Plot average hourly behavior. Must have datetime index.
 
     Args:
@@ -845,7 +845,7 @@ def plot_hour_avg(df, col, ax, color='blue', label=None):
         color=color,
         ax=ax,
         legend='brief',
-        label=label)
+        label=label, ci=ci)
     ax.set_ylabel(col)
     ax.set_xlabel('hour')
     #ax[2].set_title('hourly fire activities')

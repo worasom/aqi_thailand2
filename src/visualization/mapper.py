@@ -391,7 +391,8 @@ class Mapper():
                         'ymap_range': [0.3, 0.8],
                         'inter_range': [2, 2.5], 
                         'gridsize': 5E3,
-                        'plot_height': 200,
+                        'plot_height': 250,
+                        'plot_width':800,
                         'center_city': center_city}
 
         # update new setting 
@@ -456,16 +457,25 @@ class Mapper():
         
         self.polldata = polldata
 
-    def avg_city_poll(self):
+    def avg_city_poll(self, stationid_list=[], datafreq='h', aggegration='mean'):
         """Take the average of the pollution level of self.city_center 
 
+        Args:
+            stationid_list: a list of station id to overide the default
+            freq: resample the data to hourly ('h') or daily ('d') 
+            aggegration: aggegration factor either 'mean' or 'max'
+
         """
-        # extract stationid
-        stationid_list = self.all_station_info[(self.all_station_info['City'] == self.center_city) | (self.all_station_info['areaEN'].str.contains(self.center_city))]
-        stationid_list = stationid_list['id'].to_list()
+        if len(stationid_list)==0:
+            # extract stationid
+            stationid_list = self.all_station_info[(self.all_station_info['City'] == self.center_city) | (self.all_station_info['areaEN'].str.contains(self.center_city))]
+            stationid_list = stationid_list['id'].to_list()
+        print('station list', stationid_list)
         # average pollution level among the those in stationid_list
         self.avg_polldata = self.polldata[self.polldata['stationid'].isin(stationid_list)]
         self.avg_polldata  = self.avg_polldata.groupby('datetime').mean()
+        self.datafreq = datafreq
+        self.avg_polldata = self.avg_polldata.resample(self.datafreq).agg(aggegration)
 
     def inter_pollution(self, datetime ):
         """Interpolate pollution data form different station to form a continuous grid
@@ -556,6 +566,7 @@ class Mapper():
         Args: 
             p: bokeh figure object
             datetime: datetime to generate the map for 
+            datfareq: either hourly ('h') or daily ('d') 
          
 
         """
@@ -577,16 +588,22 @@ class Mapper():
 
         p.add_layout(color_bar, 'right')
 
+        if self.datafreq == 'h':
+            date_str = datetime.strftime('%Y-%m-%d %H:%M')
+        elif self.datafreq == 'd':
+            date_str = datetime.strftime('%Y-%m-%d')
+
+
         #text = Label(x=self.map_dict['xmap_range'][1] , y=self.map_dict['ymap_range'][0]-self.map_dict['stepy']*0.5, text=' Datetime: '+str(datetime), text_font_size='15pt', text_color='black', background_fill_color='white', text_align='right')
         #p.add_layout(text)
-        text = Title(text=' Datetime: '+str(datetime), align="left", text_color='black', text_font_size='12px')
+        text = Title(text=' Datetime: '+ date_str, align="left", text_color='black', text_font_size='12px')
         p.add_layout(text, "above")
 
         p.grid.grid_line_color = None
 
         return p
 
-    def add_line_plot(self, title=None, color='blue', legend_loc='bottom_right' ):
+    def add_line_plot(self, title=None, color='blue', legend_loc='bottom_right', add_avg =True ):
         """Make time series line plot of the pollution of the center city
         
         Args:
@@ -597,15 +614,16 @@ class Mapper():
         
         """
 
-        p = figure(plot_height=self.map_dict['plot_height'], x_axis_type='datetime', toolbar_location=None, title=title )    
+        p = figure(plot_height=self.map_dict['plot_height'], plot_width=self.map_dict['plot_width'], x_axis_type='datetime', toolbar_location=None, title=title )    
         p.circle(self.avg_polldata.index, self.avg_polldata[self.pollutant],line_width=1, line_color=color, fill_color=color)
+        p.line(self.avg_polldata.index, self.avg_polldata[self.pollutant],line_width=1, line_color=color )
         
-        moving_avg = self.avg_polldata[self.pollutant].rolling(24, min_periods=1 ).mean()
-        
-        p.line(moving_avg.index, moving_avg.values, line_width=3, line_color='dodgerblue', line_dash='dashed' )
+        if add_avg:
+            moving_avg = self.avg_polldata[self.pollutant].rolling(24, min_periods=1 ).mean()
+            p.line(moving_avg.index, moving_avg.values, line_width=3, line_color='dodgerblue', line_dash='dashed' )
     
         #p.xaxis.axis_label = 'date'
-        p.yaxis.axis_label = get_unit(self.pollutant)
+        p.yaxis.axis_label = 'μg/m³'
         p.legend.location = legend_loc
         
         return p
@@ -621,7 +639,7 @@ class Mapper():
         current_stations = self.all_station_info[self.all_station_info['id'].isin(stationid_list)]
          
         # add basemap 
-        p = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'])
+        p = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'], plot_width=self.map_dict['plot_width'], plot_height=self.map_dict['plot_width'])
         temp = current_stations[current_stations['source']=='Berkeley']
         # add Berkeley data stations information 
         p.square(temp['long_m'], temp['lat_m'], legend_label='Berkeley data', color=self.plt_colors[3], line_color='black',size=8)
@@ -642,7 +660,7 @@ class Mapper():
 
         show(p)
 
-    def add_fire(self, p, fire, datetime, duration=48, size=5):
+    def add_fire(self, p, fire, datetime, fireduration=72, size=5):
         """Add burning hotspot on the basemap 
 
         Args:
@@ -654,10 +672,10 @@ class Mapper():
 
         """
         # extract fire data
-        start_datetime = pd.to_datetime(datetime) - pd.to_timedelta(duration,'hours')
+        start_datetime = pd.to_datetime(datetime) - pd.to_timedelta(fireduration,'hours')
 
         df = fire.loc[start_datetime:datetime]
-        p.circle(df['long_km']*1000,df['lat_km']*1000,color='red',size=size, alpha=0.5, legend_label=f'hotspots {duration} hrs')
+        p.circle(df['long_km']*1000,df['lat_km']*1000,color='red',size=size, alpha=0.5, legend_label=f'hotspots {fireduration} hrs')
 
     def add_wind(self, p, wind, datetime, scale=10000):
         """Add wind vector on the map
@@ -681,7 +699,7 @@ class Mapper():
                            x_start=x_start, y_start=y_start, x_end=x_end, y_end=y_end))
 
 
-    def get_datasamples(self, start_date, end_date, peak=True, freq:(str, int)='6H'):
+    def get_datasamples(self, start_date, end_date, peak=True, date_range=[], height=0, freq:int=6):
         """Obtain the datetime sample, which are the datetime to plot the pollution map. 
         
         Plotting the pollution map every hour will be too much. 
@@ -697,7 +715,9 @@ class Mapper():
         Args:
             start_date: start date of the data  
             end_date: last date of the data 
-            peak: if True, use peak detection to get the time sample 
+            peak: if True, use peak detection to get the time sample, else use the input datetime specified by date_range
+            date_range: specifiy date_range for plotting the data 
+            height: minimum height
             freq: if peak=True, freq is interpret as distance between two peaks. If peak==False,  freq is a string and determine a constant interval between two samples.
 
         Raises:
@@ -710,12 +730,13 @@ class Mapper():
         if peak:
             # extract pollution arr
             poll_arr = self.avg_polldata[self.pollutant].values
-            peaks, peak_dict = find_peaks(poll_arr, distance=freq, prominence=2)
+            peaks, peak_dict = find_peaks(poll_arr, distance=freq, prominence=2, height=height)
             self.data_samples = self.avg_polldata.iloc[peaks]
         else:
-            idxs = pd.date_range(start_date, end_date, freq=freq) 
-            self.data_samples = self.avg_polldata.loc[idxs]
+            
+            self.data_samples = self.avg_polldata.loc[date_range]
 
+        #print(self.data_samples.shape)
         # check the lenght of the sample to prevent too many datapoint 
 
         if len(self.data_samples) > 200:
@@ -747,7 +768,7 @@ class Mapper():
         for file in files:
             os.remove(file)
 
-    def build_ani_images(self, start_date, end_date, pollutant, add_title='', fire=[], wind=[], delete=False):
+    def build_ani_images(self, start_date, end_date, pollutant, add_title='', fire=[], fireduration=72, wind=[], delete=False):
         """Make and save animation images for building gif file 
         
         Args:
@@ -758,6 +779,8 @@ class Mapper():
             fire: fire dataframe
             wind: wind direction and speed 
             delete: if True, delete old png file before building a new one
+            firedurationL 
+            
 
         Return: list
             a list of filename to build the gif 
@@ -782,12 +805,12 @@ class Mapper():
             vline = Span(location=datetime, dimension='height', line_color=color, line_dash='dashed', line_width=2)
             p1.add_layout(vline)
 
-            p2 = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'])
-            if len(fire) !=0:
-                self.add_fire(p2, fire, datetime)
+            p2 = plot_basemap(self.map_dict['xmap_range'], self.map_dict['ymap_range'], plot_width=self.map_dict['plot_width'], plot_height=self.map_dict['plot_width'] )
+            
             # add colormap
             p2 = self.add_poll_colormap(p2, datetime)
-            
+            if len(fire) !=0:
+                self.add_fire(p2, fire, datetime, fireduration=fireduration)
            
             if len(wind) != 0:
                 self.add_wind(p2, wind, datetime)
@@ -801,7 +824,7 @@ class Mapper():
 
         return filenames
 
-    def make_ani(self, start_date, end_date, pollutant:str, add_title:str='', fire=[], wind=[], delete=False, peak=True, freq=4, duration=1):
+    def make_ani(self, start_date, end_date, pollutant:str, add_title:str='', fire=[], fireduration=72, wind=[], delete=False, peak=True, date_range=[],  height=0, freq=4, duration=1):
         """ Create pollution map for each datasample date, save and used it to construct gif animation.
 
         Args:
@@ -813,6 +836,7 @@ class Mapper():
             wind: wind direction and speed 
             delete: if True, delete old png file before building a new one
             peak: if True, use peak detection to get the time samples
+            date_range: specifiy date_range for plotting the data 
             freq: if peak=True, freq is interpret as distance between two peaks. If peak==False,  freq is a string and determine a constant interval between two samples.
             duration: duration of each image in second 
 
@@ -828,9 +852,9 @@ class Mapper():
             # preparing the data 
             self.avg_city_poll()
         
-        self.set_pollutant_cbar(pollutant=pollutant)
+        #self.set_pollutant_cbar(pollutant=pollutant)
         # get datasamples
-        self.get_datasamples(start_date, end_date, peak=peak, freq=freq) 
+        self.get_datasamples(start_date, end_date, peak=peak, date_range=date_range, height=height, freq=freq) 
         if len(wind):
             wind = wind.loc[start_date:end_date]
             wind = add_wea_vec(wind, daily_avg=False,roll_win=6)
@@ -839,7 +863,7 @@ class Mapper():
             wind['wind_vec_y'] *= wind['Wind_Speed(kmph)']
             wind = wind.fillna(0)
 
-        filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, wind=wind, delete=delete)
+        filenames = self.build_ani_images(start_date, end_date, pollutant, add_title=add_title, fire=fire, wind=wind, delete=delete, fireduration=fireduration)
         
         # create a gif showing pollution level for each month
         images = []
@@ -866,7 +890,7 @@ class Mapper():
             raise AssertionError('no station information file')
 
 
-def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_location=None, plot_width=500, plot_height=500, vendors=Vendors.STAMEN_TERRAIN_RETINA):
+def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_location=None, plot_width=500, plot_height=500, vendors=Vendors.STAMEN_TERRAIN_RETINA, watermark=True):
     """Add country map 
 
 
@@ -887,7 +911,7 @@ def plot_basemap(xmap_range, ymap_range, title=None, add_topo=True, toolbar_loca
     
     if add_topo:
         p.add_tile(get_provider(vendors))
-    
-    wmark_bokeh(p)
+    if watermark:
+        wmark_bokeh(p)
 
     return p

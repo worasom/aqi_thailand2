@@ -60,19 +60,24 @@ def get_data_n_soup(browser, date_str, header_url, waittime=30):
     '''
     # url=f'https://www.wunderground.com/history/daily/th/bang-phut/VTBD/date/{date_str}'
     url = header_url + date_str
+
     #print(url)
     browser.get(url)
     time.sleep(waittime)
     innerhtml = browser.execute_script("return document.body.innerHTML")
     soup = BeautifulSoup(innerhtml, features="lxml")
     #div_table = soup.find_all('table')
-    daily_df = pd.read_html(str(soup))[-1]
+    daily_df = pd.read_html(str(soup))
+    #print('table lenght ', len(daily_df))
+    daily_df = daily_df[-1]
+    #print('data lenght', len(daily_df))
+    daily_df = daily_df.dropna(how='all')
 
     # add date columns
     daily_df['datetime'] = pd.to_datetime(
         date_str + ' ' + daily_df['Time'],
         format="%Y-%m-%d %I:%M %p")
-    return daily_df, div_table
+    return daily_df
 
 
 def convert_temp_col(data_df, temperature_col):
@@ -183,39 +188,50 @@ def scrape_weather(city_json, date_range):
 
         try:
             # obtain daily weather dataframe
-            daily_df, div_table = get_data_n_soup(
-                browser, date, header_url=header_url, waittime=25)
+            daily_df = get_data_n_soup(
+                browser, date, header_url=header_url, waittime=5)
 
-        except BaseException:
-            # fail query,
-            bad_date_df = pd.concat(
-                [
-                    bad_date_df,
-                    pd.DataFrame(
-                        {
-                            'header_url': 'https://www.wunderground.com/history/daily/th/mueang-chiang-mai/VTCC/date/',
-                            'date': date},
-                        index=[0])],
-                ignore_index=True)
-
+             
+        except:
+            pass
         else:
-            if len(daily_df) == 0:
-                # fail query,
-                bad_date_df = pd.concat(
-                    [
-                        bad_date_df,
-                        pd.DataFrame(
-                            {
-                                'header_url': 'https://www.wunderground.com/history/daily/th/mueang-chiang-mai/VTCC/date/',
-                                'date': date},
-                            index=[0])],
-                    ignore_index=True)
-            else:
+            # good query
+            # convert unit of the data
+            daily_df = convert_unit(daily_df)
+             
+            # combine the weather for each day
+            weather = pd.concat([weather, daily_df], axis=0, join='outer')
+
+        # except BaseException:
+        #     # fail query,
+        #     bad_date_df = pd.concat(
+        #         [
+        #             bad_date_df,
+        #             pd.DataFrame(
+        #                 {
+        #                     'header_url': header_url,
+        #                     'date': date},
+        #                 index=[0])],
+        #         ignore_index=True)
+
+        # else:
+        #     if len(daily_df) == 0:
+        #         # fail query,
+        #         bad_date_df = pd.concat(
+        #             [
+        #                 bad_date_df,
+        #                 pd.DataFrame(
+        #                     {
+        #                         'header_url': header_url,
+        #                         'date': date},
+        #                     index=[0])],
+        #             ignore_index=True)
+        #     else:
                 # good query
                 # convert unit of the data
-                daily_df = convert_unit(daily_df)
-                # combine the weather for each day
-                weather = pd.concat([weather, daily_df], axis=0, join='outer')
+                # daily_df = convert_unit(daily_df)
+                # # combine the weather for each day
+                # weather = pd.concat([weather, daily_df], axis=0, join='outer')
 
     browser.close()
     try:
@@ -311,6 +327,8 @@ def update_weather(
 
         # obtain new  data
         new_weather, _ = scrape_weather(city_json, date_range=missing_date)
+
+        print('new_weather shape', new_weather.shape)
 
         if len(new_weather) > 0:
             # fix bad temperature data and missing timestamp
