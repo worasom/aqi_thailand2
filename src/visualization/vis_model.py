@@ -49,7 +49,7 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
                 5),
             linewidth=1,
             edgecolor='black',
-            legend=False)
+            legend=False, error_kw=dict(ecolor='red', lw=2, capsize=5, capthick=2))
     else:
         fea_imp.plot(
             'index',

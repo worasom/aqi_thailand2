@@ -892,7 +892,7 @@ class Dataset():
             weights[idxs] = 2
             # add weight for data more than q90
             idxs = np.where(y >  q_list[2])[0]
-            weights[idxs] = 2
+            weights[idxs] = 4
 
         # # increase weight base on time 
         # time_idxs = int(len(y)*0.3)
