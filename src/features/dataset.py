@@ -1027,8 +1027,8 @@ class Dataset():
 
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
-                #self.poll_df.loc[:'2014', 'PM2.5'] = np.nan
-                pass
+                self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+                #pass
 
         else:
             print('no pollution data. Call self.build_pollution first')

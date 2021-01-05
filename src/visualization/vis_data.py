@@ -578,14 +578,15 @@ def cal_sea_yr(df, agg='mean', start_month='-12-01', end_month='-04-30', next_ye
         next_year: True when the pollution season go over to next year EX winter cover Dec 2019 to Jan 2020
 
 
-    Returns: pd.DataFrame
+    Returns: pd.DataFrame, pd.DataFrame
         season yearly average
+        season yearly std 
 
     """
     df = add_season(df, start_month=start_month, end_month=end_month, next_year=next_year)
     # remove other season
     df = df[df['season'] != 'other'].drop('season', axis=1)
-    return df.groupby('year').agg(agg)
+    return df.groupby('year').agg(agg), df.groupby('year').agg('std')
 
 
 def add_ln_trend_line(
@@ -675,7 +676,7 @@ def plot_chem_print(
         plt.savefig(filename)
 
 
-def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True ):
+def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True, err_bar=True, add_trend=True ):
     """Obtain yearly trends of PM pollutant data, number of hotspots and temperatures to compare their trends.
 
     Args:
@@ -686,15 +687,16 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
         start_month: starting month of the season
         end_month: ending month of the season
         next_year: True when the pollution season go over to next year EX winter cover Dec 2019 to Jan 2020
+        err_bar: if True, plot error bar
 
 
     """
-    year_fire = cal_sea_yr(
+    year_fire, year_fire_std = cal_sea_yr(
         dataset.fire.resample('d').sum()[
             ['count']].copy(), agg='mean', start_month=start_month, end_month=end_month, next_year=next_year)
     year_fire.columns = ['number of hotspots']
 
-    year_temp = cal_sea_yr(
+    year_temp, year_temp_std = cal_sea_yr(
         dataset.wea[['Temperature(C)']].resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year)
 
     if 'PM10' in dataset.poll_df.columns:
@@ -706,8 +708,10 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
         y_labels = [r'$\mu g/m^3$', 'counts/day', '($^o$C)']
         colors = ['royalblue', 'red', 'orange']
 
-    year_poll = cal_sea_yr(
-        dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year)[poll_col]
+    year_poll, year_poll_std = cal_sea_yr(
+        dataset.poll_df.resample('d').mean().copy(), start_month=start_month, end_month=end_month, next_year=next_year) 
+    year_poll = year_poll[poll_col]
+    year_poll_std = year_poll_std[poll_col]
     
     if min_year is None:
         min_year = year_fire.index.min()
@@ -717,20 +721,29 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
     year_avg = pd.concat(
         [year_poll.loc[min_year:max_year], year_fire.loc[min_year:max_year], year_temp.loc[min_year:max_year]], axis=1)
 
+    year_avg_std = pd.concat([year_poll_std.loc[min_year:max_year], year_fire_std.loc[min_year:max_year], year_temp_std.loc[min_year:max_year]], axis=1)
+
     _, ax = plt.subplots(
         len(y_labels), 1, figsize=(
             10, 3.5 * len(y_labels)), sharex=True)
 
     for i, (a, col, y_label, color) in enumerate(
             zip(ax, year_avg.columns, y_labels, colors)):
-        a.plot(year_avg[col], marker='*', label=col, color=color)
+        a.plot(year_avg[col], marker='*', label=col, color=color )
+        if err_bar:
+            try:
+                a.errorbar(year_avg[col].index, year_avg[col], yerr=year_avg_std[col],color=color, capsize=5)
+            except:
+                pass
         a.set_ylabel(y_label)
 
-        try:
-            # add linear trend line an display equation
-            x, _ = add_ln_trend_line(year_avg[col].dropna(), a, color=color)
-        except BaseException:
-            pass
+        if add_trend:
+
+            try:
+                # add linear trend line an display equation
+                x, _ = add_ln_trend_line(year_avg[col].dropna(), a, color=color)
+            except BaseException:
+                pass
         a.legend(loc='upper left')
 
         if i == 0:
@@ -746,7 +759,7 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
     if filename:
         plt.savefig(filename)
 
-    return ax, year_avg
+    return ax, year_avg, year_avg_std
 
 
 def compare_seson_avg(

@@ -43,13 +43,13 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
             'index',
             'importance',
             kind='bar',
-            xerr='imp_std',
+            yerr='imp_std',
             figsize=(
                 8,
                 5),
             linewidth=1,
             edgecolor='black',
-            legend=False, error_kw=dict(ecolor='red', lw=2, capsize=5, capthick=2))
+            legend=False, error_kw=dict(ecolor='black', lw=1, capsize=4, capthick=1))
     else:
         fea_imp.plot(
             'index',
@@ -66,7 +66,7 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
         plt.xscale('log')
 
     plt.title(title)
-    plt.xlabel('columns')
+    plt.xlabel('feature')
     plt.ylabel('importance unit')
     plt.tight_layout()
     if filename:

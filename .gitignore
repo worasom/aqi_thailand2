@@ -113,7 +113,11 @@ target/
 /models/nakhon_ratchasima/
 /models/*/*.joblib
 /models/*/*.pkl
- 
+/models/*/*_op*_featimp*
+/models/*/inter*
+/models/*/*_station*
+/models/*/*_featimp_*t.csv
+/models/*/*_score_*t.csv 
 /build/
 /dist/
 vn_data*

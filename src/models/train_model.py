@@ -335,7 +335,7 @@ def sk_op_fire(dataset,
     if score < best_score:
          
         best_fire_dict.update( {
-            'w_speed': round(float(wind_speed), 2) ,
+            'w_speed': round(float(wind_speed), 0) ,
             'shift': int(shift),
             'roll': int(roll), 
             'damp_surface': damp_surface, 
@@ -447,12 +447,13 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
     logger.info(f'score for the best fire parameters {gp_result.fun}')
     score = gp_result.fun
     if score < best_score:
-         
+
+        # rounding reduce overfitting  
         best_fire_dict.update( {
-            'w_speed': round(float(wind_speed), 2),
+            'w_speed': round(float(wind_speed), 0),
             'shift': int(shift),
             'roll': int(roll), 
-            'damp_surface': round(float(damp_surface), 2), 
+            'damp_surface': round(float(damp_surface), 1), 
             'wind_damp': wind_damp, 
             'wind_lag': wind_lag})
        
@@ -1583,7 +1584,9 @@ class Trainer():
         feat_imp = feat_imp.groupby('index').sum()
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
-        feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.csv', index=False )
+        
+        if trainer.dataset.with_interact:      
+            feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.csv', index=False )
 
         # split the interaction terms if exist 
         temp = feat_imp['index'].str.split('_n_', expand=True)
