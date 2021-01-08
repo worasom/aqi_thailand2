@@ -18,6 +18,7 @@ def set_config(dataset):
     config_dict = {'Chiang Mai': {'th_stations': ['35t', '36t']}, 
                     #'Bangkok': {'th_stations': ['02t', '03t', '05t', '11t', '12t', '50t', '52t', '53t', '59t', '61t']}, 
                     'Bangkok': {'th_stations': ['03t', '05t',   '50t', '52t', '59t', '61t']}, 
+                    'Hat Yai': {'th_stations': ['44t']},
                     #'Bangkok': {'th_stations': ['53t', '54t', '59t', '61t']}, 
                     #'Bangkok': {'th_stations': [  '12t', '59t', '61t']}, 
                     'Nakhon Si Thammarat': {'th_stations': ['42t', 'm3'], 
@@ -33,6 +34,7 @@ def set_config(dataset):
              'Nakhon Ratchasima': [0, 130, 300, 600, 1200],
             'Da Nang': [0, 75, 300, 700,  1000],
              'Hanoi': [0, 120, 400, 700, 1200], 
+             'Hat Yai': [0, 100, 200, 500, 1000],
             'default': [0, 100, 200, 400, 800, 1000]
                 }
 
@@ -44,7 +46,8 @@ def set_config(dataset):
                  'Jakarta': 'East Jakarta',
                  'Da Nang': 'Hai Chau',
                  'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat',
-                 'Nakhon Ratchasima':'Chaloem Phra Kiat'}
+                 'Nakhon Ratchasima':'Chaloem Phra Kiat',
+                 'Hat Yai': 'Khlong Hoi Khong'}
       
 
     # cropping point to remove the earlier data 

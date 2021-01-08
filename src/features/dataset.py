@@ -1028,6 +1028,10 @@ class Dataset():
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
                 self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+
+            elif (self.city_name == 'Hat Yai'):
+            # for Thailand, delete all PM2.5 record before 2014
+                self.poll_df.loc[:'2015', 'PM2.5'] = np.nan
                 #pass
 
         else:

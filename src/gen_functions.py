@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from bokeh.models import Title
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+ 
 
 from pyproj import Transformer
 #import swifter 
@@ -206,12 +207,23 @@ def r2(ytrue: np.array, ypred: np.array, sample_weight=[]):
     
     return pearsonr(ytrue, ypred )[0]
 
+
+def mean_absolute_percentage_error(y_true, y_pred, sample_weight=[]): 
+    
+     
+
+    ## Note: does not handle mix 1d representation
+    #if _is_1d(y_true): 
+    #    y_true, y_pred = _check_1d_array(y_true, y_pred)
+
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
 def cal_scores(
         ytrue: np.array,
         ypred: np.array, sample_weight=[],
         score_list: list = [
             r2_score,
-            mean_squared_error, mean_absolute_error, r2],
+            mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2],
     header_str: str = 'test_',
         to_print=False):
     """Calculate the prediction score

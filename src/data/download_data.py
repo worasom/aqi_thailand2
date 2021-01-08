@@ -415,7 +415,7 @@ def main(
         'Luang Prabang District',
         'Kunming', 'East Jakarta', 
         'Mueang Nakhon Si Thammarat', 
-        'Hai Chau', 'Chaloem Phra Kiat' ]
+        'Hai Chau', 'Chaloem Phra Kiat', 'Khlong Hoi Khong' ]
     w_folder = f'{main_folder}weather_cities/'
     weather_station_info = find_weather_stations(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
