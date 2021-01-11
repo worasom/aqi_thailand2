@@ -183,6 +183,7 @@ def get_station_data_save(
         data.to_csv(filename, index=False)
 
     temp = pd.read_csv(filename)
+    print('updated data shape', temp.shape)
 
 
 def extract_stations(soup):
@@ -423,13 +424,20 @@ def main(
 
     for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020, 8, 22)
+        start_date = datetime(2020, 8, 1)
         end_date = datetime.now() - timedelta(days=1)
         update_weather(
             city_json,
             data_folder=w_folder,
             start_date=start_date,
             end_date=end_date)
+
+    
+    update_last_air4Thai(
+        url='http://air4thai.pcd.go.th/webV2/history/',
+        data_folder=f'{main_folder}air4thai_hourly/')
+
+
 
     b_data_list = ['http://berkeleyearth.lbl.gov/air-quality/maps/cities/Thailand/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Viet_Nam/', 
                     'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Indonesia/', 'http://berkeleyearth.lbl.gov/air-quality/maps/cities/Myanmar/',
@@ -463,9 +471,6 @@ def main(
 
     download_us_emb_data(data_folder=f'{main_folder}us_emb/')
 
-    update_last_air4Thai(
-        url='http://air4thai.pcd.go.th/webV2/history/',
-        data_folder=f'{main_folder}air4thai_hourly/')
 
     if cdc_data:
         download_cdc_data(

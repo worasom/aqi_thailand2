@@ -103,7 +103,8 @@ def read_fire(
 def add_datetime_fire(fire, timezone='Asia/Bangkok'):
     # add datetime conlumns to hotspot data
     # assemble datetime column \
-    fire['datetime'] = fire['acq_date'] + ' ' + fire['acq_time'].astype(str)
+    fire['acq_time'] = fire['acq_time'].astype(str).str.zfill(4)
+    fire['datetime'] = fire['acq_date'] + ' ' + fire['acq_time'] 
     fire['datetime'] = pd.to_datetime(
         fire['datetime'], format='%Y-%m-%d %H%M', utc=True)
 

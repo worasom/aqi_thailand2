@@ -189,7 +189,7 @@ def scrape_weather(city_json, date_range):
         try:
             # obtain daily weather dataframe
             daily_df = get_data_n_soup(
-                browser, date, header_url=header_url, waittime=5)
+                browser, date, header_url=header_url, waittime=10)
 
              
         except:

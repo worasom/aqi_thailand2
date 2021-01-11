@@ -10,7 +10,7 @@ import swifter
 import geopandas as gpd
 from shapely.geometry import Polygon, MultiPoint, Point, MultiPolygon
 from collections import Counter
-from shapely.geometry import Polygon, MultiPoint, Point, MultiPolygon
+import fiona
 
 
 
@@ -419,7 +419,7 @@ def locate_country(p, gdf):
         
     return country
 
-def get_country_gdf(city_xy_m =[],max_distance=1000, map_file='../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos', 'Indonesia', 'India', 'Indonesia', 'Malaysia', 'Brunei', 'Australia', 'Philippines', 'Singapore' ]):
+def get_country_gdf(city_xy_m =[], max_distance=1000, map_file='../data/world_maps/asean_surround_countries.shp'):
     """Obtain ASEAN counties geopandas dataframe
 
     Args:
@@ -435,14 +435,17 @@ def get_country_gdf(city_xy_m =[],max_distance=1000, map_file='../data/world_map
 
     # prepare geopandas file 
     # loading world map
-    gdf =  gpd.read_file(map_file)
-    gdf.columns = ['OBJECTID', 'NAME', 'geometry']
-    gdf = gdf[gdf['NAME'].isin(country_list)].reset_index(drop=True)
+    # gdf =  gpd.read_file(map_file)
+    # gdf.columns = ['OBJECTID', 'NAME', 'geometry']
+    # country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos', 'Indonesia', 'India', 'Indonesia', 'Malaysia', 'Brunei', 'Australia', 'Philippines', 'Singapore' ]
+    # gdf = gdf[gdf['NAME'].isin(country_list)].reset_index(drop=True)
 
-    # remove burma from the name 
-    name_list = gdf['NAME'].to_list()
-    name_list = [s.replace('Myanmar (Burma)', 'Myanmar') for s in name_list]
-    gdf['NAME'] = name_list 
+    # # remove burma from the name 
+    # name_list = gdf['NAME'].to_list()
+    # name_list = [s.replace('Myanmar (Burma)', 'Myanmar') for s in name_list]
+    # gdf['NAME'] = name_list 
+
+    gdf = gpd.read_file(map_file)
 
     # sometimes additional information is need such as the area of each country within maximum distance from df 
     if len(city_xy_m) > 0:
@@ -471,16 +474,13 @@ def get_country_gdf(city_xy_m =[],max_distance=1000, map_file='../data/world_map
 
     return gdf
                 
-def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/world_maps/map3/', country_list = ['Thailand', 'China', 'Vietnam', 'Myanmar (Burma)','Cambodia', 'Laos', 'India', 'Indonesia', 'Malaysia', 'Brunei', 'Australia', 'Philippines', 'Singapore'], filename=None):
+def add_countries(df, map_file = '../data/world_maps/asean_surround_countries.shp', filename=None):
     """Add country label of the hotspot 
 
     Args:
         df:  dataframe with longitude and latitude
-        city_xy_km: [city_x_km, city_y_km] of the city center in mercator coordinate
-        max_distance 
         map_file
-        country_list
-        and_save:
+        filename:
 
     Returns: (pd.DataFrame, geopanda.DataFrame)
         df: df dataframe with country label
@@ -488,7 +488,7 @@ def add_countries(df, city_xy_m =[], max_distance=1000, map_file = '../data/worl
 
     """
     # label the country 
-    gdf = get_country_gdf(city_xy_m, max_distance, map_file, country_list)
+    gdf = get_country_gdf( map_file=map_file)
     df['geometry'] = [Point(x,y) for x, y in zip(df['longitude'], df['latitude'])]
     df['country'] = df['geometry'].swifter.apply(locate_country, gdf=gdf)
     df = df.drop('geometry', axis=1)

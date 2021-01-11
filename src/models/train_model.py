@@ -1554,7 +1554,7 @@ class Trainer():
         pickle.dump(tpot, open( self.dataset.model_folder + f'{self.poll_name}_tpot_model.pkl', 'wb'))
 
 
-    def save_feat_imp(self, filename=None, title=''):
+    def save_feat_imp(self, with_interact=False, filename=None, title=''):
         """Build feature of importance plots and save the plot as png file
         
         Args:
@@ -1585,7 +1585,7 @@ class Trainer():
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
         
-        if trainer.dataset.with_interact:      
+        if with_interact:      
             feat_imp.to_csv(self.dataset.model_folder+f'{self.poll_name}_final_featimp_with_interact.csv', index=False )
 
         # split the interaction terms if exist 
@@ -1772,7 +1772,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     trainer.op6_rf()
     trainer.final_fit()
     # save plot
-    trainer.save_feat_imp(filename=trainer.dataset.report_folder  +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
+    trainer.save_feat_imp(with_interact=trainer.dataset.with_interact, filename=trainer.dataset.report_folder  +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
     trainer.save_all()
 
     if search_tpot:

@@ -210,7 +210,6 @@ def r2(ytrue: np.array, ypred: np.array, sample_weight=[]):
 
 def mean_absolute_percentage_error(y_true, y_pred, sample_weight=[]): 
     
-     
 
     ## Note: does not handle mix 1d representation
     #if _is_1d(y_true): 
@@ -218,12 +217,16 @@ def mean_absolute_percentage_error(y_true, y_pred, sample_weight=[]):
 
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
+def median_absolute_error(y_true, y_pred, sample_weight=[]):
+
+    return np.mean(np.median(np.abs(y_pred - y_true)))
+
 def cal_scores(
         ytrue: np.array,
         ypred: np.array, sample_weight=[],
         score_list: list = [
-            r2_score,
-            mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2],
+            r2_score, r2,
+            mean_squared_error, mean_absolute_error, mean_absolute_percentage_error,  median_absolute_error],
     header_str: str = 'test_',
         to_print=False):
     """Calculate the prediction score
