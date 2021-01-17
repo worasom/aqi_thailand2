@@ -366,6 +366,9 @@ def label_landuse_fire(filename, landuse_file='../data/landuse_asean/MCD12Q1.006
 
     for fire in tqdm(pd.read_csv(filename, chunksize=fire_chunk)):
 
+        if 'distance' not in fire.columns:
+            fire['distance'] = 0
+
         fire['datetime'] = pd.to_datetime(fire['datetime'] )
         fire = fire[cols]
 

@@ -169,14 +169,19 @@ def get_station_data_save(
     data = make_datetime(data)
     filename = data_folder + sta_id + '.csv'
     # check the last time from exisiting file if exists
-    last_time = get_last_datetime(filename)
+    print('reading', filename)
+    last_time, column = get_last_datetime(filename)
     # keep only the data after the timestamp
     data = data[data['datetime'] > last_time]
 
     # save the data
     if os.path.exists(filename):
         # file already exists, append the data
-        data.to_csv(filename, mode='a', header=False, index=False)
+        #data.to_csv(filename, mode='a', header=False, index=False)
+        old_data = pd.read_csv(filename)
+        data = pd.concat([old_data, data], ignore_index=True)
+        data = data.drop_duplicates('datetime')
+        data.to_csv(filename, index=False)
     else:
         # file does not exist, create the file
         print('create new', filename)
@@ -299,10 +304,13 @@ def get_last_datetime(filename, chunksize=500):
         for chunk in pd.read_csv(filename, chunksize=chunksize):
             last_time = chunk['datetime'].iloc[-1]
             last_time = pd.to_datetime(last_time)
+        
+        column = chunk.columns
     else:
         last_time = pd.to_datetime('1800-01-01 00:00:00')
+        column = []
 
-    return last_time
+    return last_time, column
 
 
 def download_cdc_data(
@@ -355,7 +363,8 @@ def download_us_emb_data(
     
     if year is None:
         year = datetime.now().year
-        month = datetime.now().month
+    
+    month = datetime.now().month
 
     print(f'\n Download us embassy data in ASEAN for {year}')
     
@@ -364,27 +373,38 @@ def download_us_emb_data(
         if os.path.exists(filename):
             os.remove(filename)
         url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_YTD.csv'
-        wget.download(url, filename)
+        try:
+            wget.download(url, filename)
+        except:
+            print('download fail', url)
 
         filename = f'{data_folder}{city}_PM2.5_{year}_{month}_MTD.csv'
         if os.path.exists(filename):
             os.remove(filename)
         url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_PM2.5_{year}_{month}_MTD.csv'
-        wget.download(url, filename)
+        try:
+            wget.download(url, filename)
+        except:
+            print('download fail', url)
 
         if city == 'Rangoon':
             filename = f'{data_folder}{city}_OZONE_{year}_YTD.csv'
             if os.path.exists(filename):
                 os.remove(filename)
             url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_OZONE_{year}_YTD.csv'
-            wget.download(url, filename)
+            try:
+                wget.download(url, filename)
+            except:
+                print('download fail', url)
 
             filename = f'{data_folder}{city}_OZONE_{year}_{month}_MTD.csv'
             if os.path.exists(filename):
                 os.remove(filename)
             url = f'http://dosairnowdata.org/dos/historical/{city}/{year}/{city}_OZONE_{year}_{month}_MTD.csv'
-            wget.download(url, filename)
-
+            try:
+                wget.download(url, filename)
+            except:
+                print('download fail', url)
 
 
 def main(

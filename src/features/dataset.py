@@ -317,6 +317,9 @@ class Dataset():
                 filename = self.main_folder + 'aqm_hourly_final/' + station_id + '.csv'
                 data = pd.read_csv(filename)
                 data['datetime'] = pd.to_datetime(data['datetime'])
+                # 54t has some problems. Drop the data
+                if station_id == '54t':
+                    data = data[data['datetime'] >= '2018-05-01']
                 data_list.append(data)
         # load the Thailand stations maintained by cmucdc project 
         if 'cmu_stations' in config_dict.keys():

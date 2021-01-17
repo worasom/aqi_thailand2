@@ -352,7 +352,7 @@ def sk_op_fire(dataset,
 
     return best_fire_dict, gp_result
 
-def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
+def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [1.5,
                     20], shift_range: list = [-72,
                      72], roll_range: list = [24,
                     240], surface_range:list = [1, 6], mse=True, n_jobs=-2):
@@ -410,12 +410,12 @@ def sk_op_fire_w_damp(dataset, model, split_ratio:list, wind_range: list = [0.5,
     @use_named_args(dimensions)
     def fit_with(wind_speed, shift, roll, damp_surface, wind_damp, wind_lag):
         # function to return the score (smaller better)
-        fire_dict.update( {'w_speed': wind_speed,
+        fire_dict.update( {'w_speed': round(wind_speed, 0),
                         'shift': shift,
                         'roll': roll, 
-                        'damp_surface':damp_surface,
-                    'wind_damp': wind_damp,
-                    'wind_lag': wind_lag})
+                        'damp_surface': round(damp_surface, 1),
+                        'wind_damp': wind_damp,
+                        'wind_lag': wind_lag})
     
         # delete old damped_fire feature 
         try:
