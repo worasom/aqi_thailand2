@@ -612,6 +612,8 @@ def add_ln_trend_line(
     x = series.index.values
     y = series.values
 
+    print(x, y)
+
     slope, intercept, *args = linregress(x, y)
     z = np.array([slope, intercept])
     #z = np.polyfit(x, y, 1)
