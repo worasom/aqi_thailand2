@@ -153,7 +153,7 @@ def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_
         data = data.reset_index()
 
         # add station id and station name
-        data['station_id'] = sta_id
+        data['station_id'] =  'bkp' + sta_id + 't'
         data['station_name'] = sta_name
 
         # save the data
@@ -198,6 +198,11 @@ def update_bkp(url: str = 'https://bangkokairquality.com/bma/report?lang=th', da
     # extract station name and selector
     sta_selector_list, station_name_list = extract_bkp_stations(soup)
 
+    # process station name
+
+    station_name_list = [' '.join(s.split(' ')[1:]) for s in station_name_list]
+    station_name_list = [ s.lstrip().rstrip() for s in station_name_list]
+
     if not os.path.exists(data_folder):
         print(f'create data folder {data_folder}')
         os.mkdir(data_folder)
@@ -219,3 +224,24 @@ def update_bkp(url: str = 'https://bangkokairquality.com/bma/report?lang=th', da
         json.dump(station_info, f)
 
     return sta_selector_list, station_name_list
+
+
+def main(
+        main_folder: str = '../data/'):
+    """Download all data 
+
+    Args:
+        main_folder: main data_folder
+
+    """
+
+    # fix relative folder 
+    main_folder = os.path.abspath(main_folder).replace('\\', '/') + '/'
+    print(f'main data folder ={main_folder}')
+
+    print('update BKP data')
+    update_bkp(data_folder=f'{main_folder}bkp_hourly/')
+
+
+if __name__ == '__main__':
+    main(main_folder='../../data/' )

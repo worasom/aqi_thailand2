@@ -258,7 +258,7 @@ def cal_season_error(error_df, roll_win=15, agg='mean'):
     """
     sea_error, _ = season_avg(
         error_df, cols=[
-            'error', 'rmse'], roll=False, agg='mean', offset=182)
+            'residual', 'rmse'], roll=False, agg='mean', offset=182)
     sea_error = sea_error.groupby('winter_day').mean()
     sea_error = sea_error.drop(['dayofyear', 'year'], axis=1)
     return sea_error.rolling(roll_win, min_periods=0, center=True).agg(agg)
