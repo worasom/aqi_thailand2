@@ -100,7 +100,7 @@ def extract_bpk_data(browser):
     return pd.concat(data_all)
          
 
-def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_time=10):
+def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_time=5):
 
     """ Display the data in para_selector_list for the corresponding station id (sta_id).
     #. Parse the data into the dataframe and save in the data_folder
@@ -131,10 +131,14 @@ def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_
     try:
         # parse data into dataframe
         data = extract_bpk_data(browser)
+        # drop average row 
+        data = data[data['Datetime'] !='Average']
     except:
         data = pd.DataFrame()
 
-    if len(data) > 0:
+     
+
+    if len(data) > 1:
         # change columns name 
         data.columns = data.columns.str.replace('Datetime', 'datetime')
         data.columns = [s.split('(')[0] for s in data.columns]
@@ -147,9 +151,24 @@ def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_
         # remove negative number 
         data = data.set_index('datetime')
         # remove negative number
-        # remove null
+        # remove 0
         for col in data.columns:
-            data[col][data[col] < 0] = np.nan
+            idxs = data[data[col] < 0].index
+            data.loc[idxs, col] = np.nan
+
+        if 'PM2.5' in data.columns:
+            idxs = data[data['PM2.5'] > 300 ].index
+            data.loc[idxs, 'PM2.5'] = np.nan
+
+        if 'PM10' in data.columns:
+            idxs = data[data['PM10'] > 600 ].index
+            data.loc[idxs, 'PM10'] = np.nan
+        
+        
+        if 'NO2' in data.columns:
+            idxs = data[data['NO2'] > 300 ].index
+            data.loc[idxs, 'NO2'] = np.nan
+
         data = data.reset_index()
 
         # add station id and station name
@@ -158,12 +177,15 @@ def get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder, wait_
 
         # save the data
         if os.path.exists(filename):
-            # file already exists, append the data
-            data.to_csv(filename, mode='a', header=False, index=False, encoding='utf-8')
+            # file already exists, concat file before save
+            data = pd.concat([data, old_data], ignore_index=True)
+            data = data.drop_duplicates('datetime')
+            data = data.sort_values('datetime')
+           # data.to_csv(filename, mode='a', header=False, index=False, encoding='utf-8')
         else:
             # file does not exist, create the file
             print('create new', filename)
-            data.to_csv(filename, index=False, encoding='utf-8')
+        data.to_csv(filename, index=False, encoding='utf-8')
 
     try:
         temp = pd.read_csv(filename)
@@ -179,7 +201,13 @@ def update_bkp(url: str = 'https://bangkokairquality.com/bma/report?lang=th', da
 
     Append new data to an exsiting file. Create a new file if the file does not exist.
 
+    Args:
+        url (str, optional): [description]. Defaults to 'https://bangkokairquality.com/bma/report?lang=th'.
+        data_folder (str, optional): [description]. Defaults to '../data/bkp_hourly/'.
+
+
     """
+
     print('download more pollution data from Bangkok Air Quality  Website')
 
     # use Firefox to open the website
@@ -203,28 +231,66 @@ def update_bkp(url: str = 'https://bangkokairquality.com/bma/report?lang=th', da
     station_name_list = [' '.join(s.split(' ')[1:]) for s in station_name_list]
     station_name_list = [ s.lstrip().rstrip() for s in station_name_list]
 
-    if not os.path.exists(data_folder):
-        print(f'create data folder {data_folder}')
-        os.mkdir(data_folder)
-
-    for sta_id, sta_name in tqdm(zip(sta_selector_list, station_name_list)):
-         
-        data = get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder)
-
-    browser.close()
 
     # update station info file 
     station_info = {}
     for station_id, district in zip(sta_selector_list, station_name_list):
         k = 'bkp' + station_id + 't'
         station_info[k] = district
-
+    
     station_name  = data_folder + 'station_info.json'
     with open(station_name, 'w', encoding='utf8') as f:
         json.dump(station_info, f)
 
-    return sta_selector_list, station_name_list
+    if not os.path.exists(data_folder):
+        print(f'create data folder {data_folder}')
+        os.mkdir(data_folder)
 
+    for sta_id, sta_name in tqdm(zip(sta_selector_list, station_name_list)):
+        print('station id', sta_id)
+         
+        data = get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder)
+
+    browser.close()
+
+
+    #return sta_selector_list, station_name_list
+
+def build_station_info(pcd_json:str='../data/air4thai_hourly/station_info.json', bkp_folder:str='../data/bkp_hourly/'):
+    """Merge station information from both json files and save 
+
+    Args:
+        pcd_json (str, optional):  . Defaults to '../data/bkp_hourly/add_stations_location_process.csv'.
+        bkp_folder (str, optional):  . Defaults to '../data/bkp_hourly/station_info.json'.
+
+    """
+    # extract bkp station location
+    # load BKP station json 
+    with open(bkp_folder + 'station_info.json', encoding="utf-8") as f:
+        bkp_station = json.load(f)
+
+    # extract a list of data 
+    bkp_station_list = pd.Series(bkp_station).index.to_list()
+
+    # load PCD station
+    with open(pcd_json, encoding="utf-8") as f:
+        station_info = json.load(f)
+        
+    station_info = pd.DataFrame(station_info['stations'])
+
+    # bkp station in PCD info 
+    bkp_station = station_info[station_info['stationID'].isin(bkp_station_list)]
+    # add additional location
+    temp = pd.read_csv(bkp_folder + 'add_stations_location_process.csv')
+    temp = temp[temp['stationID'].isin(bkp_station_list)]
+    temp = add_merc_col(temp, lat_col='lat', long_col='long')
+    # combine stations information 
+    bkp_station = pd.concat([bkp_station, temp], ignore_index=True)
+
+    # save 
+    bkp_station.to_csv( bkp_folder + 'station_info.csv', index=False)
+
+    print(bkp_station.shape)
 
 def main(
         main_folder: str = '../data/'):
