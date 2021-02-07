@@ -27,6 +27,8 @@ else:
     from data.read_data import *
     from data.fire_data import *
     from data.weather_data import *
+    # import files in the same directory
+    _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if _i not in sys.path:
         sys.path.insert(0, _i)
 

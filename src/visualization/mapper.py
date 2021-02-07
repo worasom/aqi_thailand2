@@ -38,7 +38,7 @@ class Mapper():
     """
     # a defaul list of pollutants
     gas_list = ['PM2.5', 'PM10', 'O3', 'CO', 'NO2', 'SO2']
-    source_list = ['TH_PCD', 'TH_CMU', 'Berkeley', 'US_emb']
+    source_list = ['TH_PCD', 'TH_CMU', 'TH_BKP', 'Berkeley', 'US_emb']
     # add color label attribute
     poll_colors = [ 'green', 'goldenrod', 'orange', 'red', 'purple', 'purple']
     plt_color = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -52,7 +52,7 @@ class Mapper():
         'NO2': [0, 53, 100, 360, 649, 1249, 2049, 1e4], 
         'CO': [0, 4.4, 9.4, 12.4, 15.4, 30.4, 40.4, 50.4, 1e3]} 
 
-    def __init__(self,main_folder: str = '../data/', report_folder='../reports/', n_jobs=-2):
+    def __init__(self, main_folder: str = '../data/', report_folder='../reports/', n_jobs=-2):
 
         self.main_folder = os.path.abspath(main_folder) + '/'
         #  folder to save the process data 
@@ -93,7 +93,7 @@ class Mapper():
         b_stations['id'] = [f'{prefix}{num}' for num in np.arange(len(b_stations))]
         # add data source 
         b_stations['source'] = label
-        b_stations['City'] = b_stations['City (ASCII)']
+        b_stations['City'] = b_stations['Region (ASCII)']
 
         return b_stations
 
@@ -142,6 +142,54 @@ class Mapper():
         pcd_stations['source'] = label
         return pcd_stations
 
+    def build_bkp_station(self, folder:str='bkp_hourly/', label='TH_BKP', pcd_json='/air4thai_hourly/station_info.json'):
+        """Compile Thailand Bangkok monitoring stations and add nessary information.
+
+        Args:
+            folder (str, optional): Raw data folder. Defaults to 'bkp_hourly/'.
+            label (str, optional):  source label for separating data source. Defaults to 'BKP'.
+            pcd_json (str, optional): name of the PCD json file. Defaults to '/air4thai_hourly/station_info.json'.
+
+        """
+        folder =  self.main_folder + folder 
+        pcd_json = self.main_folder + pcd_json
+
+        # load BKP station json. This contain a list of station id with raw data files
+        with open(folder + 'station_info.json', encoding="utf-8") as f:
+            bkp_station = json.load(f)
+        # extract a list of data 
+        bkp_station_list = pd.Series(bkp_station).index.to_list()
+
+        # load PCD station information. Some stations locations are in here 
+        with open(pcd_json, encoding="utf-8") as f:
+            station_info = json.load(f)
+
+        station_info = pd.DataFrame(station_info['stations'])
+        # keep only BKP stations
+        bkp_station = station_info[station_info['stationID'].isin(bkp_station_list)]
+
+        # add additional location
+        temp = pd.read_csv(folder + 'add_stations_location_process.csv')
+        temp = temp[temp['stationID'].isin(bkp_station_list)]
+         
+        # combine stations information 
+        bkp_station = pd.concat([bkp_station, temp], ignore_index=True)
+
+        # change column name 
+        bkp_station.columns = bkp_station.columns.str.replace( 'lat', 'Latitude')
+        bkp_station.columns = bkp_station.columns.str.replace( 'long', 'Longitude')
+        bkp_station.columns = bkp_station.columns.str.replace( 'stationID', 'id')
+
+        # add mercator coordinate
+        bkp_station = add_merc_col(bkp_station, lat_col='Latitude', long_col='Longitude', unit='m')
+        # add city/country info (preparing to merge with other station jsons)
+
+        bkp_station['Country'] = 'Thailand'
+        bkp_station['City'] = 'Bangkok'
+        bkp_station['source'] = label
+
+        return bkp_station
+
     def build_cmu_station(self,folder='cdc_data/', label='TH_CMU'):
         """Compile Chiang Mai University pollution project's stations  and add nessary information.
 
@@ -174,13 +222,14 @@ class Mapper():
 
         cmu_stations = add_merc_col(cmu_stations, lat_col='Latitude', long_col='Longitude', unit='m')
         
-        # add city/country info (preparing to merge with other station jsons)
-        cmu_stations['Country'] = 'Thailand'
+        # add city info (preparing to merge with other station jsons)
+        # some stations are outside Thailand 
         temp  = cmu_stations['dustboy_name_en'].str.split(',', expand=True)
         cmu_stations['City'] = temp[2].fillna(temp[1])
         cmu_stations['City'] = cmu_stations['City'].fillna(temp[0])
         # add data source 
         cmu_stations['source'] = label 
+
         return cmu_stations
 
     def build_usemb_station(self, folder='us_emb/', label='US_emb'):
@@ -218,13 +267,20 @@ class Mapper():
         
         all_station_info = []
         all_station_info.append(self.build_pcd_station())
+        all_station_info.append(self.build_bkp_station())
         all_station_info.append(self.build_cmu_station())
         all_station_info.append(self.build_b_station())
         all_station_info.append(self.build_usemb_station())
 
         # concadinate all station_info
         all_station_info = pd.concat(all_station_info, ignore_index=True)
+
+        # clean up station information 
+        all_station_info['Country'] = all_station_info['Country'].str.replace('Viet Nam', 'Vietnam')
+        all_station_info['Country'] =  all_station_info['Country'].str.rstrip()
+        all_station_info['Country'] =  all_station_info['Country'].str.lstrip()
         print('number of stations =', all_station_info.shape)
+        print('Countries', all_station_info['Country'].unique())
         all_station_info.to_csv(self.map_folder + 'all_station_info.csv', index=False)
         self.all_station_info = all_station_info
 
@@ -246,7 +302,7 @@ class Mapper():
             if os.path.exists(filename): 
                 df = pd.read_csv(filename)
             else:
-                print(filename, 'does not exist')
+                #print(filename, 'does not exist')
                 df = pd.DataFrame()
 
             df['stationid'] = stationid    
@@ -259,7 +315,7 @@ class Mapper():
         return all_station_data.columns
 
     def build_cmu_data(self, data_columns):
-        """Concatenate all PCD data and append to exisiting data file
+        """Concatenate all CMU data and append to exisiting data file
         
         Args:
             data_columns: data columns name to guide the concatenation 
@@ -282,6 +338,33 @@ class Mapper():
         all_station_data = pd.concat(all_station_data)
         print('cmu data shape', all_station_data.shape)
         all_station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)
+
+    def build_bkp_data(self, data_columns):
+        """Concatenate all BKP data and append to exisiting data file
+        
+        Args:
+            data_columns: data columns name to guide the concatenation 
+
+        """
+        temp_stations = self.all_station_info[self.all_station_info['source'] =='TH_BKP']
+
+
+        all_station_data = [pd.DataFrame(columns=data_columns)]
+        # compile all PCD data 
+        for i, row in tqdm(temp_stations.iterrows()):
+            stationid = row['id']
+             
+            filename = self.main_folder + f'bkp_hourly/{stationid}.csv'
+            #print(filename)
+            df = pd.read_csv(filename)
+            if len(df)> 0:
+                df['stationid'] = stationid 
+                new_columns = [s for s in df.columns if s in data_columns]   
+                all_station_data.append(df[new_columns])
+
+        all_station_data = pd.concat(all_station_data)
+        print('bkp data shape', all_station_data.shape)
+        all_station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)
          
     def build_b_data(self, data_columns):
         """Concatenate all Berkeley data and append to exisiting data file 
@@ -291,20 +374,26 @@ class Mapper():
 
         """
         temp_stations = self.all_station_info[self.all_station_info['source'] =='Berkeley']
+        temp_stations = temp_stations[~temp_stations['City'].isna()]
+
+        asean_list = ['Thailand', 'Indonesia', 'Malaysia', 'Vietnam', 'Myanmar' ,'Brunei Darussalam', 'Cambodia' ,'Laos']
+        # keep only ASEAN stations
+        temp_stations = temp_stations[temp_stations['Country'].isin(asean_list)]
 
         all_station_data = [pd.DataFrame(columns=data_columns)]
         # compile all PCD data 
         for i, row in tqdm(temp_stations.iterrows()):
             stationid = row['id']
              
-            filename = self.main_folder + f'pm25/' + row['City'].replace(' ', '_') + '.txt'
-            #print(filename)
-            df, _ = read_b_data(filename)
-            df['datetime'] = pd.to_datetime(df['datetime'] )
-            print(df['datetime'].max())
-            if len(df)> 0:
-                df['stationid'] = stationid    
-                all_station_data.append(df)
+            filename = self.main_folder + f'pm25/' + str(row['City']).replace(' ', '_') + '.txt'
+            if os.path.exists(filename):
+                #print(filename)
+                df, _ = read_b_data(filename)
+                df['datetime'] = pd.to_datetime(df['datetime'] )
+                #print(df['datetime'].max())
+                if len(df)> 0:
+                    df['stationid'] = stationid    
+                    all_station_data.append(df)
 
         all_station_data = pd.concat(all_station_data)
         print('Berkeley data shape', all_station_data.shape)
@@ -357,6 +446,7 @@ class Mapper():
         data_columns =  self.build_pcd_data()
         print('data_columns', data_columns)
         self.build_cmu_data(data_columns)
+        self.build_bkp_data(data_columns)
         self.build_b_data(data_columns)
         self.build_usemb_data(data_columns)
         
