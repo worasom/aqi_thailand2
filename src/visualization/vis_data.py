@@ -49,7 +49,7 @@ def plot_dendogram(
         leaf_font_size=front_size)
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def display_time_split(index_list):
@@ -104,7 +104,7 @@ def plot_corr(df, cor_method='pearson', figsize=(8, 6), filename=None):
     sns.heatmap(df.corr(method=cor_method), annot=True, mask=mask)
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plot_season_avg(
@@ -370,7 +370,7 @@ def plot_all_pollutions(
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def poll_to_aqi(poll_df, roll_dict):
@@ -503,7 +503,7 @@ def plot_polls_aqi(
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plot_season_aqi(
@@ -562,7 +562,7 @@ def plot_season_aqi(
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
     return ax, winter_day_dict
 
@@ -673,7 +673,7 @@ def plot_chem_print(
     plt.tight_layout()
     
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_month='-10-01', end_month='-04-30', next_year=True, err_bar=True, add_trend=True ):
@@ -757,7 +757,7 @@ def plot_yearly_ln(dataset, min_year=None, max_year=None, filename=None, start_m
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
     return ax, year_avg, year_avg_std
 
@@ -829,7 +829,7 @@ def compare_seson_avg(
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
     
     return ax
 
@@ -1261,4 +1261,4 @@ def compare_aqis(filename=None):
     plt.tight_layout()
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)

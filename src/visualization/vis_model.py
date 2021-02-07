@@ -70,7 +70,7 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
     plt.ylabel('importance unit')
     plt.tight_layout()
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plot_model_perf(
@@ -204,7 +204,7 @@ def plot_model_perf(
         poll_name = dataset.monitor.replace('.', '')
         plt.savefig(
             dataset.report_folder +
-            f'{poll_name}_model_perfomance.png')
+            f'{poll_name}_model_perfomance.png', dpi=300)
 
     return ytrn_pred_df, ytest_pred_df
 
@@ -231,7 +231,7 @@ def plot_sea_error(trn_error, sea_error, filename=None):
     ax.set_title('error (by pollution season)')
     ax.legend(['raw training error', 'average error'])
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plt_infer_actual(ytest_pred_df_avg, band_df, filename=None):
@@ -260,7 +260,7 @@ def plt_infer_actual(ytest_pred_df_avg, band_df, filename=None):
     plt.title('Actual Data and Statistical Prediction')
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)
 
 
 def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
@@ -310,4 +310,4 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
         ax.axhline(l, color=c, linestyle='dashed')
 
     if filename:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=300)

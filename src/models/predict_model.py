@@ -883,7 +883,7 @@ class Inferer():
         #ax.text(365, 55.4, ' unhealthy', horizontalalignment='left')
 
         if save:
-            plt.savefig(self.report_folder + 'effect_of_' + title_str + '.png')
+            plt.savefig(self.report_folder + 'effect_of_' + title_str + '.png', dpi=300)
 
         return fea_effect
 
