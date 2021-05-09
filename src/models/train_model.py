@@ -199,8 +199,12 @@ def reduce_cols(dataset, x_cols: list, to_drop: list, model, trn_i, val_i):
             x_cols.remove(col)
             logger.info(f'drop  {col} improve the RMSE score from {base_score} to {score}')
 
+    
+    # if dataset.city_name == 'Bangkok':
+    #     x_cols.remove('Temperature(C)')
+    #     x_cols.remove('Humidity(%)')
+    
     # obtain the final model
-
     xtrn, ytrn, x_cols, weights = dataset.get_data_matrix(
         use_index=trn_index, x_cols=x_cols)
     xval, yval, _, sample_weight = dataset.get_data_matrix(use_index=val_index, x_cols=x_cols)
@@ -831,6 +835,17 @@ class Trainer():
             cat_hour=self.poll_meta['cat_hour'],
             group_hour=self.poll_meta['group_hour'], cat_month=self.poll_meta['cat_month'])
 
+        if self.dataset.city_name  == 'Bangkok':
+            try:
+                self.dataset.data_no_fire = self.dataset.data_no_fire.drop('Temperature(C)', axis=1)
+            except:
+                pass
+
+            try:
+                self.dataset.data_no_fire = self.dataset.data_no_fire.drop('Humidity(%)', axis=1)
+            except:
+                pass
+
         logger.info(f'data no fire columns {self.dataset.data_no_fire.columns}')
 
 
@@ -1105,8 +1120,13 @@ class Trainer():
         to_drop = feat_imp['index'].to_list()
         # keep weather and fire columns for in case it matter later on 
         to_drop = [a for a in to_drop if 'fire' not in a]
-        for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
-            to_drop.remove(s)
+        if self.dataset.city_name == 'Bangkok':
+            for s in [ 'Wind_Speed(kmph)']:
+                to_drop.remove(s)
+            #to_drop += ['Humidity(%)', 'Temperature(C)']
+        else:
+            for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
+                to_drop.remove(s)
         to_drop.reverse()
         self.model, self.dataset.x_cols_org = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
@@ -1403,6 +1423,11 @@ class Trainer():
             no_drop = ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)'] + [a for a in self.dataset.x_cols_org if 'fire' in a]
             for s in no_drop:
                 to_drop.remove(s)
+        elif self.dataset.city_name== 'Bangkok':
+            no_drop = [ 'Wind_Speed(kmph)'] + [a for a in self.dataset.x_cols_org if 'fire' in a]
+            for s in no_drop:
+                to_drop.remove(s)
+            #to_drop += ['Humidity(%)', 'Temperature(C)']
         to_drop.reverse()
         self.model, self.dataset.x_cols = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)

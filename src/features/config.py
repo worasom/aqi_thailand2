@@ -16,8 +16,9 @@ def set_config(dataset):
      
     # pollution data configuration setting 
     config_dict = {'Chiang Mai': {'th_stations': ['35t', '36t']}, 
-                    #'Bangkok': {'th_stations': ['02t', '03t', '05t', '11t', '12t', '50t', '52t', '53t', '59t', '61t']}, 
-                    'Bangkok': {'th_stations': ['03t', '05t', '50t', '52t', '59t', '61t', '54t']}, 
+                    'Bangkok': {'th_stations': ['02t', '03t', '05t', '11t', '12t', '50t', '52t', '53t', '59t', '61t']}, 
+                    #'Bangkok': {'th_stations': ['03t', '05t', '50t', '52t', '59t', '61t', '54t']}, 
+                    #'Bangkok': {'th_stations': [  '59t', '61t']}, 
                     'Hat Yai': {'th_stations': ['44t']},
                     #'Bangkok': {'th_stations': ['53t', '54t', '59t', '61t']}, 
                     #'Bangkok': {'th_stations': [  '12t', '59t', '61t']}, 

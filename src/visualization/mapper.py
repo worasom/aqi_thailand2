@@ -385,15 +385,17 @@ class Mapper():
         for i, row in tqdm(temp_stations.iterrows()):
             stationid = row['id']
              
-            filename = self.main_folder + f'pm25/' + str(row['City']).replace(' ', '_') + '.txt'
+            filename = self.main_folder + f'pm25/' + str(row['City (ASCII)']).replace(' ', '_') + '.txt'
             if os.path.exists(filename):
-                #print(filename)
+                if row['Country'] == "Thailand":
+                    print(filename, stationid)
                 df, _ = read_b_data(filename)
                 df['datetime'] = pd.to_datetime(df['datetime'] )
                 #print(df['datetime'].max())
                 if len(df)> 0:
                     df['stationid'] = stationid    
                     all_station_data.append(df)
+                     
 
         all_station_data = pd.concat(all_station_data)
         print('Berkeley data shape', all_station_data.shape)

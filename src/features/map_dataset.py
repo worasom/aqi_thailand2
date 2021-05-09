@@ -181,6 +181,8 @@ class MapDataset():
                 df = df.groupby('datetime').mean().dropna()
                 df.columns = [province]
                 prov_poll.append(df)
+            else:
+                prov_poll.append(pd.DataFrame())
                 
         self.poll = pd.concat(prov_poll, axis=1)  
         self.poll = self.poll.dropna(how='all')

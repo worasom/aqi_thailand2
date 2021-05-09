@@ -581,12 +581,12 @@ class Dataset():
             self.poll_df = fill_missing_poll(self.poll_df, limit=6)
 
         cols = [
-            pollutant,
-            'Temperature(C)',
-            'Humidity(%)',
-            'Wind',
-            'Wind_Speed(kmph)',
-            'Condition']
+                pollutant,
+                'Temperature(C)',
+                'Humidity(%)',
+                'Wind',
+                'Wind_Speed(kmph)',
+                'Condition']
         # merge pollution and wind data
 
         if 'datetime' in self.wea.columns:
@@ -662,6 +662,17 @@ class Dataset():
         # find duplicate index and drop them
         data.sort_index(inplace=True)
         data = data.loc[~data.index.duplicated(keep='first')]
+
+        if self.city_name == 'Bangkok':
+            try:
+                data = data.drop('Temperature(C)', axis=1)
+            except:
+                pass
+
+            try:
+                data = data.drop('Humidity(%)', axis=1)
+            except:
+                pass
 
         logger.info('data no fire has shape  {data.shape}')
         self.data_no_fire = data

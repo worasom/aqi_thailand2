@@ -263,7 +263,7 @@ def extract_data(browser):
         # extract table from page
         page = browser.page_source
         soup = BeautifulSoup(page, features="lxml")
-        df = pd.read_html(str(soup))[2]
+        df = pd.read_html(str(soup))[-3]
         df = df.set_index('No.')
 
         # append to the data

@@ -116,7 +116,7 @@ def plot_season_avg(
         agg='max',
         color='blue',
         linestyle='solid',
-        linewidth=2, label=None, offset=182, draw=True):
+        linewidth=2, label=None, offset=182, draw=True, ci=95):
     """Plot the average by date of year. Good for looking seasonal pattern.
 
     Args:
@@ -129,6 +129,7 @@ def plot_season_avg(
         label(optional): label word 
         offset(optional): day of year offset value to make winter in the center of the plot
         draw(optional): if draw,  plot xticklabels
+        ci(optional): confident interval 
 
     """
     plt.rcParams.update({'font.size': 14})
@@ -168,7 +169,7 @@ def plot_season_avg(
             ax=ax,
             legend='brief',
             label=label,
-            color=color)
+            color=color, ci=ci)
 
     else:
         mean_day = df.groupby('winter_day').mean()[pollutant]

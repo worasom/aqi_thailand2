@@ -217,19 +217,19 @@ def plot_sea_error(trn_error, sea_error, filename=None):
         sea_error: seasonal error used in the inference
         filename: save filename
     """
-
+   
     # plot seasonal error and save
     _, ax = plt.subplots(figsize=(10, 4))
     _ = plot_season_avg(
         trn_error,
-        'error',
+        'residual',
         ax,
         plot_error=False,
         roll=True,
         agg='mean')
-    ax.plot(sea_error['error'], linewidth=3)
-    ax.set_title('error (by pollution season)')
-    ax.legend(['raw training error', 'average error'])
+    ax.plot(sea_error['residual'], linewidth=3)
+    ax.set_title('residual (by pollution season)')
+    ax.legend(['raw training residual', 'average residual'])
     if filename:
         plt.savefig(filename, dpi=300)
 
@@ -311,3 +311,5 @@ def plot_infer_season(poll_df, pollutant, sea_pred, color_zip, filename=None):
 
     if filename:
         plt.savefig(filename, dpi=300)
+
+    return ax

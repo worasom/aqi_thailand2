@@ -214,8 +214,13 @@ def download_vn_data(
 
         try: # extract data
             df = extract_vn_data(browser, wait_time=20)
+            print(station, ' has shape', df.shape)
         except:
-            pass
+            try:
+                df = extract_vn_data(browser, wait_time=20)
+                print(station, ' has shape', df.shape)
+            except:
+                pass
         else:
             df['city'] = city_name
             df['station'] = station
@@ -249,7 +254,12 @@ def concat_vn_data(save_folder='../data/vn_epa/'):
     old_files = glob(save_folder + '*.csv')
     new_df = []
     for file in old_files:
-        new_df.append(pd.read_csv(file))
+        try: 
+           df = pd.read_csv(file)
+        except:
+            pass
+        else:
+            new_df.append(df)
     
     # put all the file together, drop duplicates and save 
     new_df = pd.concat(new_df, ignore_index=True)

@@ -203,6 +203,60 @@ def load_model(
     return dataset, model, fire_cols, zone_list, feat_imp, poll_meta 
 
 
+def plot_sea_error(trn_error, sea_error, filename=None):
+    """Plase seasonal error the training data and the average value.
+
+    Args:
+        trn_error: raw training error
+        sea_error: seasonal error used in the inference
+        filename: save filename
+    """
+   
+    # plot seasonal error and save
+    _, ax = plt.subplots(figsize=(10, 4))
+    _ = plot_season_avg(
+        trn_error,
+        'residual',
+        ax,
+        plot_error=False,
+        roll=True,
+        agg='mean')
+    ax.plot(sea_error['residual'], linewidth=3)
+    ax.set_title('residual (by pollution season)')
+    ax.legend(['raw training residual', 'average residual'])
+    if filename:
+        plt.savefig(filename, dpi=300)
+
+
+def plt_infer_actual(ytest_pred_df_avg, band_df, filename=None):
+    """Compare the actual and inference predicted data in timeseries format.
+    Args:
+        ytest_pred_df_avg: actual data to plot
+        band_df: inference data to plot with different quantiles
+        filename: save filename
+    
+    """
+    plt.figure(figsize=(12, 4))
+    
+    plt.plot(
+        ytest_pred_df_avg['actual'],
+        color='royalblue',
+        label='avg data',
+        marker='.',
+        linewidth=1,
+        alpha=0.8)
+    plt.plot(band_df, linewidth=2, color='red', linestyle='dashed')
+    plt.xlabel('datetime')
+    plt.ylabel(r'$\mu g/m^3$')
+    legend_list = band_df.columns.to_list()
+    legend_list = ['samples ' + s for s in legend_list]
+    plt.legend(['actual'] + ['stat predict'], loc='upper left', frameon=True)
+    plt.title('Actual Data and Statistical Prediction')
+    
+    if filename:
+        plt.savefig(filename, dpi=300)
+
+
 def cal_error(dataset, model, data_index):
     """Calculate model performance over training and test dataset.
 
@@ -426,7 +480,7 @@ def get_data_samples(
 
     # look for fire_cols
     fire_cols = data_cols[data_cols.str.contains('fire')]
-
+ 
     date_cols = ['is_holiday', 'is_weekend', 'day_of_week', 'time_of_day']
     date_cols = np.hstack(
         [data_cols[data_cols.str.contains(s[:6])].to_list() for s in date_cols])
@@ -484,6 +538,14 @@ def get_data_samples(
         date_data,
         holiday_file=dataset.data_folder +
         'holiday.csv')
+
+    if 'traffic_index' in dataset.x_cols:
+        date_data = date_data.merge(dataset.traffic,
+            right_index=True,
+            left_index=True,
+            how='left')
+        
+         
     print('adding lag')
     date_data = add_lag(date_data, dataset.lag_dict)
     print('adding calendar information')
@@ -491,11 +553,12 @@ def get_data_samples(
     data_samples = data_samples.set_index('datetime')
     # add calenda information by merging with date_data
     data_samples = data_samples.merge(
-        date_data[date_cols],
+        date_data,
         right_index=True,
         left_index=True,
         how='left')
 
+    
     return data_samples.dropna()[dataset.x_cols]
 
 
@@ -584,7 +647,7 @@ def cal_season_band(band_df, sea_error):
 
     # Correct bias
     for col in sea_pred.columns:
-        sea_pred[col] += sea_error['error']
+        sea_pred[col] += sea_error['residual']
 
     return sea_pred
 
@@ -696,7 +759,7 @@ class Inferer():
 
         """
 
-        city_names = ['Chiang Mai', 'Bangkok', 'Hanoi', 'Jakarta']
+        city_names = ['Chiang Mai', 'Bangkok', 'Hanoi', 'Jakarta', 'Nakhon Ratchasima']
 
         if city_name not in city_names:
             raise AssertionError(
@@ -704,8 +767,9 @@ class Inferer():
 
         else:
             # load model and add as attribute
-            self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.rolling_win = load_model(
+            self.dataset, self.model, fire_cols, self.zone_list, self.feat_imp, self.poll_meta = load_model(
                 city=city_name, pollutant=pollutant)
+            self.rolling_win = self.poll_meta['rolling_win']
             self.cal_error()
             self.report_folder = self.dataset.report_folder
 
@@ -759,7 +823,6 @@ class Inferer():
 
         """
 
-         
         plot_sea_error(
             self.trn_error,
             self.sea_error,
@@ -792,11 +855,13 @@ class Inferer():
         sea_pred = cal_season_band(band_df, self.sea_error)
 
         # compare seasonal behavior with inference
-        plot_infer_season(self.dataset.poll_df.loc['2017-10-01':],
+        ax = plot_infer_season(self.dataset.poll_df.loc['2017-10-01':],
                           self.dataset.pollutant,
                           sea_pred,
                           self.color_zip,
                           filename=self.report_folder + 'test_data_vs_inference_season.png')
+
+        return ax, sea_pred
 
     def features_effect_season(
             self,

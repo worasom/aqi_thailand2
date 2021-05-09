@@ -525,6 +525,7 @@ def main(
         'Kunming', 'East Jakarta', 
         'Mueang Nakhon Si Thammarat', 
         'Hai Chau', 'Chaloem Phra Kiat', 'Khlong Hoi Khong' ]
+
     w_folder = f'{main_folder}weather_cities/'
     weather_station_info = find_weather_stations(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
@@ -532,7 +533,7 @@ def main(
 
     for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020, 8, 1)
+        start_date = datetime(2019, 1, 1)
         end_date = datetime.now() - timedelta(days=1)
         update_weather(
             city_json,
