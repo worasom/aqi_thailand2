@@ -85,7 +85,8 @@ def convert_temp_col(data_df, temperature_col):
     for col in temperature_col:
         if col in data_df.columns:
             data_series = data_df[col].copy()
-            data_series = data_series.str.replace('F', '')
+            #data_series = data_series.str.replace('°F', '')
+            data_series = data_series.str.extract(r'(\d+)').iloc[:,0]
             data_series = data_series.astype(float)
             data_series = ((data_series - 32) * 5 / 9).round(2)
             data_df[col] = data_series
@@ -100,8 +101,9 @@ def convert_wind_col(data_df, win_col):
         if col in data_df.columns:
             data_series = data_df[col].copy()
             # remove unit in the data
-            data_series = data_series.str.replace('mph', '')
-            data_series = data_series.str.replace(',', '')
+            data_series = data_series.str.extract(r'(\d+)').iloc[:,0]
+            #data_series = data_series.str.replace('mph', '')
+            #data_series = data_series.str.replace(',', '')
             data_series = data_series.astype(float)
             # convert the value
             data_series = (data_series * 1.60934).round(0)
@@ -116,7 +118,8 @@ def convert_pressure_col(data_df, pressure_col):
     for col in pressure_col:
         if col in data_df.columns:
             data_series = data_df[col].copy()
-            data_series = data_series.str.replace('in', '')
+            #data_series = data_series.str.replace('in', '')
+            data_series = data_series.str.extract(r'(\d+)').iloc[:,0]
             data_series = data_series.astype(float)
             # convert the value to hPa
             data_series = (data_series * 33.8638).round(0)
@@ -130,7 +133,8 @@ def convert_precip_col(data_df, precip_col):
     for col in precip_col:
         if col in data_df.columns:
             data_series = data_df[col].copy()
-            data_series = data_series.str.replace('in', '')
+            #data_series = data_series.str.replace('in', '')
+            data_series = data_series.str.extract(r'(\d+)').iloc[:,0]
             data_series = data_series.astype(float)
             # convert the value to hPa
             data_series = (data_series * 25.4).round(2)
@@ -145,7 +149,8 @@ def convert_humidity_col(data_df, humidity_col):
     for col in humidity_col:
         if col in data_df.columns:
             data_series = data_df[col].copy()
-            data_series = data_series.str.replace('%', '')
+            #data_series = data_series.str.replace('%', '')
+            data_series = data_series.str.extract(r'(\d+)').iloc[:,0]
             data_series = data_series.astype(int)
             data_df[col] = data_series
             data_df.columns = data_df.columns.str.replace(col, col + '(%)')
