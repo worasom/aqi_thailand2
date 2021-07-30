@@ -82,6 +82,7 @@ def wind_to_dummies(series):
 
     # group the wind direction into major wind direction
     direction_to_collpse = dummies.columns.to_list()
+     
     # remove 'CALM'
     if 'CALM' in direction_to_collpse:
         direction_to_collpse.remove('CALM')
@@ -206,6 +207,7 @@ def cal_arrival_time(
         arrival_time: datetime series of arrival time
 
     """
+     
     arrival_time = detection_time + pd.to_timedelta(distance / wind_speed, 'h')
     return arrival_time.dt.round('H')
 

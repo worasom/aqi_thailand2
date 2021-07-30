@@ -492,6 +492,8 @@ def get_data_samples(
     test_index = dataset.split_list[1]
     test_data = dataset.data.loc[test_index]
 
+    print('train index ', len(trn_data), 'test_index', len(test_data))
+
     # number of sample per year
     year_list = trn_index.year.unique()
     year_sam = get_year_sample(year_list=year_list, n_samples=n_samples)
@@ -531,6 +533,7 @@ def get_data_samples(
                                                           hour_err) for test_datetime in tqdm(time_range[::step]))
     #data_samples = pd.concat(fire, ignore_index=True)
     data_samples = pd.concat(data_samples, ignore_index=True)
+    print('data_samples shape with weather and fires',  data_samples.shape)
     print('datasample columns', data_samples.columns)
     # create date_data
     date_data = pd.DataFrame(index=time_range)
@@ -538,8 +541,10 @@ def get_data_samples(
         date_data,
         holiday_file=dataset.data_folder +
         'holiday.csv')
+    
+    print('date_data shape ', date_data.shape)
 
-    if 'traffic_index' in dataset.x_cols:
+    if ('traffic_index' in dataset.x_cols) or ('traffic' in dataset.x_cols):
         date_data = date_data.merge(dataset.traffic,
             right_index=True,
             left_index=True,

@@ -339,7 +339,7 @@ def sk_op_fire(dataset,
     if score < best_score:
          
         best_fire_dict.update( {
-            'w_speed': round(float(wind_speed), 0) ,
+            'w_speed': round(float(wind_speed), 1) ,
             'shift': int(shift),
             'roll': int(roll), 
             'damp_surface': damp_surface, 
@@ -1765,6 +1765,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     if op_fire_zone:
         trainer.op_fire_zone(step=50)
 
+
     if choose_cat_hour:
         trainer.choose_cat_hour()
 
@@ -1788,14 +1789,14 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
                 trainer.dataset.lag_dict['n_max'],
                 trainer.dataset.lag_dict['step']),
             roll=trainer.dataset.lag_dict['roll'])
-
+ 
 
     if op_fire_twice:
         trainer.op_fire(x_cols=trainer.dataset.x_cols, with_lag=True, search_wind_damp=search_wind_damp)
     
     # serach rf model again
     trainer.op6_rf()
-    trainer.final_fit()
+    trainer.final_fit() 
     # save plot
     trainer.save_feat_imp(with_interact=trainer.dataset.with_interact, filename=trainer.dataset.report_folder  +f'{trainer.poll_name}_rf_fea_op2_nolag.png', title='rf feature of importance')
     trainer.save_all()

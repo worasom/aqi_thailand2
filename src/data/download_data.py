@@ -256,24 +256,27 @@ def extract_data(browser):
     page = browser.page_source
     soup = BeautifulSoup(page, features="lxml")
     num_click_nodes = soup.find_all(attrs={'aria-controls': "table1"})[-2]
-    num_click = int(num_click_nodes.string)
-
+    num_click = num_click_nodes.string
+    print('num page', num_click)
     data_all = pd.DataFrame()
-    for i in range(num_click):
-        # extract table from page
-        page = browser.page_source
-        soup = BeautifulSoup(page, features="lxml")
-        df = pd.read_html(str(soup))[-3]
-        df = df.set_index('No.')
 
-        # append to the data
-        data_all = pd.concat([data_all, df])
-        # click the next page except for the last page
-        if i < num_click:
-            next_button_head = browser.find_element_by_id('table1_next')
-            next_button = next_button_head.find_elements_by_css_selector(
-                "*")[0]
-            next_button.click()
+    if num_click.isdigit():
+        num_click = int(num_click)
+
+        for i in range(num_click):
+            # extract table from page
+            page = browser.page_source
+            soup = BeautifulSoup(page, features="lxml")
+            df = pd.read_html(str(soup))[-3]
+            df = df.set_index('No.')
+
+            # append to the data
+            data_all = pd.concat([data_all, df])
+            # click the next page except for the last page
+            if i < num_click:
+                next_button_head = browser.find_element_by_id('table1_next')
+                next_button = next_button_head.find_elements_by_css_selector("*")[0]
+                next_button.click()
 
     return data_all
 

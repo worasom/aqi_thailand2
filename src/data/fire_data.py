@@ -19,7 +19,7 @@ else:
 """
  
 def add_merc_to_fire(fire_folder='../data/fire_map/world_2000-2020/', instr='MODIS', chunk=1E6, long_range=[81,150], lat_range=[-19, 98]):
-    """Add mercator coordinate to all the fire files in the folder and save as another folder
+    """Add mercator coordinate to all the fire files in the folder and save as process folder folder
 
     """
 
@@ -116,7 +116,7 @@ def add_datetime_fire(fire, timezone='Asia/Bangkok'):
     return fire
 
 
-def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/Bangkok'):
+def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/Bangkok', to_drop=True):
     """ Add datetime,  drop duplicate data and remove uncessary columns.
 
     """
@@ -137,8 +137,8 @@ def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/B
         # for VIIRS
         fire = fire.sort_values(
             ['datetime', 'lat_km', 'long_km', 'bright_ti4'], ascending=False)
-
-    fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
+    if to_drop:
+        fire = fire.drop_duplicates(['datetime', 'lat_km', 'long_km'])
 
     # drop unncessary columns
     try:
@@ -150,6 +150,7 @@ def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/B
             'daynight',
             'bright_t31',
             'type']
+        columns_to_drop = [s for s in columns_to_drop if s in fire.columns]
         fire = fire.drop(columns_to_drop, axis=1)
     except BaseException:
         columns_to_drop = [
@@ -160,6 +161,7 @@ def process_fire_data(filename=None, fire=None, and_save=False, timezone='Asia/B
             'daynight',
             'bright_ti5',
             'type']
+        columns_to_drop = [s for s in columns_to_drop if s in fire.columns]
         fire = fire.drop(columns_to_drop, axis=1)
 
     fire = fire.sort_values('datetime')

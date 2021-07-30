@@ -70,6 +70,7 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
     plt.ylabel('importance unit')
     plt.tight_layout()
     if filename:
+        print('export figure as ', filename)
         plt.savefig(filename, dpi=300)
 
 

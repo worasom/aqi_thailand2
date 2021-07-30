@@ -620,6 +620,8 @@ class Dataset():
         # add lag information
         # data = add_lags(data, pollutant)
         # one hot encode wind data
+        # clean up wind data
+        data['Wind'] = data['Wind'].str.replace('CLAM', 'CALM')
         dummies = wind_to_dummies(data['Wind'])
         data.drop('Wind', axis=1, inplace=True)
         data = pd.concat([data, dummies], axis=1)
@@ -1044,6 +1046,10 @@ class Dataset():
             elif (self.city_name == 'Bangkok'):
                 # for Thailand, delete all PM2.5 record before 2014
                 self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+            
+            elif (self.city_name == 'Bangkok'):
+                # for Thailand, delete all PM2.5 record before 2014
+                self.poll_df.loc[:'2012', 'NO2'] = np.nan
 
             elif (self.city_name == 'Hat Yai'):
             # for Thailand, delete all PM2.5 record before 2014

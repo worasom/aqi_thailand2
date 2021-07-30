@@ -1,6 +1,7 @@
 #ignore scratch notebooks
 untitle.*
 _*.ipynb
+_*.py
 5.2_ML_Jakarta.ipynb
 4.1.1*.ipynb
 4.3_Hanoi
