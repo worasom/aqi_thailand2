@@ -89,11 +89,15 @@ def wind_to_dummies(series):
 
     if 'VAR' in direction_to_collpse:
         direction_to_collpse.remove('VAR')
-
+     
     for direction in direction_to_collpse:
         if len(direction) > 1:
             for char in set(direction):
-                dummies[char] = dummies[char] + dummies[direction]
+                if char in dummies.columns:
+                    dummies[char] = dummies[char] + dummies[direction]
+                else:
+                    dummies.columns = dummies.columns.add_categories(char)
+                    dummies[char] = dummies[direction]
             dummies.drop(direction, axis=1, inplace=True)
 
     # group the 'var' direction

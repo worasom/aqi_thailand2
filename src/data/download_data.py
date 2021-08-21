@@ -161,34 +161,38 @@ def get_station_data_save(
     select_data(url, browser, sta_id, para_selector_list, wait_time=10)
     # parse data into dataframe
     data = extract_data(browser)
-    # add station id and station name
-    data['station_id'] = sta_id
-    data['station_name'] = sta_name
 
-    # add datetime columns
-    data = make_datetime(data)
-    filename = data_folder + sta_id + '.csv'
-    # check the last time from exisiting file if exists
-    print('reading', filename)
-    last_time, column = get_last_datetime(filename)
-    # keep only the data after the timestamp
-    data = data[data['datetime'] > last_time]
+    if len(data) > 0:
+        # add station id and station name
+        data['station_id'] = sta_id
+        data['station_name'] = sta_name
 
-    # save the data
-    if os.path.exists(filename):
-        # file already exists, append the data
-        #data.to_csv(filename, mode='a', header=False, index=False)
-        old_data = pd.read_csv(filename)
-        data = pd.concat([old_data, data], ignore_index=True)
-        data = data.drop_duplicates('datetime')
-        data.to_csv(filename, index=False)
+        # add datetime columns
+        data = make_datetime(data)
+        filename = data_folder + sta_id + '.csv'
+        # check the last time from exisiting file if exists
+        print('reading', filename)
+        last_time, column = get_last_datetime(filename)
+        # keep only the data after the timestamp
+        data = data[data['datetime'] > last_time]
+
+        # save the data
+        if os.path.exists(filename):
+            # file already exists, append the data
+            #data.to_csv(filename, mode='a', header=False, index=False)
+            old_data = pd.read_csv(filename)
+            data = pd.concat([old_data, data], ignore_index=True)
+            data = data.drop_duplicates('datetime')
+            data.to_csv(filename, index=False)
+        else:
+            # file does not exist, create the file
+            print('create new', filename)
+            data.to_csv(filename, index=False)
+
+        temp = pd.read_csv(filename)
+        print('updated data shape', temp.shape)
     else:
-        # file does not exist, create the file
-        print('create new', filename)
-        data.to_csv(filename, index=False)
-
-    temp = pd.read_csv(filename)
-    print('updated data shape', temp.shape)
+        print('no new data to extract')
 
 
 def extract_stations(soup):
