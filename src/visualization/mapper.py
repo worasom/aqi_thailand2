@@ -652,7 +652,7 @@ class Mapper():
         #this mapper is what transposes a numerical value to a color. 
         self.mapper = LinearColorMapper(palette=colors, low=0, high=poll_max)
 
-    def add_poll_colormap(self, p, datetime):
+    def add_poll_colormap(self, p, datetime, datfareq='h'):
         """Add pollution color map to the plot
 
         Args: 
@@ -681,9 +681,9 @@ class Mapper():
         p.add_layout(color_bar, 'right')
 
         if self.datafreq == 'h':
-            date_str = datetime.strftime('%Y-%m-%d %H:%M')
+            date_str = pd.to_datetime(datetime).strftime('%Y-%m-%d %H:%M')
         elif self.datafreq == 'd':
-            date_str = datetime.strftime('%Y-%m-%d')
+            date_str = pd.to_datetime(datetime).strftime('%Y-%m-%d')
 
 
         #text = Label(x=self.map_dict['xmap_range'][1] , y=self.map_dict['ymap_range'][0]-self.map_dict['stepy']*0.5, text=' Datetime: '+str(datetime), text_font_size='15pt', text_color='black', background_fill_color='white', text_align='right')
