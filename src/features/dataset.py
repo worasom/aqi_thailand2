@@ -1141,8 +1141,8 @@ class Dataset():
             #     self.poll_df.loc[:'2015', 'PM2.5'] = np.nan
             #     #pass
             # remove bad data (often old record)
-            if self.city_name in dataset.crop_dict.keys():
-                crop_dict = dataset.crop_dict[self.city_name]
+            if self.city_name in self.crop_dict.keys():
+                crop_dict = self.crop_dict[self.city_name]
                 for poll in crop_dict.keys():
                     start_date = crop_dict[poll]
                     self.poll_df.loc[:start_date , poll] = np.nan

@@ -108,6 +108,9 @@ def set_config(dataset):
                         'Bangkok':{'PM2.5': '2013',
                                     'NO2':'2012'},
                         'Hat Yai':{'PM2.5': '2015'},
+                        'Sa Kaeo':{'PM2.5': '2018-06'},
+                        'Loei':{'PM2.5': '2018-06'},
+                        'Songkhla':{'PM2.5': '2016'},
                         'Hanoi':{'PM2.5': '2016-03-21'}}
 
     # US AQI standard
