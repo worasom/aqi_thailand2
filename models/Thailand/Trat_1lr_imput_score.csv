@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.31166,0.66779,19.85121,3.3582500000000004,53.161469999999994,2.4623399999999998,0.08650377255742474,0.03611646131306025,1.959065959668876,0.18247989386961697,3.309799188621569,0.16556195349307903,Trat,1602

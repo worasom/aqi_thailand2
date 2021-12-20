@@ -741,7 +741,7 @@ class Trainer():
             self,
             city: str, pollutant: str = 'PM2.5', instr='MODIS', 
             main_data_folder: str = '../data/',
-            model_folder='../models/', report_folder='../reports/', n_jobs=-2):
+            model_folder='../models/', report_folder='../reports/', n_jobs=-2, default_meta=False):
 
         """Initialize dataset object and add as attribute
 
@@ -762,7 +762,10 @@ class Trainer():
         try:
             self.poll_meta = load_meta(modelmeta_filename)
         except:
-            print('get defaul meta')
+            print('get default meta')
+            self.get_default_meta()
+
+        if default_meta:
             self.get_default_meta()
 
         logger.info(f'pollution meta {self.poll_meta}')
@@ -779,13 +782,15 @@ class Trainer():
         # unpack meta setting 
         self.split_lists = self.poll_meta['split_lists']
         self.dataset.fire_dict = self.poll_meta['fire_dict']
+        
         try:
             self.dataset.lag_dict = self.poll_meta['lag_dict']
         except:
             # no lag dict in the meta, use the default value
             self.dataset.lag_dict = {"n_max": 1, "step": 12, "roll": True}
 
-        if 'zone_list' in self.poll_meta.keys():
+        # overide zone_list with the one in the model meta. Keep the default if want to optmize fire zone.
+        if 'zone_list' in self.poll_meta.keys() and ~ self.to_op_fire_zone:
             self.dataset.zone_list = self.poll_meta['zone_list']
 
         if 'with_interact' in self.poll_meta.keys():
@@ -1114,6 +1119,7 @@ class Trainer():
             importances,
             index=self.dataset.x_cols,
             columns=['importance'])
+        feat_imp['imp_std'] = np.std([tree.feature_importances_ for tree in self.model.estimators_], axis=0)
         feat_imp = feat_imp.sort_values(
             'importance', ascending=False).reset_index()
         
@@ -1644,6 +1650,7 @@ class Trainer():
         poll_meta.update(kwargs)
         poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface': 2, 'wind_damp': False, 'wind_lag': False, 'split_direct': False}
         poll_meta['lag_dict'] ={"n_max": 1, "step": 12, "roll": True}
+        poll_meta['split_lists'] = [[0.55, 0.2, 0.25], [0.55, 0.2, 0.25], [0.75, 0.25]]
 
         self.poll_meta = poll_meta
 
@@ -1711,7 +1718,8 @@ class Trainer():
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
         search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
-        add_weight=True, instr='MODIS', op_fire_zone=False, op_fire_twice=False, op_lag=True, search_tpot=False, 
+        add_weight=True, instr='MODIS', to_op_fire_zone=False, op_fire_twice=False, op_lag=True, use_impute=False,
+        search_tpot=False, 
         main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
     """Training pipeline from process raw data, hyperparameter tune, and save model.
@@ -1743,14 +1751,16 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     set_logging(level=10)
     logger = logging.getLogger(__name__)
     # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant, instr=instr)
+    trainer = Trainer(city=city, pollutant=pollutant, instr=instr, default_meta=default_meta)
     trainer.n_jobs = n_jobs
+    trainer.to_op_fire_zone = to_op_fire_zone
 
-    if default_meta:
-        trainer.get_default_meta()
+    #if default_meta:
+    #    trainer.get_default_meta()
 
     if ~ add_weight:
         trainer.dataset.add_weight = 0
+    trainer.dataset.use_impute = use_impute
     #if 'x_cols_org' in trainer.poll_meta.keys():
     #    trainer.dataset.x_cols = trainer.dataset.x_cols_org = trainer.poll_meta['x_cols_org']
          
@@ -1762,7 +1772,7 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     logger.info(f'current columns {trainer.dataset.x_cols_org}')
     # op fire
     trainer.op_fire(x_cols=trainer.dataset.x_cols_org, search_wind_damp=search_wind_damp)
-    if op_fire_zone:
+    if to_op_fire_zone:
         trainer.op_fire_zone(step=50)
 
 

@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.89436,0.9493500000000001,83.79256000000001,6.663120000000001,31.389580000000002,5.1095,0.0025364892623028863,0.0011374923687167617,2.0240580004864803,0.10563968951109236,0.8612690259791715,0.12698315723836076,Chiang Mai

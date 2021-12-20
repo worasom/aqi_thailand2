@@ -193,6 +193,7 @@ def load_model(
         importances,
         index=dataset.x_cols,
         columns=['importance'])
+    feat_imp['imp_std'] = np.std([tree.feature_importances_ for tree in model.estimators_], axis=0)
     feat_imp = feat_imp.sort_values(
         'importance', ascending=False).reset_index()
     feat_imp['index'] = feat_imp['index'].str.split('_lag_', expand=True)[0]

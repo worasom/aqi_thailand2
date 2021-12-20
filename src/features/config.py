@@ -48,12 +48,67 @@ def set_config(dataset):
                  'Da Nang': 'Hai Chau',
                  'Nakhon Si Thammarat':'Mueang Nakhon Si Thammarat',
                  'Nakhon Ratchasima':'Chaloem Phra Kiat',
-                 'Hat Yai': 'Khlong Hoi Khong'}
+                 'Hat Yai': 'Khlong Hoi Khong',
+                 'Rayong':'Ban Chang', 
+                 'Songkhla':'Khlong Hoi Khong',
+                 'Saraburi':'Bangkok',
+                 'Samut Sakhon':'Bangkok',
+                 'Nan':'Mueang Nan',
+                 'Sa Kaeo':'Chaloem Phra Kiat',
+                 'Loei':'Mueang Loei',
+                 'Chon Buri':'Bangkok',
+                 'Khon Kaen':'Mueang Khon Kaen',
+                 'Ratchaburi':'Photharam',
+                 'Phuket': 'Thalang',
+                 'Pathum Thani': 'Bangkok',
+                 'Samut Prakan': 'Bangkok',
+                 'Nonthaburi':'Bangkok',
+                 'Phra Nakhon Si Ayutthaya':'Bangkok',
+                 'Lampang': 'Mueang Lampang',
+                 'Narathiwat': 'Mueang Narathiwat',
+                 'Yala': 'Mueang Narathiwat',
+                 'Mae Hong Son': 'Mueang Mae Hong Son',
+                 'Chiang Rai': 'Mueang Chiang Rai',
+                 'Lamphun': 'Mueang Lamphun',
+                 'Phrae': 'Mueang Phrae',
+                 'Nakhon Ratchasima': 'Chaloem Phra Kiat',
+                 'Phayao': 'Mueang Chiang Rai',
+                 'Nakhon Sawan': 'Mueang Nakhon Sawan',
+                 'Surat Thani': 'Phunphin',
+                 'Chachoengsao':'Bangkok',
+                 'Prachin Buri':'Bangkok',
+                 'Tak' : 'Mueang Tak',
+                 'Kanchanaburi': 'Mueang Kanchanaburi',
+                 'Satun':'Langkawi',
+                 'Nakhon Pathom':'Bangkok',
+                 'Sukhothai':'Sawankhalok',
+                 'Si Sa Ket': 'Mueang Ubon Ratchathani',
+                 'Amnat Charoen':'Mueang Ubon Ratchathani',
+                 'Mukdahan':'Sikhottabong',
+                 'Bueng Kan':'Mueang Nakhon Phanom',
+                 'Nong Bua Lam Phu': 'Mueang Udon Thani',
+                 'Yasothon':'Thawat Buri',
+                 'Nakhon Nayok':'Bangkok',
+                 'Sakon Nakhon':'Mueang Sakon Nakhon',
+                 'Ubon Ratchathani': 'Mueang Ubon Ratchathani',
+                 'Nong Khai':'Sikhottabong',
+                 'Samut Songkhram':'Bangkok',
+                 'Chai Nat':' Bangkok',
+                 'Phetchaburi':'Bangkok',
+                 'Ang Thong':' Bangkok',
+                 'Nakhon Si Thammarat': 'Mueang Nakhon Si Thammarat',
+                 'Nakhon Phanom':'Mueang Nakhon Phanom',
+                 'Phitsanulok': 'Mueang Phitsanulok',
+                 'Trat': 'Khao Saming',
+                 'Suphan Buri': 'Bangkok'}
       
 
     # cropping point to remove the earlier data 
     dataset.crop_dict = {'Chiang Mai':{'PM2.5': '2010'},
-                    'Hanoi':{'PM2.5': '2016-03-21'}}
+                        'Bangkok':{'PM2.5': '2013',
+                                    'NO2':'2012'},
+                        'Hat Yai':{'PM2.5': '2015'},
+                        'Hanoi':{'PM2.5': '2016-03-21'}}
 
     # US AQI standard
     dataset.transition_dict =  {
@@ -82,5 +137,7 @@ def set_config(dataset):
         dataset.zone_list = zone_dict[dataset.city_name]
     except:
         dataset.zone_list = zone_dict['default']
+
+    #dataset.zone_dict = zone_dict
 
 

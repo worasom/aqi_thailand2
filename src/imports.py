@@ -86,6 +86,7 @@ from scipy.stats import linregress
 from sklearn.neighbors import KNeighborsRegressor
 from scipy.cluster import hierarchy as hc
 from tpot import TPOTRegressor
+from sklearn.feature_selection import RFECV, SelectFromModel
 
 
 # NN model

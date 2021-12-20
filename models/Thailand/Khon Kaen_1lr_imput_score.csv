@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.76808,0.8849300000000001,89.60983000000002,6.90176,22.74181,4.98618,0.00423524891043412,0.0021034627535460415,2.203417084666451,0.05832903222238477,0.2774234126545355,0.071595279173979,Khon Kaen,39768

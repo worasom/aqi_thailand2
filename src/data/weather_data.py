@@ -198,14 +198,20 @@ def scrape_weather(city_json, date_range):
 
              
         except:
-            pass
+            # fail weather add just the datetime index 
+            # This is to fill the missing data for this range with empty data. We do not need to rescrape again.
+            datetime_date = pd.to_datetime(date)
+            year, month, day = datetime_date.year, datetime_date.month, datetime_date.day
+            time_list = pd.date_range(datetime(year,month,day,0), datetime(year,month,day,23), freq='1h')
+            daily_df = pd.DataFrame({'datetime':time_list})
+             
         else:
             # good query
             # convert unit of the data
             daily_df = convert_unit(daily_df)
              
-            # combine the weather for each day
-            weather = pd.concat([weather, daily_df], axis=0, join='outer')
+        # combine the weather for each day
+        weather = pd.concat([weather, daily_df], axis=0, join='outer')
 
         # except BaseException:
         #     # fail query,
@@ -237,8 +243,10 @@ def scrape_weather(city_json, date_range):
                 # daily_df = convert_unit(daily_df)
                 # # combine the weather for each day
                 # weather = pd.concat([weather, daily_df], axis=0, join='outer')
-
-    browser.close()
+    try:
+        browser.close()
+    except:
+        pass
     try:
         # sort weather value
         weather = weather.sort_values('datetime')
@@ -248,26 +256,26 @@ def scrape_weather(city_json, date_range):
     return weather, bad_date_df
 
 
-def fix_temperature(df, lowest_t: int = 5, highest_t: int = 65):
+def fix_temperature(df, lowest_t: int = 5, highest_t: int = 65, col='Temperature(C)'):
     # remove abnormal tempearture reading from weather data
 
-    idx = df[df['Temperature(C)'] < lowest_t].index
-    df.loc[idx, ['Temperature(C)', 'Dew_Point(C)', 'Humidity(%)']] = np.nan
+    idx = df[df[col] < lowest_t].index
+    df.loc[idx, [col]] = np.nan
 
-    idx = df[df['Temperature(C)'] > highest_t].index
-    df.loc[idx, ['Temperature(C)', 'Dew_Point(C)', 'Humidity(%)']] = np.nan
+    idx = df[df[col] > highest_t].index
+    df.loc[idx, [col]] = np.nan
 
     return df
 
 
-def fix_pressure(df, lowest_t: int = 170, highest_t: int = 1500):
+def fix_pressure(df, lowest_t: int = 170, highest_t: int = 1500, col='Pressure(hPa)'):
     # remove abnormal tempearture reading from weather data
 
-    idx = df[df['Pressure(hPa)'] < lowest_t].index
-    df.loc[idx, ['Pressure(hPa)']] = np.nan
+    idx = df[df[col] < lowest_t].index
+    df.loc[idx, [col]] = np.nan
     
-    idx = df[df['Pressure(hPa)'] > highest_t].index
-    df.loc[idx, ['Pressure(hPa)']] = np.nan
+    idx = df[df[col] > highest_t].index
+    df.loc[idx, [col]] = np.nan
     
     return df
 
@@ -337,8 +345,11 @@ def update_weather(
 
         if len(new_weather) > 0:
             # fix bad temperature data and missing timestamp
-            new_weather = fix_temperature(new_weather)
-            new_weather = fix_pressure(new_weather)
+            for col in ['Temperature(C)', 'Dew_Point(C)', 'Humidity(%)']:
+                if  col in new_weather.columns:
+                    new_weather = fix_temperature(new_weather, col=col)
+            if 'Pressure(hPa)' in new_weather.columns:
+                new_weather = fix_pressure(new_weather, col='Pressure(hPa)')
             new_weather = fill_missing_weather(new_weather)
             
             # merge to existing value
@@ -497,6 +508,10 @@ def add_weather_station(station_list, w_folder='../data/weather_cities/'):
             station_info.append(new_station)
             print('add ', new_station['city_name'])
 
+    # remove duplicates entries
+    station_info = pd.DataFrame(station_info).drop_duplicates()
+    station_info = station_info.to_dict('records')
+
     with open(filename, 'w') as f:
         json.dump(station_info, f)
 
@@ -518,27 +533,34 @@ def main(
 
     # extract station information
     print('Update weather data for all cities')
-    city_names = ['Bangkok',
-        'Mueang Chiang Mai',
-        'Soc Son',
-        'Mueang Chiang Rai',
-        'Mueang Tak',
-        'Yangon',
-        'Tada-U',
-        'Sikhottabong',
-        'Luang Prabang District',
-        'Kunming', 'East Jakarta', 
-        'Mueang Nakhon Si Thammarat', 
-        'Hai Chau', 'Chaloem Phra Kiat', 'Khlong Hoi Khong' ]
+    # city_names = ['Bangkok','Ban Chang',
+    #     'Chaloem Phra Kiat', 'East Jakarta', 'Kunming','Luang Prabang District',
+    #     'Mueang Chiang Mai','Mueang Chiang Rai',
+    #     'Mueang Tak','Mueang Khon Kaen', 'Mueang Loei', 
+    #     'Mueang Nakhon Si Thammarat', 
+    #     'Hai Chau', 
+    #     'Khlong Hoi Khong', 
+    #     'Photharam','Yangon',
+    #     'Soc Son','Tada-U',
+    #     'Sikhottabong']
 
     w_folder = f'{main_folder}weather_cities/'
+
+    # lookup all province weather data 
+    files = glob(w_folder + '*.csv')
+    # convert to path to extract filename 
+    files = [Path(s) for s in files]
+    # extract province name
+    city_names = [file.name.split('.')[0] for file in files]
+    city_names = [s.replace('_', ' ') for s in city_names]
+
     weather_station_info = find_weather_stations(
         city_names, weather_json_file=w_folder + 'weather_station_info.json')
     len(weather_station_info)
 
     for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2019, 1, 1)
+        start_date = datetime(2020, 1, 1)
         end_date = datetime.now() - timedelta(days=1)
         update_weather(
             city_json,

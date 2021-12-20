@@ -22,7 +22,7 @@ else:
     from data.read_data import *
 
 class Mapper():
-    """Mapper object is in charge of visualizing pollution hotspots. 
+    """Mapper object is in charge of visualizing pollution and hotspot on the maps. 
 
 
     Args:
@@ -138,6 +138,8 @@ class Mapper():
         pcd_stations['Country'] = 'Thailand'
         temp  = pcd_stations['areaEN'].str.split(',', expand=True)
         pcd_stations['City'] = temp[2].fillna(temp[1])
+        pcd_stations['City'] = pcd_stations['City'].str.rstrip()
+        pcd_stations['City'] = pcd_stations['City'].str.lstrip()
         # add data source 
         pcd_stations['source'] = label
         return pcd_stations
@@ -338,6 +340,7 @@ class Mapper():
         all_station_data = pd.concat(all_station_data)
         print('cmu data shape', all_station_data.shape)
         all_station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)
+        del all_station_data
 
     def build_bkp_data(self, data_columns):
         """Concatenate all BKP data and append to exisiting data file
@@ -365,6 +368,7 @@ class Mapper():
         all_station_data = pd.concat(all_station_data)
         print('bkp data shape', all_station_data.shape)
         all_station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)
+        del all_station_data
          
     def build_b_data(self, data_columns):
         """Concatenate all Berkeley data and append to exisiting data file 
@@ -380,7 +384,8 @@ class Mapper():
         # keep only ASEAN stations
         temp_stations = temp_stations[temp_stations['Country'].isin(asean_list)]
 
-        all_station_data = [pd.DataFrame(columns=data_columns)]
+        #all_station_data = [pd.DataFrame(columns=data_columns)]
+        
         # compile all PCD data 
         for i, row in tqdm(temp_stations.iterrows()):
             stationid = row['id']
@@ -393,13 +398,17 @@ class Mapper():
                 df['datetime'] = pd.to_datetime(df['datetime'] )
                 #print(df['datetime'].max())
                 if len(df)> 0:
-                    df['stationid'] = stationid    
-                    all_station_data.append(df)
-                     
-
-        all_station_data = pd.concat(all_station_data)
-        print('Berkeley data shape', all_station_data.shape)
-        all_station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)
+                    station_data = [pd.DataFrame(columns=data_columns)]
+                    df['stationid'] = stationid 
+                    station_data.append(df)
+                   # print(station_data)
+                    station_data = pd.concat(station_data)
+                    station_data.to_csv(self.map_folder + 'data.csv', mode ='a', index=False, header=False)   
+                    #all_station_data.append(df)
+                    
+        #all_station_data = pd.concat(all_station_data)
+        print('Finish Berkeley data')
+        
  
     def build_usemb_data(self, data_columns):
         """Concatenate all US Embassy data and append to exisiting data file 
@@ -977,6 +986,8 @@ class Mapper():
         """
         if os.path.exists(self.map_folder + 'all_station_info.csv'):
             self.all_station_info = pd.read_csv(self.map_folder + 'all_station_info.csv')
+            self.all_station_info['City'] = self.all_station_info['City'].str.lstrip()
+            self.all_station_info['City'] = self.all_station_info['City'].str.rstrip()
             #print('number of stations =', self.all_station_info.shape)
         else:
             raise AssertionError('no station information file')

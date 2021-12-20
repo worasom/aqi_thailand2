@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.8011799999999999,0.92756,15.271349999999998,3.02227,33.17439,2.43673,0.013230335512668532,0.00480814124399672,0.8625129709169598,0.07879386679459537,0.741679122666939,0.09009931618929075,Sa Kaeo,5557

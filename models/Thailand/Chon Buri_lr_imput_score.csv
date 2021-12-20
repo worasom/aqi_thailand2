@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.7041,0.8629900000000001,60.45961000000001,6.0873,46.09286999999999,5.188219999999999,0.003338662406813043,0.0016051652735950771,0.6788514326910305,0.04165127715795618,0.5098666449834385,0.04545612781084139,Chon Buri

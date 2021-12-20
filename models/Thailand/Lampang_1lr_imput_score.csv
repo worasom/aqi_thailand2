@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.76245,0.9319299999999998,72.08435,6.68036,14.536110000000003,5.47183,0.0041234424668931255,0.0056417195960097085,3.9883879760151477,0.19761229269006075,0.3503598450165201,0.303057673462403,Lampang,2060

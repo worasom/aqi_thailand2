@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.69119,0.86812,115.84463000000001,8.005950000000002,44.523270000000004,6.17564,0.007870542830354498,0.0012976902558006584,1.846647770691532,0.06634671975480201,0.8199271594341649,0.10775576499143277,Phra Nakhon Si Ayutthaya,22668

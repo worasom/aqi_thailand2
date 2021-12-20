@@ -14,6 +14,7 @@ if __package__:
     from ..data.read_data import *
     from ..data.fire_data import *
     from ..data.weather_data import *
+    #from ..visualization.mapper import Mapper
     from .build_features import *
     from .config import set_config
 
@@ -103,7 +104,7 @@ class Dataset():
         city_name = city_name.lower().replace(' ', '_')
         
         self.main_folder = os.path.abspath(main_data_folder).replace('\\', '/') + '/'
-        self.data_folder = self.main_folder + city_name + '/'
+        self.data_folder = self.main_folder + 'data_cities/'+ city_name + '/'
         self.model_folder = os.path.abspath(model_folder).replace('\\', '/') + '/' + city_name + '/'
         self.report_folder = os.path.abspath(report_folder).replace('\\', '/') + '/' + city_name + '/'
             
@@ -123,6 +124,7 @@ class Dataset():
         self.with_interact = 0
         # log pollution
         self.log_poll = 0
+        self.use_impute = False
 
          
 
@@ -141,6 +143,17 @@ class Dataset():
                     self.city_info = city_json
                     break
 
+        if ~ hasattr(self, 'city_info'):
+            # obtain city information from the PCD station instead 
+            pcd_stations = self.get_pcd_station()
+            pcd_stations['Latitude'] = pcd_stations['Latitude'].astype(float)
+            pcd_stations['Longitude'] = pcd_stations['Longitude'].astype(float)
+            self.city_info = pcd_stations.groupby(['Country', 'City'], as_index=False).mean().to_dict('records')[0]
+
+        
+        # sometimes the city name is not in pm25/cities_info then we will skip the city_info section.
+        if hasattr(self, 'city_info'):
+
         # add lattitude and longtitude in km
         # self.city_info['lat_km'] = (
         #     merc_y(
@@ -151,16 +164,18 @@ class Dataset():
         #         self.city_info['Longitude']) /
         #     1000).round()
 
-        coor = to_merc((self.city_info['Longitude'], self.city_info['Latitude']))
+            coor = to_merc((self.city_info['Longitude'], self.city_info['Latitude']))
 
-        self.city_info['long_m'] = coor[0]
-        self.city_info['lat_m'] = coor[1]
-        self.city_info['long_km'] = round(coor[0]/1000)
-        self.city_info['lat_km'] = round(coor[1]/1000)
+            self.city_info['long_m'] = coor[0]
+            self.city_info['lat_m'] = coor[1]
+            self.city_info['long_km'] = round(coor[0]/1000)
+            self.city_info['lat_km'] = round(coor[1]/1000)
 
-        if self.city_info['Country'] == 'Viet Nam':
+            if self.city_info['Country'] == 'Viet Nam':
             # fix the name of Vietnam
-            self.city_info['Country']= 'Vietnam'
+                self.city_info['Country']= 'Vietnam'
+            elif self.city_info['Country'] == 'Thailand':
+                self.city_info['Time Zone'] = 'Asia/Bangkok'
 
 
     @staticmethod
@@ -289,12 +304,13 @@ class Dataset():
             else:
                 print( 'no old and new data for station', station_id)
 
-    def collect_stations_data(self):
+    def collect_stations_data(self, station_ids=[]):
         """Collect all Pollution data from a different sources and take the average.
 
         Since each city have different data sources. It has to be treat differently. 
         The stations choices is specified by the config.json
-
+        Args:
+            station_ids: a list of PCD station_ids 
         Returns: a list of dataframe each dataframe is the data from all station.
 
         """
@@ -304,14 +320,19 @@ class Dataset():
 
         # load data from Berkeley Earth Projects This is the same for all
         # cities
-        b_data, _ = read_b_data(self.main_folder + 'pm25/' + self.city_name.replace(' ', '_') + '.txt')
-        data_list.append(b_data)
+        filename =  self.main_folder + 'pm25/' + self.city_name.replace(' ', '_') + '.txt'
+        if os.path.exists(filename):
+            b_data, _ = read_b_data(filename)
+            data_list.append(b_data)
 
-        config_dict = self.config_dict
+        if (len(station_ids) == 0) & ('th_stations' in self.config_dict.keys()):
+            # overide station_ids from config
+            config_dict = self.config_dict
+            station_ids = config_dict['th_stations']
         
         # load thailand stations if applicable 
-        if 'th_stations' in config_dict.keys():
-            station_ids = config_dict['th_stations']
+        if len(station_ids) > 0:
+             
             print('th_stations', station_ids)
             self.merge_new_old_pollution(station_ids)
             # load the file
@@ -324,38 +345,88 @@ class Dataset():
                     data = data[data['datetime'] >= '2018-05-01']
                 data_list.append(data)
         # load the Thailand stations maintained by cmucdc project 
-        if 'cmu_stations' in config_dict.keys():
-            station_ids = config_dict['cmu_stations']
+        if 'cmu_stations' in self.config_dict.keys():
+            station_ids = self.config_dict['cmu_stations']
             print('cmu_stations', station_ids)
             for station_id in station_ids:
                 filename = self.main_folder + 'cdc_data/' + str(station_id) + '.csv' 
                 data_list.append(read_cmucdc(filename))
         
-        if 'b_stations' in config_dict.keys():
+        if 'b_stations' in self.config_dict.keys():
             # add Berkeley stations in near by provinces 
             station_ids = config_dict['b_stations']
             print('add Berkerley stations', station_ids)
             for station_id in station_ids:
-                b_data, _ = read_b_data(self.main_folder + 'pm25/' + f'{station_id}.txt')
-                data_list.append(b_data)
+                filename = self.main_folder + 'pm25/' + f'{station_id}.txt'
+                if os.path.exists(filename):
+                    b_data, _ = read_b_data(filename)
+                    data_list.append(b_data)
 
-        if 'us_emb' in config_dict.keys():
+        if 'us_emb' in self.config_dict.keys():
             # add the data from US embassy 
             print('add US embassy data')
             data_list += build_us_em_data(city_name=self.city_name,
                                                     data_folder=f'{self.main_folder}us_emb/')
 
         return data_list 
+    
+    def get_pcd_station(self, folder='air4thai_hourly/', label='TH_PCD')->list:
+        """"Find a list of pcd station id 
 
-    def build_pollution(self):
+        Returns:
+            list: a list of pcd station id
+        
+        """
+        folder = self.main_folder + folder
+
+        # pcd stations information
+        with open(folder + 'station_info.json', encoding="utf8") as f:
+            station_infos = json.load(f)
+
+
+        # get the station id_list
+        pcd_stations = []
+        for station in station_infos['stations']:
+            if 'b' in station['stationID']:
+                #remove stations run by Bangkok city 
+                pass
+            else:
+                pcd_stations.append(station)
+
+        pcd_stations = pd.DataFrame(pcd_stations)
+        # change column name 
+        pcd_stations.columns = pcd_stations.columns.str.replace( 'lat', 'Latitude')
+        pcd_stations.columns = pcd_stations.columns.str.replace( 'long', 'Longitude')
+        pcd_stations.columns = pcd_stations.columns.str.replace( 'stationID', 'id')
+
+        # add mercadian coordinates
+        #pcd_stations['long_m'] = pcd_stations['Longitude'].apply(merc_x)
+        #pcd_stations['lat_m'] = pcd_stations['Latitude'].apply(merc_y,shift=True)
+        pcd_stations = add_merc_col(pcd_stations, lat_col='Latitude', long_col='Longitude', unit='m')
+        # add city/country info (preparing to merge with other station jsons)
+        pcd_stations['Country'] = 'Thailand'
+        temp  = pcd_stations['areaEN'].str.split(',', expand=True)
+        pcd_stations['City'] = temp[2].fillna(temp[1])
+        pcd_stations['City'] = pcd_stations['City'].str.rstrip()
+        pcd_stations['City'] = pcd_stations['City'].str.lstrip()
+        # add data source 
+        pcd_stations['source'] = label
+        return pcd_stations[pcd_stations['City']==self.city_name] 
+
+
+    def build_pollution(self, station_ids:list=[], round=0):
         """Collect all Pollution data from a different sources and take the average.
 
         Use self.collect_stations_data to get a list of pollution dataframe.
         Add the average pollution data as attribute self.poll_df
 
+        Args:
+            station_ids: a list of PCD station_ids 
+            round: decimal to round the data to 
+
         """
 
-        data_list = self.collect_stations_data()
+        data_list = self.collect_stations_data(station_ids=station_ids)
         print(f'Averaging data from {len(data_list)} stations')
         data = pd.DataFrame()
         for df in data_list:
@@ -527,7 +598,10 @@ class Dataset():
             build_holiday(optional): if True, also build the holiday data[default:False]
 
         """
-        self.build_pollution()
+    
+        pcd_stations = self.get_pcd_station()
+        station_ids = pcd_stations['id'].to_list()
+        self.build_pollution(station_ids = station_ids)
         self.build_weather()
         self.save_()
 
@@ -571,14 +645,21 @@ class Dataset():
 
         if not os.path.exists(self.data_folder + 'holiday.csv'):
             self.build_holiday()
-
+ 
         # check if pollutant data exist
         if pollutant not in self.poll_df.columns:
             raise AssertionError(f'No {pollutant} data')
         self.pollutant = pollutant
+        
+        if self.use_impute:
+            logger.info('Impute missing PM2.5 data ')
+            # impute the missing pm25 with the imputed data 
+            self.poll_df['PM2.5'] = self.poll_df['PM2.5'].fillna(self.impute_pm25['PM2.5'])
 
         if fill_missing:
             self.poll_df = fill_missing_poll(self.poll_df, limit=6)
+
+        
 
         cols = [
                 pollutant,
@@ -598,6 +679,7 @@ class Dataset():
             right_index=True,
             how='inner')
 
+
         # select data and drop null value
         data = data[cols]
         data[pollutant] = data[pollutant].rolling(
@@ -610,12 +692,13 @@ class Dataset():
         #     data = data.loc['2016-03-21':]
 
         # some data need to be crop. This is specified by the crop_dict in the config.py 
-        try: 
-            start_date = self.crop_dict[self.city_name][self.pollutant]
-        except:
-            pass
-        else:
-            data = data.loc[start_date:]
+        # try: 
+        #     start_date = self.crop_dict[self.city_name][self.pollutant]
+        # except:
+        #     pass
+        # else:
+        #     data = data.loc[start_date:]
+        data = data.loc['2000-01-01':]
 
         # add lag information
         # data = add_lags(data, pollutant)
@@ -628,6 +711,7 @@ class Dataset():
         data = add_is_rain(data)
         data = add_calendar_info(
             data, holiday_file=self.data_folder + 'holiday.csv')
+
 
         # fix COVID shutdown for Bangkok
         if self.city_name == 'Bangkok':
@@ -642,7 +726,6 @@ class Dataset():
             #data['time_of_day_sin'] = np.sin(data.index.hour*np.pi*2/24)
             #data['time_of_day_cos'] = np.cos(data.index.hour*np.pi*2/24)
 
-        
         if cat_dayofweek:
             data = dummy_day_of_week(data)
 
@@ -661,6 +744,7 @@ class Dataset():
         except BaseException:
             raise AssertionError('some data cannot be convert to float')
 
+        
         # find duplicate index and drop them
         data.sort_index(inplace=True)
         data = data.loc[~data.index.duplicated(keep='first')]
@@ -675,6 +759,7 @@ class Dataset():
                 data = data.drop('Humidity(%)', axis=1)
             except:
                 pass
+        
 
         logger.info('data no fire has shape  {data.shape}')
         self.data_no_fire = data
@@ -888,7 +973,6 @@ class Dataset():
             raise AssertionError(
                 'no self.data attribute. Call self.merge_fire() first')
 
-
         y = temp[self.monitor].values
 
         if len(x_cols) == 0:
@@ -896,6 +980,7 @@ class Dataset():
         else:
             x = temp[x_cols]
 
+        
         x_cols = x.columns.to_list()
 
         weights = np.ones(len(y))
@@ -1039,22 +1124,28 @@ class Dataset():
             # add pollution list
             self.gas_list = self.poll_df.columns.to_list()
 
-            if (self.city_name == 'Chiang Mai') :
-                # for Thailand, delete all PM2.5 record before 2010
-                self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
+            # if (self.city_name == 'Chiang Mai') :
+            #     # for Thailand, delete all PM2.5 record before 2010
+            #     self.poll_df.loc[:'2010', 'PM2.5'] = np.nan
 
-            elif (self.city_name == 'Bangkok'):
-                # for Thailand, delete all PM2.5 record before 2014
-                self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
+            # elif (self.city_name == 'Bangkok'):
+            #     # for Thailand, delete all PM2.5 record before 2014
+            #     self.poll_df.loc[:'2013', 'PM2.5'] = np.nan
             
-            elif (self.city_name == 'Bangkok'):
-                # for Thailand, delete all PM2.5 record before 2014
-                self.poll_df.loc[:'2012', 'NO2'] = np.nan
+            # elif (self.city_name == 'Bangkok'):
+            #     # for Thailand, delete all PM2.5 record before 2014
+            #     self.poll_df.loc[:'2012', 'NO2'] = np.nan
 
-            elif (self.city_name == 'Hat Yai'):
-            # for Thailand, delete all PM2.5 record before 2014
-                self.poll_df.loc[:'2015', 'PM2.5'] = np.nan
-                #pass
+            # elif (self.city_name == 'Hat Yai'):
+            # # for Thailand, delete all PM2.5 record before 2014
+            #     self.poll_df.loc[:'2015', 'PM2.5'] = np.nan
+            #     #pass
+            # remove bad data (often old record)
+            if self.city_name in dataset.crop_dict.keys():
+                crop_dict = dataset.crop_dict[self.city_name]
+                for poll in crop_dict.keys():
+                    start_date = crop_dict[poll]
+                    self.poll_df.loc[:start_date , poll] = np.nan
 
         else:
             print('no pollution data. Call self.build_pollution first')
@@ -1100,6 +1191,12 @@ class Dataset():
             self.data['datetime'] = pd.to_datetime(
                 self.data['datetime'])
             self.data.set_index('datetime', inplace=True)
+
+        if os.path.exists(self.data_folder + 'imp_pm25.csv'):
+            self.impute_pm25 = pd.read_csv(self.data_folder + 'imp_pm25.csv')
+            self.impute_pm25['datetime'] = pd.to_datetime(
+                self.impute_pm25['datetime'])
+            self.impute_pm25.set_index('datetime', inplace=True)
 
         if os.path.exists(self.data_folder + 'traffic.csv'):
             self.traffic = pd.read_csv(self.data_folder + 'traffic.csv')

@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.6818500000000001,0.85738,140.23479,7.83823,39.8279,6.22735,0.004889046714624197,0.0005672545969648608,2.1550231679342384,0.05483340526844328,0.2377484338072039,0.04500259869039654,Ratchaburi

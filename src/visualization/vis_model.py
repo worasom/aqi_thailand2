@@ -26,7 +26,7 @@ else:
     from vis_data import *
 
 
-def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
+def show_fea_imp(fea_imp, x_log=False, filename=None, title='', error=False):
     """Display feature of importance in a bar plot
 
     Args:
@@ -34,11 +34,12 @@ def show_fea_imp(fea_imp, x_log=False, filename=None, title=''):
         x_log: if True, plot x axis in a long scale
         filename: filename to save figure as
         title: figure title
+        error: if True also plot the error bar
 
     """
     plt.rcParams.update({'font.size': 14})
 
-    if 'imp_std' in fea_imp.columns:
+    if ('imp_std' in fea_imp.columns) and error:
         fea_imp.plot(
             'index',
             'importance',
@@ -139,9 +140,9 @@ def plot_model_perf(
         markersize=2,
         color='red')
 
-    ax[0].set_title(f'Model Perfromance on Predicting {dataset.monitor}')
+    ax[0].set_title(f'Model Perfromance on Predicting {dataset.monitor} for {dataset.city_name}')
     ax[1].set_title(
-        f'Model Perfromance on Predicting Daily Avg of {dataset.monitor}')
+        f'Model Perfromance on Predicting Daily Avg of {dataset.monitor} for {dataset.city_name}')
 
     # if roll:
     # resample

@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.78447,0.8925000000000001,16.640759999999997,3.18223,19.53711,2.57278,0.014800304050930845,0.006001111008249518,0.8296013087957105,0.08826110317310411,0.4952642761417607,0.1496589812429132,Chiang Rai,2483

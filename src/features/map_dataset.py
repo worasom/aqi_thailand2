@@ -15,6 +15,7 @@ if __package__:
     from .dataset import Dataset
     from .build_features import add_wea_vec
     from ..data.read_data import *
+    from ..visualization.mapper import Mapper
 
 else:
     # import anything in the upper directory 
@@ -24,6 +25,7 @@ else:
     from imports import *
     from gen_functions import *
     from data.read_data import *
+    from visualization.mapper import Mapper
     # import files in the same directory
     _i = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if _i not in sys.path:
@@ -33,6 +35,9 @@ else:
 
 
 class MapDataset():
+    """MapDataset is used for easily process shape files and sattelite data. It is different from Mapper object, because MapDataset focus on one country. 
+
+    """
     
 
     def __init__(self, country:str, main_folder: str = '../data/', report_folder:str='../reports/', n_jobs:int=-2):
@@ -57,7 +62,19 @@ class MapDataset():
         self.report_folder = os.path.abspath(report_folder ) + '/' + country + '/'
         if not os.path.exists(self.report_folder):
             os.mkdir(self.report_folder)
-        
+
+    def load_prov_df(self):
+
+        # add region information 
+        provinces = pd.read_csv(self.health_folder + 'income_prov/income_98_19.csv')[['province']]
+
+        regions = ['Whole Kingdom', 'Greater Bangkok', 'Northeastern Region', 'Northern Region', 'Central Region',
+               'Southern Region']
+
+        provinces = provinces[~provinces['province'].isin(regions)]
+
+        self.prov_map = provinces
+
 
     def load_shapefile(self, layer=2):
         """Load shape file for that country 
@@ -67,7 +84,7 @@ class MapDataset():
             filename = self.shapefile_folder + 'THA.gdb'
             # select province level
             prov_map = gpd.read_file(filename, driver='FileGDB', layer=layer)
-            prov_map['geometry'].shape
+            
             # overide old crs and convert
             crs = pyproj.CRS('EPSG:4326')
             prov_map['geometry'] = prov_map['geometry'].set_crs(crs, allow_override=True)
@@ -92,15 +109,24 @@ class MapDataset():
 
 
     def build_station_info(self):
-        """Build station information 
+        """Build station information using mapper object's build function
 
         """
+
+        print(f'all build stations information using mapper object')
+        mapper = Mapper(main_folder=self.main_folder)
+        # because station order may shift as new data is download, so we have to build the station information before loading station information. 
+        mapper.build_station_info()
+        
+        # if os.path.exists(self.map_folder + 'all_station_info.csv'):
+        #     all_station_info = pd.read_csv(self.map_folder + 'all_station_info.csv')
+        #     #print('number of stations =', self.all_station_info.shape)
+        # else:
+        #     raise AssertionError('no station information file')
+
+        all_station_info = pd.read_csv(self.map_folder + 'all_station_info.csv')
+
         print(f'build stations information for {self.country}')
-        if os.path.exists(self.map_folder + 'all_station_info.csv'):
-            all_station_info = pd.read_csv(self.map_folder + 'all_station_info.csv')
-            #print('number of stations =', self.all_station_info.shape)
-        else:
-            raise AssertionError('no station information file')
 
         # add city and country based in location of the stations
         city_list = []
@@ -147,7 +173,7 @@ class MapDataset():
         else:
             self.build_station_info()
 
-    def build_poll_prov(self, pollutant:str):
+    def build_poll_prov(self, pollutant:str, build=False):
         """Compile pollution data for each province. 
 
         If there are more than one stations in the province, take the average of the value.
@@ -155,18 +181,35 @@ class MapDataset():
 
         Args:
             pollutant (str): pollutant to load the pollution 
+            build: if True, build the data using mapper object
         
         To-dos:
-            - load from the raw datat directly to speed up the process
+            - load from the raw data directly to speed up the process
 
         """
+        if build:
+            # use mapper object to compile the latest pollution data.
+            mapper = Mapper(main_folder=self.main_folder)
+            mapper.load_()
+            if self.country=='Thailand':
+                data_columns =  mapper.build_pcd_data()
+                mapper.build_cmu_data(data_columns)
+                mapper.build_bkp_data(data_columns)
+                if pollutant == 'PM2.5':
+                    mapper.build_b_data(data_columns)
+            else:
+                data_columns =  mapper.build_pcd_data()
+                mapper.build_b_data(data_columns)
+                mapper.build_usemb_data(data_columns)
 
         prov_list = self.prov_map['province'].unique() 
         poll_filename = self.map_folder + 'data.csv'
         chunksize = 10000
         
         prov_poll = []
-        for province in tqdm(prov_list):
+        
+        
+        for i, province in tqdm(enumerate(prov_list)):
             # search for station id
             temp = self.stations_info[self.stations_info['province'] == province]
             if len(temp)> 0:

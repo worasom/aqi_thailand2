@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.58426,0.8835499999999998,42.682759999999995,5.3687000000000005,23.60492,4.69092,0.058804765490939964,0.02751663133452204,5.00285699691242,0.3322129236900133,2.5326487359196803,0.6137781445006547,Bueng Kan,382
