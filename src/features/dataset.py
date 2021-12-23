@@ -124,7 +124,7 @@ class Dataset():
         self.with_interact = 0
         # log pollution
         self.log_poll = 0
-        self.use_impute = False
+        self.use_impute = 0
 
          
 
@@ -653,13 +653,12 @@ class Dataset():
         
         if self.use_impute:
             logger.info('Impute missing PM2.5 data ')
+            print('====== Use Impute Data ====')
             # impute the missing pm25 with the imputed data 
             self.poll_df['PM2.5'] = self.poll_df['PM2.5'].fillna(self.impute_pm25['PM2.5'])
 
         if fill_missing:
-            self.poll_df = fill_missing_poll(self.poll_df, limit=6)
-
-        
+            self.poll_df = fill_missing_poll(self.poll_df, limit=6) 
 
         cols = [
                 pollutant,
@@ -762,6 +761,7 @@ class Dataset():
         
 
         logger.info('data no fire has shape  {data.shape}')
+        print("--------------- first index ", data.index.min())
         self.data_no_fire = data
 
     def get_wind_damp_fire(self, wind_lag):

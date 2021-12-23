@@ -99,6 +99,12 @@ def load_model(
             f'{poll_name}_rf_model.pkl',
             'rb'))
 
+
+    if 'use_impute' in poll_meta.keys(): 
+        dataset.use_impute = poll_meta['use_impute']
+    else:
+        dataset.use_impute = 0
+
     if build:
         # build data from scratch
         dataset.build_all_data(build_fire=True, build_holiday=False)

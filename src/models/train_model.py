@@ -741,7 +741,7 @@ class Trainer():
             self,
             city: str, pollutant: str = 'PM2.5', instr='MODIS', 
             main_data_folder: str = '../data/',
-            model_folder='../models/', report_folder='../reports/', n_jobs=-2, default_meta=False):
+            model_folder='../models/', report_folder='../reports/', n_jobs=-2, default_meta=False, use_impute=0, to_op_fire_zone=False):
 
         """Initialize dataset object and add as attribute
 
@@ -750,9 +750,10 @@ class Trainer():
 
     
         self.dataset = Dataset(city, main_data_folder, model_folder, report_folder)
+        self.dataset.use_impute = use_impute
         # remove. from pollutant name for saving file
         self.poll_name = pollutant.replace('.', '')
-        # string to add to the model filename 
+       
         
         
         # load model meta to setup parameters
@@ -778,10 +779,12 @@ class Trainer():
         # assigning the pollution name
         self.dataset.monitor = self.dataset.pollutant = pollutant
         self.pollutant = pollutant
+        self.to_op_fire_zone =  to_op_fire_zone
        
         # unpack meta setting 
         self.split_lists = self.poll_meta['split_lists']
         self.dataset.fire_dict = self.poll_meta['fire_dict']
+        self.poll_meta['use_impute'] = self.dataset.use_impute
         
         try:
             self.dataset.lag_dict = self.poll_meta['lag_dict']
@@ -1651,6 +1654,7 @@ class Trainer():
         poll_meta['fire_dict'] = {'w_speed': 7, 'shift': -5, 'roll': 44, 'damp_surface': 2, 'wind_damp': False, 'wind_lag': False, 'split_direct': False}
         poll_meta['lag_dict'] ={"n_max": 1, "step": 12, "roll": True}
         poll_meta['split_lists'] = [[0.55, 0.2, 0.25], [0.55, 0.2, 0.25], [0.75, 0.25]]
+        poll_meta['use_impute'] = 0
 
         self.poll_meta = poll_meta
 
@@ -1670,6 +1674,7 @@ class Trainer():
             })
         except:
             pass
+
 
         self.poll_meta.update(kwargs)
 
@@ -1718,7 +1723,7 @@ class Trainer():
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
         search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
-        add_weight=True, instr='MODIS', to_op_fire_zone=False, op_fire_twice=False, op_lag=True, use_impute=False,
+        add_weight=True, instr='MODIS', to_op_fire_zone=False, op_fire_twice=False, op_lag=True, use_impute=0,
         search_tpot=False, 
         main_data_folder: str = '../data/',
         model_folder='../models/', report_folder='../reports/'):
@@ -1751,16 +1756,16 @@ def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False,
     set_logging(level=10)
     logger = logging.getLogger(__name__)
     # initialize a trainer object
-    trainer = Trainer(city=city, pollutant=pollutant, instr=instr, default_meta=default_meta)
+    trainer = Trainer(city=city, pollutant=pollutant, instr=instr, default_meta=default_meta, use_impute=use_impute, to_op_fire_zone=to_op_fire_zone)
     trainer.n_jobs = n_jobs
-    trainer.to_op_fire_zone = to_op_fire_zone
+     
 
     #if default_meta:
     #    trainer.get_default_meta()
 
     if ~ add_weight:
         trainer.dataset.add_weight = 0
-    trainer.dataset.use_impute = use_impute
+    
     #if 'x_cols_org' in trainer.poll_meta.keys():
     #    trainer.dataset.x_cols = trainer.dataset.x_cols_org = trainer.poll_meta['x_cols_org']
          
