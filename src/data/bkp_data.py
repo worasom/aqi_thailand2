@@ -249,7 +249,10 @@ def update_bkp(url: str = 'https://bangkokairquality.com/bma/report?lang=th', da
     for sta_id, sta_name in tqdm(zip(sta_selector_list, station_name_list)):
         print('station id', sta_id)
          
-        data = get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder)
+        try:
+            data = get_bkp_station_data_save(url, browser, sta_id, sta_name, data_folder)
+        except:
+            pass
 
     browser.close()
 

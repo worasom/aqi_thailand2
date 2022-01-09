@@ -1176,6 +1176,8 @@ class Dataset():
                 pass
             self.wea['datetime'] = pd.to_datetime(self.wea['datetime'])
             self.wea.set_index('datetime', inplace=True)
+            # remove the data before 2010 to save memory
+            self.wea = self.wea.loc['2010':]
         else:
             print('no weather data. Call self.build_weather first')
 

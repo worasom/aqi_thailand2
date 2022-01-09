@@ -4,6 +4,9 @@ import sys
 import pandas as pd
 import numpy as np
 import json
+from tqdm import tqdm
+from glob import glob
+from pathlib import Path
 
 # webscraping
 import requests
@@ -12,7 +15,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from datetime import datetime, timedelta
 import time
-from tqdm import tqdm
+
 
 
 # if __package__: 
