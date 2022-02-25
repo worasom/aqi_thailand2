@@ -106,6 +106,8 @@ target/
 /references/
 
 *Untitled*
+/models_no_impute/
+/models_w_impute/
 /models/bangkok_back/
 /models/chiang_mai_back/
 /models/hanoi/
