@@ -394,6 +394,10 @@ def impute_pm25(model, prov, x_cols, main_data_folder: str = '../data/', model_f
     provdataset.monitor = 'PM2.5'
 
     xtest = provdataset.data[ x_cols]
+    fill_cols = ["PM10", "O3", "CO", "NO2", "Temperature(C)", 'Dew_Point(C)']
+    for col in fill_cols:
+        mean_value = xtest[col].mean()
+        xtest[col] = xtest[col].fillna(mean_value)
     xtest = xtest.dropna()
     datetime = xtest.index.values
     preds = model.predict(xtest.values)
@@ -404,7 +408,7 @@ def impute_pm25(model, prov, x_cols, main_data_folder: str = '../data/', model_f
     provdataset.save_()
 
 
-def impute_all_prov(main_data_folder: str = '../data/', model_folder='../models/', report_folder='../reports/'):
+def impute_all_prov(main_data_folder: str = '../data/', model_folder='../models_w_impute/', report_folder='../reports_w_impute/'):
     """ 
 
     Args:
@@ -416,14 +420,14 @@ def impute_all_prov(main_data_folder: str = '../data/', model_folder='../models/
 
     prov_list = ['Tak', 'Bangkok', 'Samut Songkhram', 'Samut Prakan', 'Chiang Mai', 'Nan', 'Nakhon Pathom', 'Lamphun', 'Samut Sakhon', 'Sa Kaeo', 'Nakhon Ratchasima', 'Nakhon Phanom', 'Chiang Rai', 'Ratchaburi', 'Khon Kaen', 'Lampang', 'Loei', 'Chon Buri', 'Rayong', 'Pathum Thani', 'Phra Nakhon Si Ayutthaya', 'Ubon Ratchathani', 'Nonthaburi', 'Bueng Kan', 'Phuket']
 
-    prov_list = ['Rayong', 'Khon Kaen',
-    'Songkhla',
-    'Samut Sakhon',
-    'Nan',
-    'Sa Kaeo',
-    'Loei',
-    'Ratchaburi','Chiang Mai', 'Bangkok',
-    'Chon Buri', 'Saraburi']
+    # prov_list = ['Rayong', 'Khon Kaen',
+    # 'Songkhla',
+    # 'Samut Sakhon',
+    # 'Nan',
+    # 'Sa Kaeo',
+    # 'Loei',
+    # 'Ratchaburi','Chiang Mai', 'Bangkok',
+    # 'Chon Buri', 'Saraburi']
 
     poll_name = 'PM25'
     # load the model and x_cols 
@@ -432,11 +436,16 @@ def impute_all_prov(main_data_folder: str = '../data/', model_folder='../models/
     meta_filename =  model_folder + 'Thailand/' + f'{poll_name}_impute_model_meta.json'
     model_meta = load_meta(meta_filename)
     x_cols = model_meta['x_cols']
-    
+    bad_prov = []
     for prov in prov_list:
 
-        impute_pm25(model=model, prov=prov, x_cols=x_cols, main_data_folder=main_data_folder, model_folder=model_folder,report_folder=report_folder, build=True)
+        try:
 
+            impute_pm25(model=model, prov=prov, x_cols=x_cols, main_data_folder=main_data_folder, model_folder=model_folder, report_folder=report_folder, build=True)
 
+        except:
+            bad_prov.append(prov)
+    
+    print('province with no imputation ', bad_prov)
 
      

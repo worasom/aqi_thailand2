@@ -4,6 +4,7 @@
 /reports/figures
 /reports/*.png
 /report/ani_plot
+/powerpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

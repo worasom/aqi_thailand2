@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.7289200000000001,0.90122,47.53687000000001,5.48065,19.05399,4.67719,0.03157804441204187,0.015853341743760026,4.855119235759761,0.31423244492643415,1.6165977149900683,0.36959159577385775,Loei,594

@@ -135,20 +135,22 @@ class Dataset():
 
         """
         with open(self.main_folder + 'pm25/cities_info.json', 'r') as f:
-            city_info_list = json.load(f)
+            self.city_info_list = json.load(f)
 
-        for city_json in city_info_list:
+        for city_json in self.city_info_list:
             if 'City' in city_json.keys():
-                if self.city_name == city_json['City']:
+                if self.city_name == city_json['Region']:
                     self.city_info = city_json
                     break
 
         if ~ hasattr(self, 'city_info'):
             # obtain city information from the PCD station instead 
             pcd_stations = self.get_pcd_station()
-            pcd_stations['Latitude'] = pcd_stations['Latitude'].astype(float)
-            pcd_stations['Longitude'] = pcd_stations['Longitude'].astype(float)
-            self.city_info = pcd_stations.groupby(['Country', 'City'], as_index=False).mean().to_dict('records')[0]
+            pcd_stations = pcd_stations[pcd_stations['City']==self.city_name] 
+            if len(pcd_stations) > 0:
+                pcd_stations['Latitude'] = pcd_stations['Latitude'].astype(float)
+                pcd_stations['Longitude'] = pcd_stations['Longitude'].astype(float)
+                self.city_info = pcd_stations.groupby(['Country', 'City'], as_index=False).mean().to_dict('records')[0]
 
         
         # sometimes the city name is not in pm25/cities_info then we will skip the city_info section.
@@ -411,7 +413,7 @@ class Dataset():
         pcd_stations['City'] = pcd_stations['City'].str.lstrip()
         # add data source 
         pcd_stations['source'] = label
-        return pcd_stations[pcd_stations['City']==self.city_name] 
+        return pcd_stations
 
 
     def build_pollution(self, station_ids:list=[], round=0):
@@ -600,6 +602,7 @@ class Dataset():
         """
     
         pcd_stations = self.get_pcd_station()
+        pcd_stations = pcd_stations[pcd_stations['City']==self.city_name] 
         station_ids = pcd_stations['id'].to_list()
         self.build_pollution(station_ids = station_ids)
         self.build_weather()
@@ -685,8 +688,8 @@ class Dataset():
             rolling_win, min_periods=0, center=True).mean().round(1)
         data = data.dropna()
 
-        # if (pollutant == 'PM2.5') and self.city_name == 'Chiang Mai':
-        #     data = data.loc['2010':]
+        if (pollutant == 'PM2.5') and self.city_name == 'Nakhon Ratchasima':
+            data = data.loc['2010':]
         # elif self.city_name == 'Hanoi':
         #     data = data.loc['2016-03-21':]
 
@@ -1146,6 +1149,13 @@ class Dataset():
                 for poll in crop_dict.keys():
                     start_date = crop_dict[poll]
                     self.poll_df.loc[:start_date , poll] = np.nan
+
+            if self.city_name in self.poll_crop_dict.keys():
+                poll_crop_dict = self.poll_crop_dict[self.city_name]
+                for poll in poll_crop_dict.keys():
+                    ycrop_value = poll_crop_dict[poll]
+                    idxs = self.poll_df[poll][self.poll_df[poll] > ycrop_value].index
+                    self.poll_df.loc[idxs, poll] = np.nan 
 
         else:
             print('no pollution data. Call self.build_pollution first')

@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.18207,0.63817,36.29057999999999,4.541029999999999,33.82299,3.38091,0.02546675610804538,0.008006115717930175,0.910526090662852,0.0549999808080774,0.5691754649393181,0.036364006929930026,Songkhla,43223

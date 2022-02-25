@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.07152,0.5026300000000001,103.26304,6.1387100000000006,49.36599,3.05886,0.045892260301226784,0.017693190780636497,8.194154563155912,0.18446989185230214,0.8026594607234676,0.09429866500763531,Nong Khai,8579

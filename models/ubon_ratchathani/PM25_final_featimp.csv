@@ -1,0 +1,33 @@
+index,importance
+fire_400_800,0.7248124054312917
+Wind_Speed(kmph),0.1838137082352071
+fire_800_1000,0.08447923708784694
+wind_N,0.004217443629038984
+fire_200_400,0.0020106456402454653
+is_rain,0.0006665599763699458
+"time_of_day_[6, 8)",0.0
+"time_of_day_[2, 4)",0.0
+"time_of_day_[20, 22)",0.0
+"time_of_day_[22, 24)",0.0
+"time_of_day_[4, 6)",0.0
+Humidity(%),0.0
+"time_of_day_[8, 10)",0.0
+wind_CALM,0.0
+"time_of_day_[14, 16)",0.0
+wind_E,0.0
+wind_S,0.0
+"time_of_day_[18, 20)",0.0
+month_9,0.0
+"time_of_day_[10, 12)",0.0
+"time_of_day_[0, 2)",0.0
+Temperature(C),0.0
+month_8,0.0
+month_5,0.0
+month_12,0.0
+month_11,0.0
+month_10,0.0
+is_weekend,0.0
+is_holiday,0.0
+fire_100_200,0.0
+fire_0_100,0.0
+wind_W,0.0

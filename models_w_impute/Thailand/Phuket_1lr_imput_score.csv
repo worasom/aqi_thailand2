@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.57787,0.80041,22.18757,3.2110699999999994,23.038110000000003,2.46067,0.04153943374139271,0.015548594077207678,1.736951468681712,0.03117613225244948,0.40967724274387257,0.03527589828764108,Phuket,23834

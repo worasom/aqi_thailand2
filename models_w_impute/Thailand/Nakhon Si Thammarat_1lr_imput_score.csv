@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.25629,0.57569,21.00654,3.5062699999999998,39.557990000000004,2.8485700000000005,0.13619811917448296,0.06784042469075663,2.6442407821107703,0.28225838064518916,3.0894031636655437,0.4251760995948227,Nakhon Si Thammarat,499

@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+-29.34829,-0.67473,38.72556000000001,5.5847999999999995,65.06585,6.125780000000001,30.13992888207528,0.2604975113977952,11.641817842607075,1.1753579776202463,16.49038845053216,1.788778376931524,Yala,35

@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.18709000000000003,0.68913,316.48092,14.74715,73.26718,13.701730000000001,0.015503795234285911,0.00604502550311689,6.037299928647279,0.16092335131981295,0.9697566118476462,0.18311026459486085,Saraburi

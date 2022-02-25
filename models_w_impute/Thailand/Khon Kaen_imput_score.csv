@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.75223,0.9062699999999999,96.03025,7.25586,24.12342,5.519070000000001,0.00214375060738572,0.0011304374767712108,0.8304976530169531,0.02634705127924403,0.10797608582973775,0.03549873393673504,Khon Kaen

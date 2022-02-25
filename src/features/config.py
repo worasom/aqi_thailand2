@@ -73,7 +73,7 @@ def set_config(dataset):
                  'Phrae': 'Mueang Phrae',
                  'Nakhon Ratchasima': 'Chaloem Phra Kiat',
                  'Phayao': 'Mueang Chiang Rai',
-                 'Nakhon Sawan': 'Mueang Nakhon Sawan',
+                 'Nakhon Sawan': 'Mueang Phitsanulok',
                  'Surat Thani': 'Phunphin',
                  'Chachoengsao':'Bangkok',
                  'Prachin Buri':'Bangkok',
@@ -114,6 +114,8 @@ def set_config(dataset):
                                 'PM10': '2015-01'},
                         'Songkhla':{'PM2.5': '2016'},
                         'Hanoi':{'PM2.5': '2016-03-21'}}
+
+    dataset.poll_crop_dict = {'Nakhon Si Thammarat':{'PM2.5': 125}}
 
     # US AQI standard
     dataset.transition_dict =  {

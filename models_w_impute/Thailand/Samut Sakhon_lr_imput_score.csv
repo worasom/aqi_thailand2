@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.79634,0.9230600000000001,78.76164000000001,6.45914,30.23641,4.753,0.0029360593393942718,0.0007988881162103935,1.136157627170534,0.04615115744305153,0.1834555862085187,0.03005757438280386,Samut Sakhon

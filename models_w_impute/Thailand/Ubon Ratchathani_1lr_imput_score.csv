@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.69114,0.84026,81.8423,6.68138,32.72106,4.94337,0.01614677126307988,0.014673725574039547,3.9820200027400943,0.14470212929401624,0.7310603306917361,0.1646494731239671,Ubon Ratchathani,4886

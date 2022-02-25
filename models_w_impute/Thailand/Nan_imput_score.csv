@@ -1,0 +1,2 @@
+,test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province
+0,0.9084499999999999,0.9560700000000001,75.6543,4.4979,21.936890000000002,2.94076,0.008357598006870427,0.004003900875673917,6.909900862771718,0.04729597116974015,0.12150574243402851,0.02290954192276901,Nan

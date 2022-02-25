@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+-18.22062,0.059699999999999996,55.01323,6.2874099999999995,83.28362000000001,6.1518,6.594835319618595,0.5860421088397432,15.382599143624734,1.0993578089553513,19.74076490760511,1.5670461384400907,Narathiwat,33

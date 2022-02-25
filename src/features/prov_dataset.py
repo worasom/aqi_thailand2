@@ -108,7 +108,10 @@ class ProvDataset(Dataset):
             b_data, _ = read_b_data(filename)
             data_list.append(b_data)
 
-        station_ids = self.get_pcd_station()
+        pcd_stations = self.get_pcd_station()['id'].to_list()
+        pcd_stations = pcd_stations[pcd_stations['City']==self.city_name] 
+        station_ids = pcd_stations['id'].to_list()
+        print('station_ids ', station_ids)
         self.build_pollution( station_ids = station_ids)
 
     def build_all_data(self):

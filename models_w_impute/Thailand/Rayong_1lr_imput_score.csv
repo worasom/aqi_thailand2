@@ -1,0 +1,2 @@
+test_r2_score,test_r2,test_mean_squared_error,test_mean_absolute_error,test_mean_absolute_percentage_error,test_median_absolute_error,test_r2_score_std,test_r2_std,test_mean_squared_error_std,test_mean_absolute_error_std,test_mean_absolute_percentage_error_std,test_median_absolute_error_std,province,data_size
+0.7054400000000001,0.9149,49.77945,5.70847,44.67417,4.979899999999999,0.007418026092641575,0.001987181141438532,0.5408904905595748,0.0307796487598182,0.25833494214552744,0.041018586572972575,Rayong,86198
