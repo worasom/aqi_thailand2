@@ -442,7 +442,6 @@ def impute_all_prov(main_data_folder: str = '../data/', model_folder='../models_
         try:
 
             impute_pm25(model=model, prov=prov, x_cols=x_cols, main_data_folder=main_data_folder, model_folder=model_folder, report_folder=report_folder, build=True)
-
         except:
             bad_prov.append(prov)
     

@@ -108,7 +108,7 @@ class ProvDataset(Dataset):
             b_data, _ = read_b_data(filename)
             data_list.append(b_data)
 
-        pcd_stations = self.get_pcd_station()['id'].to_list()
+        pcd_stations = self.get_pcd_station() 
         pcd_stations = pcd_stations[pcd_stations['City']==self.city_name] 
         station_ids = pcd_stations['id'].to_list()
         print('station_ids ', station_ids)
