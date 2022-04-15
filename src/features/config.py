@@ -100,7 +100,8 @@ def set_config(dataset):
                  'Nakhon Phanom':'Mueang Nakhon Phanom',
                  'Phitsanulok': 'Mueang Phitsanulok',
                  'Trat': 'Khao Saming',
-                 'Suphan Buri': 'Bangkok'}
+                 'Suphan Buri': 'Bangkok',
+                 'Battambang': 'Battambang'}
       
 
     # cropping point to remove the earlier data 

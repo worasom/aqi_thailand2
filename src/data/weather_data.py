@@ -563,7 +563,7 @@ def main(
 
     for city_json in tqdm(weather_station_info):
         print('update weather data for ', city_json['city_name'])
-        start_date = datetime(2020, 1, 1)
+        start_date = datetime(2022, 1, 1)
         end_date = datetime.now() - timedelta(days=1)
         update_weather(
             city_json,

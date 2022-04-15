@@ -372,6 +372,8 @@ def plot_all_pollutions(
 
     if filename:
         plt.savefig(filename, dpi=300)
+    
+    return ax
 
 
 def poll_to_aqi(poll_df, roll_dict):

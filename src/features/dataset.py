@@ -681,15 +681,16 @@ class Dataset():
             right_index=True,
             how='inner')
 
-
+         
         # select data and drop null value
         data = data[cols]
         data[pollutant] = data[pollutant].rolling(
             rolling_win, min_periods=0, center=True).mean().round(1)
         data = data.dropna()
-
+       
         if (pollutant == 'PM2.5') and self.city_name == 'Nakhon Ratchasima':
             data = data.loc['2010':]
+
         # elif self.city_name == 'Hanoi':
         #     data = data.loc['2016-03-21':]
 
@@ -1185,6 +1186,9 @@ class Dataset():
             except BaseException:
                 pass
             self.wea['datetime'] = pd.to_datetime(self.wea['datetime'])
+            self.wea.dropna(how='all', axis=1, inplace=True)
+            if self.city_name == 'Battambang':
+                self.wea['Humidity(%)'] = self.wea['Humidity(%)'].fillna(self.wea['Humidity(%)'].mean())
             self.wea.set_index('datetime', inplace=True)
             # remove the data before 2010 to save memory
             self.wea = self.wea.loc['2010':]
