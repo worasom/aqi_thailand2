@@ -32,6 +32,55 @@ else:
 
 """
 
+def show_fea_imp(fea_imp, x_log=False, filename=None, title='', error=False):
+    """Display feature of importance in a bar plot
+
+    Args:
+        imp_df: important dataframe
+        x_log: if True, plot x axis in a long scale
+        filename: filename to save figure as
+        title: figure title
+        error: if True also plot the error bar
+
+    """
+    plt.rcParams.update({'font.size': 14})
+
+    if ('imp_std' in fea_imp.columns) and error:
+        fea_imp.plot(
+            'index',
+            'importance',
+            kind='bar',
+            yerr='imp_std',
+            figsize=(
+                8,
+                5),
+            linewidth=1,
+            edgecolor='black',
+            legend=False, error_kw=dict(ecolor='black', lw=1, capsize=4, capthick=1))
+    else:
+        fea_imp.plot(
+            'index',
+            'importance',
+            kind='bar',
+            figsize=(
+                8,
+                5),
+            linewidth=1,
+            edgecolor='black',
+            legend=False)
+
+    if x_log:
+        plt.xscale('log')
+
+    plt.title(title)
+    plt.xlabel('feature')
+    plt.ylabel('importance unit')
+    plt.tight_layout()
+    if filename:
+        print('export figure as ', filename)
+        plt.savefig(filename, dpi=300)
+
+
 def load_meta(meta_filename: str):
     """Read model_meta dictionary and return model_meta dicitonary
 
@@ -1135,7 +1184,10 @@ class Trainer():
             #to_drop += ['Humidity(%)', 'Temperature(C)']
         else:
             for s in ['Humidity(%)', 'Temperature(C)', 'Wind_Speed(kmph)']:
-                to_drop.remove(s)
+                try:
+                    to_drop.remove(s)
+                except:
+                    pass
         to_drop.reverse()
         self.model, self.dataset.x_cols_org = reduce_cols(
             dataset=self.dataset, x_cols=self.dataset.x_cols, to_drop=to_drop, model=self.model, trn_i=0, val_i=1)
@@ -1722,7 +1774,7 @@ class Trainer():
 
 
 def train_city_s1(city:str, pollutant= 'PM2.5', n_jobs=-2, default_meta=False, 
-        search_wind_damp=False, choose_cat_hour=False, choose_cat_month=True, 
+        search_wind_damp=True, choose_cat_hour=False, choose_cat_month=True, 
         add_weight=True, instr='MODIS', to_op_fire_zone=False, op_fire_twice=False, op_lag=True, use_impute=0,
         search_tpot=False, 
         main_data_folder: str = '../data/',

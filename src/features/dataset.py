@@ -543,6 +543,7 @@ class Dataset():
             wea = pd.read_csv(filename)
             wea = fill_missing_weather(wea, limit=12)
             number_cols = ['Temperature(C)', 'Humidity(%)', 'Wind_Speed(kmph)', 'Precip.(mm)', 'Pressure(hPa)']
+            number_cols = [col for col in number_cols if col in wea.columns]
             # for col in number_cols:
             #     # remove outliers from the data 
             #     #q_hi = wea[col].quantile(0.99)
@@ -683,6 +684,7 @@ class Dataset():
 
          
         # select data and drop null value
+        cols = [col for col in cols if col in data.columns]
         data = data[cols]
         data[pollutant] = data[pollutant].rolling(
             rolling_win, min_periods=0, center=True).mean().round(1)
