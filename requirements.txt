@@ -8,7 +8,7 @@ wget==3.2
 selenium==3.141.0
 scipy==1.4.1
 matplotlib==3.3.2
-numpy==1.19.3
+numpy==1.22.0
 tqdm==4.43.0
 geopandas==0.6.2
 scikit_optimize==0.8.1
