@@ -17,7 +17,7 @@ pandas==1.1.2
 requests==2.22.0
 TPOT==0.11.5
 Fiona==1.8.13
-joblib==0.14.1
+joblib==1.2.0
 Keras==2.3.1
 beautifulsoup4==4.9.3
 scikit_learn==0.23.2
