@@ -103,7 +103,7 @@ target/
 .mypy_cache/
 
 *.exe
-/references/
+/un_references/
 
 *Untitled*
 /models_no_impute/

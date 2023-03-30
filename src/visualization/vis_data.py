@@ -314,7 +314,7 @@ def plot_all_pollutions(
         #ax[0].legend(loc='upper left')
         ax[0].set_xlim([poll_df.index.min(), poll_df.index.max()])
         ax[0].set_title(
-            f'Pollutants Data for {city_name} Averaged from All Stations')
+            f'Pollution Data for {city_name} Average All Stations')
         ax[-1].set_xlabel('date')
 
     else:
