@@ -14,7 +14,7 @@ geopandas==0.6.2
 scikit_optimize==0.8.1
 bokeh==2.1.1
 pandas==1.1.2
-requests==2.22.0
+requests==2.31.0
 TPOT==0.11.5
 Fiona==1.8.13
 joblib==0.14.1
